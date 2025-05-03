@@ -1,0 +1,134 @@
+/* Auth Forms */
+.auth-form-container {
+  width: 100%;
+  max-width: 400px;
+}
+
+.auth-form {
+  width: 100%;
+}
+
+.auth-subtitle {
+  margin-bottom: var(--space-xl);
+  color: var(--color-neutral-600);
+}
+
+.auth-actions {
+  margin-top: var(--space-lg);
+  width: 100%;
+}
+
+.auth-actions button {
+  width: 100%;
+}
+
+.auth-links {
+  margin-top: var(--space-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  text-align: center;
+}
+
+.auth-links a {
+  color: var(--color-primary-600);
+  font-size: 0.875rem;
+  transition: color var(--transition-fast);
+}
+
+.auth-links a:hover {
+  color: var(--color-primary-500);
+  text-decoration: underline;
+}
+
+.auth-error {
+  background-color: rgba(229, 62, 62, 0.1);
+  color: var(--color-error);
+  padding: var(--space-md);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-md);
+  font-size: 0.875rem;
+}
+
+/* Role Selection */
+.role-selection {
+  width: 100%;
+}
+
+.role-selection h3 {
+  margin-bottom: var(--space-md);
+  text-align: center;
+}
+
+.roles-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  margin-bottom: var(--space-lg);
+}
+
+.role-card {
+  display: flex;
+  align-items: center;
+  padding: var(--space-md);
+  border: 2px solid var(--color-neutral-200);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-normal);
+}
+
+.role-card:hover {
+  border-color: var(--color-primary-300);
+  background-color: var(--color-primary-50);
+}
+
+.role-card.selected {
+  border-color: var(--color-primary-600);
+  background-color: var(--color-primary-50);
+}
+
+.role-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  background-color: var(--color-primary-100);
+  border-radius: var(--radius-full);
+  margin-right: var(--space-md);
+  color: var(--color-primary-700);
+  font-size: 1.25rem;
+  flex-shrink: 0;
+  transition: all var(--transition-normal);
+}
+
+.role-card:hover .role-icon,
+.role-card.selected .role-icon {
+  background-color: var(--color-primary-200);
+}
+
+.role-details {
+  flex: 1;
+}
+
+.role-details h4 {
+  margin-bottom: 0.25rem;
+  font-family: var(--font-body);
+  font-weight: 600;
+}
+
+.role-details p {
+  margin-bottom: 0;
+  font-size: 0.875rem;
+  color: var(--color-neutral-600);
+}
+
+.role-actions {
+  display: flex;
+  gap: var(--space-md);
+  width: 100%;
+}
+
+.role-actions button {
+  flex: 1;
+}

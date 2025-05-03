@@ -1,0 +1,222 @@
+/* Navbar */
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: var(--z-sticky);
+  transition: all var(--transition-normal);
+  background-color: rgba(255, 255, 255, 0.95);
+  box-shadow: var(--shadow-md);
+}
+
+.navbar-container {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: var(--space-md) var(--space-xl);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.navbar-logo {
+  display: flex;
+  align-items: center;
+  color: var(--color-primary-700);
+  font-weight: 700;
+  font-size: 1.75rem;
+  transition: color var(--transition-fast);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.navbar-logo:hover {
+  color: var(--color-primary-600);
+}
+
+.logo-icon {
+  margin-right: var(--space-sm);
+  font-size: 2rem;
+}
+
+.navbar-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.auth-buttons {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.nav-link {
+  color: var(--color-primary-700);
+  font-weight: 600;
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-md);
+  transition: all var(--transition-fast);
+  font-size: 1.1rem;
+}
+
+.nav-link:hover {
+  color: var(--color-primary-600);
+  background-color: var(--color-primary-50);
+}
+
+.mobile-menu-toggle {
+  display: none;
+  background: none;
+  border: none;
+  color: var(--color-primary-700);
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+/* User menu */
+.user-menu-container {
+  position: relative;
+}
+
+.user-menu-button {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  background: none;
+  border: none;
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  color: var(--color-primary-700);
+  font-weight: 600;
+  transition: all var(--transition-fast);
+}
+
+.user-menu-button:hover {
+  background-color: var(--color-primary-50);
+  color: var(--color-primary-600);
+}
+
+.user-name {
+  max-width: 120px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.user-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  background-color: white;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+  min-width: 200px;
+  z-index: var(--z-dropdown);
+}
+
+.dropdown-item {
+  display: block;
+  padding: var(--space-md);
+  color: var(--color-primary-700);
+  font-weight: 600;
+  transition: all var(--transition-fast);
+  text-align: left;
+  width: 100%;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+.dropdown-item:hover {
+  background-color: var(--color-primary-50);
+  color: var(--color-primary-600);
+}
+
+.dropdown-item.logout {
+  color: var(--color-error);
+}
+
+.dropdown-item.logout:hover {
+  background-color: rgba(229, 62, 62, 0.1);
+}
+
+/* Mobile menu */
+.mobile-menu {
+  display: none;
+  width: 100%;
+  background-color: white;
+  overflow: hidden;
+}
+
+.mobile-menu-items {
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-md) 0;
+}
+
+.mobile-nav-link {
+  padding: var(--space-md);
+  color: var(--color-primary-700);
+  font-weight: 600;
+  transition: all var(--transition-fast);
+  text-align: left;
+  width: 100%;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+.mobile-nav-link:hover {
+  background-color: var(--color-primary-50);
+  color: var(--color-primary-600);
+}
+
+.mobile-nav-link.logout {
+  color: var(--color-error);
+}
+
+.mobile-nav-link.logout:hover {
+  background-color: rgba(229, 62, 62, 0.1);
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+  .navbar-container {
+    padding: var(--space-md);
+  }
+  
+  .auth-buttons {
+    display: none;
+  }
+  
+  .user-menu-container {
+    display: none;
+  }
+  
+  .mobile-menu-toggle {
+    display: flex;
+  }
+  
+  .mobile-menu {
+    display: block;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    z-index: var(--z-dropdown);
+    box-shadow: var(--shadow-md);
+  }
+  
+  .navbar.mobile-open {
+    background-color: white;
+    box-shadow: var(--shadow-md);
+  }
+}
+
+@media (min-width: 769px) {
+  .mobile-menu {
+    display: none !important;
+  }
+}
