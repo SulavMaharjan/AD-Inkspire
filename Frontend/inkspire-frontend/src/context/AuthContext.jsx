@@ -1,67 +1,182 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+// import { createContext, useContext, useState, useEffect } from "react";
+// import authService from "./authService";
+
+// const AuthContext = createContext();
+
+// export function useAuth() {
+//   return useContext(AuthContext);
+// }
+
+// export const AuthProvider = ({ children }) => {
+//   const [currentUser, setCurrentUser] = useState(null);
+//   const [currentRole, setCurrentRole] = useState(null);
+//   const [loading, setLoading] = useState(true);
+
+//   useEffect(() => {
+//     // Check for user in localStorage on initial load
+//     const user = authService.getCurrentUser();
+//     const role = authService.getCurrentRole();
+//     setCurrentUser(user);
+//     setCurrentRole(role);
+//     setLoading(false);
+//   }, []);
+
+//   // Sign up function
+//   const signup = async (
+//     name,
+//     email,
+//     username,
+//     password,
+//     confirmPassword,
+//     role
+//   ) => {
+//     const response = await authService.register(
+//       name,
+//       email,
+//       username,
+//       password,
+//       confirmPassword,
+//       role
+//     );
+
+//     if (response.isSuccess) {
+//       setCurrentUser(response.user);
+//       setCurrentRole(response.role);
+//       return response;
+//     }
+
+//     throw new Error(response.message || "Failed to sign up");
+//   };
+
+//   // Login function
+//   const login = async (emailOrUsername, password, role) => {
+//     const response = await authService.login(emailOrUsername, password, role);
+
+//     if (response.isSuccess) {
+//       setCurrentUser(response.user);
+//       setCurrentRole(response.role);
+//       return response;
+//     }
+
+//     throw new Error(response.message || "Failed to login");
+//   };
+
+//   // Logout function
+//   const logout = async () => {
+//     await authService.logout();
+//     setCurrentUser(null);
+//     setCurrentRole(null);
+//   };
+
+//   // Refresh token function
+//   const refreshToken = async () => {
+//     const success = await authService.refreshToken();
+//     if (!success) {
+//       // If refresh failed, logout
+//       await logout();
+//     }
+//     return success;
+//   };
+
+//   const value = {
+//     currentUser,
+//     currentRole,
+//     signup,
+//     login,
+//     logout,
+//     refreshToken,
+//     isAuthenticated: authService.isAuthenticated,
+//   };
+
+//   return (
+//     <AuthContext.Provider value={value}>
+//       {!loading && children}
+//     </AuthContext.Provider>
+//   );
+// };
+
+// export default AuthContext;
+
+import { createContext, useContext, useState, useEffect } from "react";
+import authService from "./authService";
 
 const AuthContext = createContext();
 
-export const useAuth = () => {
+export function useAuth() {
   return useContext(AuthContext);
-};
+}
 
 export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
+  const [currentRole, setCurrentRole] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Check if user is logged in from localStorage on initial load
   useEffect(() => {
-    const user = localStorage.getItem('inkspireUser');
-    if (user) {
-      setCurrentUser(JSON.parse(user));
-    }
+    // Check for user in localStorage on initial load
+    const user = authService.getCurrentUser();
+    const role = authService.getCurrentRole();
+    setCurrentUser(user);
+    setCurrentRole(role);
     setLoading(false);
   }, []);
 
-  const login = (email, password, role) => {
-    // In a real app, this would make an API call
-    // For demo purposes, we'll simulate a successful login
-    const user = {
-      id: '123456',
-      email,
-      role,
-      name: email.split('@')[0],
-    };
-    
-    setCurrentUser(user);
-    localStorage.setItem('inkspireUser', JSON.stringify(user));
-    return Promise.resolve(user);
-  };
-
-  const signup = (name, email, password, role) => {
-    // In a real app, this would make an API call
-    // For demo purposes, we'll simulate a successful signup
-    const user = {
-      id: '123456',
-      email,
-      role,
+  // Sign up function - always as member
+  const signup = async (name, email, username, password, confirmPassword) => {
+    const response = await authService.register(
       name,
-    };
-    
-    setCurrentUser(user);
-    localStorage.setItem('inkspireUser', JSON.stringify(user));
-    return Promise.resolve(user);
+      email,
+      username,
+      password,
+      confirmPassword
+    );
+
+    if (response.isSuccess) {
+      setCurrentUser(response.user);
+      setCurrentRole(response.role);
+      return response;
+    }
+
+    throw new Error(response.message || "Failed to sign up");
   };
 
-  const logout = () => {
+  // Login function with role selection
+  const login = async (emailOrUsername, password, role) => {
+    const response = await authService.login(emailOrUsername, password, role);
+
+    if (response.isSuccess) {
+      setCurrentUser(response.user);
+      setCurrentRole(response.role);
+      return response;
+    }
+
+    throw new Error(response.message || "Failed to login");
+  };
+
+  // Logout function
+  const logout = async () => {
+    await authService.logout();
     setCurrentUser(null);
-    localStorage.removeItem('inkspireUser');
-    return Promise.resolve();
+    setCurrentRole(null);
+  };
+
+  // Refresh token function
+  const refreshToken = async () => {
+    const success = await authService.refreshToken();
+    if (!success) {
+      // If refresh failed, logout
+      await logout();
+    }
+    return success;
   };
 
   const value = {
     currentUser,
-    login,
+    currentRole,
     signup,
+    login,
     logout,
-    isAuthenticated: !!currentUser,
-    role: currentUser?.role,
+    refreshToken,
+    isAuthenticated: authService.isAuthenticated,
   };
 
   return (
@@ -70,3 +185,5 @@ export const AuthProvider = ({ children }) => {
     </AuthContext.Provider>
   );
 };
+
+export default AuthContext;
