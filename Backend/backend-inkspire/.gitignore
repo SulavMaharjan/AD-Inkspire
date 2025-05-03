@@ -21,3 +21,7 @@ bld/
 msbuild.log
 msbuild.err
 msbuild.wrn
+
+# NuGet Packages (optional)
+packages/
+*.nupkg
