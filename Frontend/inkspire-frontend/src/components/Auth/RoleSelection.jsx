@@ -1,17 +1,38 @@
-import { motion } from 'framer-motion';
-import { FaUser, FaUserTie, FaUserShield } from 'react-icons/fa';
-import Button from '../UI/Button';
-import '../../styles/Auth.css';
+import { motion } from "framer-motion";
+import { FaUser, FaUserTie, FaUserShield } from "react-icons/fa";
+import Button from "../UI/Button";
+import "../../styles/Auth.css";
 
-const RoleSelection = ({ selectedRole, onSelect, onBack, onSubmit, loading }) => {
+const RoleSelection = ({
+  selectedRole,
+  onSelect,
+  onBack,
+  onSubmit,
+  loading,
+}) => {
   const roles = [
-    { id: 'member', label: 'Member', icon: FaUser, description: 'Browse books and manage your reading list' },
-    { id: 'staff', label: 'Staff', icon: FaUserTie, description: 'Manage book inventory and member requests' },
-    { id: 'admin', label: 'Admin', icon: FaUserShield, description: 'Full access to all library functions' },
+    {
+      id: "member",
+      label: "Member",
+      icon: FaUser,
+      description: "Browse books and manage your reading list",
+    },
+    {
+      id: "staff",
+      label: "Staff",
+      icon: FaUserTie,
+      description: "Manage book inventory and member requests",
+    },
+    {
+      id: "superAdmin",
+      label: "superAdmin",
+      icon: FaUserShield,
+      description: "Full access to all library functions",
+    },
   ];
-  
+
   return (
-    <motion.div 
+    <motion.div
       className="role-selection"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
@@ -22,7 +43,9 @@ const RoleSelection = ({ selectedRole, onSelect, onBack, onSubmit, loading }) =>
         {roles.map((role) => (
           <motion.div
             key={role.id}
-            className={`role-card ${selectedRole === role.id ? 'selected' : ''}`}
+            className={`role-card ${
+              selectedRole === role.id ? "selected" : ""
+            }`}
             onClick={() => onSelect(role.id)}
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.98 }}
@@ -41,13 +64,13 @@ const RoleSelection = ({ selectedRole, onSelect, onBack, onSubmit, loading }) =>
         <Button type="button" variant="secondary" onClick={onBack}>
           Back
         </Button>
-        <Button 
-          type="button" 
-          variant="primary" 
+        <Button
+          type="button"
+          variant="primary"
           disabled={!selectedRole || loading}
           onClick={onSubmit}
         >
-          {loading ? 'Processing...' : 'Continue'}
+          {loading ? "Processing..." : "Continue"}
         </Button>
       </div>
     </motion.div>
