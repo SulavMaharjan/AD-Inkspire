@@ -98,7 +98,22 @@ builder.Services.AddSwaggerGen(option =>
     });
 });
 
+// Add CORS policy
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowViteApp",
+        builder => builder
+            .WithOrigins("http://localhost:5173") // Default Vite dev server port
+            .AllowAnyMethod()
+            .AllowAnyHeader()
+            .AllowCredentials());
+});
+
+
 var app = builder.Build();
+
+// Use CORS before routing
+app.UseCors("AllowViteApp");
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
