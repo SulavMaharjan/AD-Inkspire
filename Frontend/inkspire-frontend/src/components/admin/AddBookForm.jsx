@@ -2,8 +2,14 @@ import React, { useState } from "react";
 import FormField from "./FormField";
 import ToggleSwitch from "./ToggleSwitch";
 import { Book } from "lucide-react";
+import { useAuth } from "../../context/AuthContext";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const AddBookForm = () => {
+  const { currentRole } = useAuth();
+  const navigate = useNavigate();
+  
   const initialFormData = {
     title: "",
     isbn: "",
@@ -21,11 +27,13 @@ const AddBookForm = () => {
     isAwardWinner: false,
     isComingSoon: false,
     coverImageUrl: "",
+    isOnSale: false,
   };
 
   const [formData, setFormData] = useState(initialFormData);
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
 
   const genreOptions = [
     { value: "Fiction", label: "Fiction" },
@@ -98,37 +106,30 @@ const AddBookForm = () => {
     if (!formData.title.trim()) newErrors.title = "Title is required";
     if (!formData.isbn.trim()) newErrors.isbn = "ISBN is required";
     if (!formData.author.trim()) newErrors.author = "Author is required";
-    if (!formData.publisher.trim())
-      newErrors.publisher = "Publisher is required";
-    if (!formData.publicationDate)
-      newErrors.publicationDate = "Publication date is required";
+    if (!formData.publisher.trim()) newErrors.publisher = "Publisher is required";
+    if (!formData.publicationDate) newErrors.publicationDate = "Publication date is required";
 
     // Price validation
     if (!formData.price.trim()) {
       newErrors.price = "Price is required";
-    } else if (isNaN(Number(formData.price)) || Number(formData.price) <= 0) {
-      newErrors.price = "Price must be a positive number";
+    } else if (isNaN(Number(formData.price))) {
+      newErrors.price = "Price must be a number";
+    } else if (Number(formData.price) <= 0) {
+      newErrors.price = "Price must be greater than 0";
     }
 
     // Stock validation
     if (!formData.stockQuantity.trim()) {
       newErrors.stockQuantity = "Stock quantity is required";
-    } else if (
-      isNaN(Number(formData.stockQuantity)) ||
-      Number(formData.stockQuantity) < 0
-    ) {
-      newErrors.stockQuantity = "Stock quantity must be a non-negative number";
+    } else if (isNaN(Number(formData.stockQuantity))) {
+      newErrors.stockQuantity = "Stock quantity must be a number";
+    } else if (Number(formData.stockQuantity) < 0) {
+      newErrors.stockQuantity = "Stock quantity must be 0 or greater";
     }
 
     if (!formData.genre) newErrors.genre = "Genre is required";
     if (!formData.language) newErrors.language = "Language is required";
     if (!formData.format) newErrors.format = "Format is required";
-
-    // ISBN format validation (simple validation for demo)
-    const isbnRegex = /^(?=(?:\D*\d){10}(?:(?:\D*\d){3})?$)[\d-]+$/;
-    if (formData.isbn && !isbnRegex.test(formData.isbn.replace(/-/g, ""))) {
-      newErrors.isbn = "Invalid ISBN format";
-    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -136,30 +137,85 @@ const AddBookForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setSubmitError("");
 
     if (!validateForm()) return;
 
     setIsSubmitting(true);
 
     try {
-      // In a real app, this would be an API call to add the book
-      console.log("Submitting book data:", formData);
+      // Prepare the data for the API
+      const bookData = {
+        title: formData.title,
+        isbn: formData.isbn,
+        author: formData.author,
+        publisher: formData.publisher,
+        PublicationDate: new Date(formData.publicationDate).toISOString(),
+        price: parseFloat(formData.price),
+        stockQuantity: parseInt(formData.stockQuantity),
+        genre: formData.genre,
+        language: formData.language,
+        format: formData.format,
+        description: formData.description,
+        availableInLibrary: formData.availableInLibrary,
+        isBestseller: formData.isBestseller,
+        isAwardWinner: formData.isAwardWinner,
+        isComingSoon: formData.isComingSoon,
+        coverImageUrl: formData.coverImageUrl,
+        isOnSale: formData.isOnSale,
+      };
 
-      // Mock successful submission
-      setTimeout(() => {
-        alert("Book added successfully!");
-        setFormData(initialFormData);
-        setIsSubmitting(false);
-      }, 1000);
+      // Get token from localStorage
+      const token = localStorage.getItem("token");
+      if (!token) {
+        throw new Error("Authentication token not found");
+      }
+
+      // Make API call directly
+      const response = await axios.post(
+        "https://localhost:7039/api/Books/addBooks",
+        bookData,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      // Handle successful submission
+      alert("Book added successfully!");
+      setFormData(initialFormData);
+      
+      // Redirect based on role
+      if (currentRole === "SuperAdmin") {
+        navigate("/admin-dashboard/books");
+      } else if (currentRole === "Staff") {
+        navigate("/staff-dashboard/books");
+      }
     } catch (error) {
       console.error("Error adding book:", error);
+      const errorMessage = error.response?.data?.message || error.message || "Failed to add book. Please try again.";
+      setSubmitError(errorMessage);
+    } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleCancel = () => {
+    // Redirect based on role
+    if (currentRole === "SuperAdmin") {
+      navigate("/admin-dashboard/books");
+    } else if (currentRole === "Staff") {
+      navigate("/staff-dashboard/books");
     }
   };
 
   return (
     <div className="add-book-form-container">
       <form className="add-book-form" onSubmit={handleSubmit}>
+        {submitError && <div className="form-error-message">{submitError}</div>}
+        
         <div className="form-grid">
           <div className="form-section basic-info">
             <h2 className="section-title">Basic Information</h2>
@@ -356,21 +412,32 @@ const AddBookForm = () => {
                 checked={formData.isComingSoon}
                 onChange={handleToggleChange}
               />
+
               <ToggleSwitch
                 label="On Sale"
                 name="isOnSale"
                 checked={formData.isOnSale}
                 onChange={handleToggleChange}
               />
+          
             </div>
           </div>
         </div>
 
         <div className="form-actions">
-          <button type="button" className="btn-cancel">
+          <button 
+            type="button" 
+            className="btn-cancel"
+            onClick={handleCancel}
+            disabled={isSubmitting}
+          >
             Cancel
           </button>
-          <button type="submit" className="btn-submit" disabled={isSubmitting}>
+          <button 
+            type="submit" 
+            className="btn-submit" 
+            disabled={isSubmitting}
+          >
             {isSubmitting ? "Adding Book..." : "Add Book"}
             {!isSubmitting && <Book size={18} className="btn-icon" />}
           </button>
@@ -436,8 +503,9 @@ const AddBookForm = () => {
                 <span className="book-flag coming-soon">Coming Soon</span>
               )}
               {formData.isOnSale && (
-                <span className="book-flag coming-soon">On Sale</span>
+                <span className="book-flag on-sale">On Sale</span>
               )}
+            
             </div>
           </div>
         </div>
