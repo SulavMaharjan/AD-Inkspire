@@ -27,6 +27,7 @@ const AddBookForm = () => {
     isAwardWinner: false,
     isComingSoon: false,
     coverImageUrl: "",
+    isOnSale: false,
   };
 
   const [formData, setFormData] = useState(initialFormData);
@@ -161,6 +162,7 @@ const AddBookForm = () => {
         isAwardWinner: formData.isAwardWinner,
         isComingSoon: formData.isComingSoon,
         coverImageUrl: formData.coverImageUrl,
+        isOnSale: formData.isOnSale,
       };
 
       // Get token from localStorage
@@ -410,6 +412,13 @@ const AddBookForm = () => {
                 checked={formData.isComingSoon}
                 onChange={handleToggleChange}
               />
+
+              <ToggleSwitch
+                label="On Sale"
+                name="isOnSale"
+                checked={formData.isOnSale}
+                onChange={handleToggleChange}
+              />
           
             </div>
           </div>
@@ -492,6 +501,9 @@ const AddBookForm = () => {
               )}
               {formData.isComingSoon && (
                 <span className="book-flag coming-soon">Coming Soon</span>
+              )}
+              {formData.isOnSale && (
+                <span className="book-flag on-sale">On Sale</span>
               )}
             
             </div>
