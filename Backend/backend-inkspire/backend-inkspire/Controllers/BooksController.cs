@@ -1,0 +1,291 @@
+﻿using backend_inkspire.DTOs;
+using backend_inkspire.Services;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+
+namespace backend_inkspire.Controllers
+{
+    [Route("api/[controller]")]
+    [ApiController]
+    public class BooksController : ControllerBase
+    {
+        private readonly IBookService _bookService;
+
+        public BooksController(IBookService bookService)
+        {
+            _bookService = bookService;
+        }
+
+        // GET: api/books
+        [HttpGet("getbooks")]
+        public async Task<ActionResult<PaginatedResponseDTO<BookResponseDTO>>> GetBooks([FromQuery] BookFilterDTO filter)
+        {
+            var books = await _bookService.GetBooksAsync(filter);
+            return Ok(books);
+        }
+
+        // GET: api/books/5
+        [HttpGet("{id}")]
+        public async Task<ActionResult<BookResponseDTO>> GetBook(int id)
+        {
+            var book = await _bookService.GetBookByIdAsync(id);
+            if (book == null)
+            {
+                return NotFound();
+            }
+            return Ok(book);
+        }
+
+        // POST: api/books
+        [HttpPost("addBooks")]
+        [Authorize(Roles = "SuperAdmin,Staff")]
+        public async Task<ActionResult<BookResponseDTO>> PostBook(BookDTO bookDto)
+        {
+            try
+            {
+                var book = await _bookService.AddBookAsync(bookDto);
+                return CreatedAtAction(nameof(GetBook), new { id = book.Id }, book);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        // PUT: api/books/5
+        [HttpPut("{id}")]
+        [Authorize(Roles = "SuperAdmin,Staff")]
+        public async Task<IActionResult> PutBook(int id, BookDTO bookDto)
+        {
+            try
+            {
+                var book = await _bookService.UpdateBookAsync(id, bookDto);
+                if (book == null)
+                {
+                    return NotFound();
+                }
+                return NoContent();
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        // DELETE: api/books/5
+        [HttpDelete("{id}")]
+        [Authorize(Roles = "SuperAdmin,Staff")]
+        public async Task<IActionResult> DeleteBook(int id)
+        {
+            var result = await _bookService.DeleteBookAsync(id);
+            if (!result)
+            {
+                return NotFound();
+            }
+            return NoContent();
+        }
+
+        // POST: api/books/5/discount
+        [HttpPost("{id}/discount")]
+        [Authorize(Roles = "SuperAdmin,Staff")]
+        public async Task<IActionResult> AddDiscount(int id, BookDiscountDTO discountDto)
+        {
+            try
+            {
+                var result = await _bookService.AddBookDiscountAsync(id, discountDto);
+                if (!result)
+                {
+                    return NotFound();
+                }
+                return NoContent();
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        // DELETE: api/books/5/discount
+        [HttpDelete("{id}/discount")]
+        [Authorize(Roles = "SuperAdmin,Staff")]
+        public async Task<IActionResult> RemoveDiscount(int id)
+        {
+            var result = await _bookService.RemoveBookDiscountAsync(id);
+            if (!result)
+            {
+                return NotFound();
+            }
+            return NoContent();
+        }
+
+
+        // GET: api/books/bestsellers
+        [HttpGet("bestsellers")]
+        public async Task<ActionResult<PaginatedResponseDTO<BookResponseDTO>>> GetBestsellers(
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 10)
+        {
+            var filter = new BookFilterDTO
+            {
+                Bestseller = true,
+                PageNumber = pageNumber,
+                PageSize = pageSize
+            };
+            return await GetBooks(filter);
+        }
+
+        // GET: api/books/awardwinners
+        [HttpGet("awardwinners")]
+        public async Task<ActionResult<PaginatedResponseDTO<BookResponseDTO>>> GetAwardWinners(
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 10)
+        {
+            var filter = new BookFilterDTO
+            {
+                AwardWinner = true,
+                PageNumber = pageNumber,
+                PageSize = pageSize
+            };
+            return await GetBooks(filter);
+        }
+
+        // GET: api/books/newreleases
+        [HttpGet("newreleases")]
+        public async Task<ActionResult<PaginatedResponseDTO<BookResponseDTO>>> GetNewReleases(
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 10)
+        {
+            var filter = new BookFilterDTO
+            {
+                NewRelease = true,
+                PageNumber = pageNumber,
+                PageSize = pageSize
+            };
+            return await GetBooks(filter);
+        }
+
+        // GET: api/books/newarrivals
+        [HttpGet("newarrivals")]
+        public async Task<ActionResult<PaginatedResponseDTO<BookResponseDTO>>> GetNewArrivals(
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 10)
+        {
+            var filter = new BookFilterDTO
+            {
+                NewArrival = true,
+                PageNumber = pageNumber,
+                PageSize = pageSize
+            };
+            return await GetBooks(filter);
+        }
+
+        // GET: api/books/comingsoon
+        [HttpGet("comingsoon")]
+        public async Task<ActionResult<PaginatedResponseDTO<BookResponseDTO>>> GetComingSoon(
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 10)
+        {
+            var filter = new BookFilterDTO
+            {
+                ComingSoon = true,
+                PageNumber = pageNumber,
+                PageSize = pageSize
+            };
+            return await GetBooks(filter);
+        }
+
+        // GET: api/books/onsale
+        [HttpGet("onsale")]
+        public async Task<ActionResult<PaginatedResponseDTO<BookResponseDTO>>> GetOnSale(
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 10)
+        {
+            var filter = new BookFilterDTO
+            {
+                OnSale = true,
+                PageNumber = pageNumber,
+                PageSize = pageSize
+            };
+            return await GetBooks(filter);
+        }
+
+        // GET: api/books/search/isbn/{isbn}
+        [HttpGet("search/isbn/{isbn}")]
+        public async Task<ActionResult<BookResponseDTO>> GetBookByIsbn(string isbn)
+        {
+            var filter = new BookFilterDTO { SearchTerm = isbn };
+            var books = await _bookService.GetBooksAsync(filter);
+
+            if (books?.Items == null || !books.Items.Any())
+            {
+                return NotFound();
+            }
+
+            return Ok(books.Items.First());
+        }
+
+        // GET: api/books/search/author/{author}
+        [HttpGet("search/author/{author}")]
+        public async Task<ActionResult<PaginatedResponseDTO<BookResponseDTO>>> GetBooksByAuthor(
+            string author,
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 10)
+        {
+            var filter = new BookFilterDTO
+            {
+                Author = author,
+                PageNumber = pageNumber,
+                PageSize = pageSize
+            };
+            return await GetBooks(filter);
+        }
+
+        // GET: api/books/search/genre/{genre}
+        [HttpGet("search/genre/{genre}")]
+        public async Task<ActionResult<PaginatedResponseDTO<BookResponseDTO>>> GetBooksByGenre(
+            string genre,
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 10)
+        {
+            var filter = new BookFilterDTO
+            {
+                Genre = genre,
+                PageNumber = pageNumber,
+                PageSize = pageSize
+            };
+            return await GetBooks(filter);
+        }
+
+        // GET: api/books/toprated
+        [HttpGet("toprated")]
+        public async Task<ActionResult<PaginatedResponseDTO<BookResponseDTO>>> GetTopRated(
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 10)
+        {
+            var filter = new BookFilterDTO
+            {
+                SortBy = "Rating",
+                SortAscending = false,
+                PageNumber = pageNumber,
+                PageSize = pageSize
+            };
+            return await GetBooks(filter);
+        }
+
+        // GET: api/books/mostpopular
+        [HttpGet("mostpopular")]
+        public async Task<ActionResult<PaginatedResponseDTO<BookResponseDTO>>> GetMostPopular(
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 10)
+        {
+            var filter = new BookFilterDTO
+            {
+                SortBy = "Popularity",
+                SortAscending = false,
+                PageNumber = pageNumber,
+                PageSize = pageSize
+            };
+            return await GetBooks(filter);
+        }
+    }
+}
