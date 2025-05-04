@@ -118,7 +118,6 @@ namespace backend_inkspire.Controllers
             return NoContent();
         }
 
-
         // GET: api/books/bestsellers
         [HttpGet("bestsellers")]
         public async Task<ActionResult<PaginatedResponseDTO<BookResponseDTO>>> GetBestsellers(
@@ -127,7 +126,8 @@ namespace backend_inkspire.Controllers
         {
             var filter = new BookFilterDTO
             {
-                Bestseller = true,
+                SortBy = "Popularity",
+                SortAscending = false,
                 PageNumber = pageNumber,
                 PageSize = pageSize
             };
@@ -158,6 +158,8 @@ namespace backend_inkspire.Controllers
             var filter = new BookFilterDTO
             {
                 NewRelease = true,
+                SortBy = "PublicationDate",
+                SortAscending = false,
                 PageNumber = pageNumber,
                 PageSize = pageSize
             };

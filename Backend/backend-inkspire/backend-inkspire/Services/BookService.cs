@@ -1,5 +1,4 @@
-﻿// BookService.cs
-using backend_inkspire.DTOs;
+﻿using backend_inkspire.DTOs;
 using backend_inkspire.Entities;
 using backend_inkspire.Repositories;
 using Microsoft.EntityFrameworkCore;
@@ -28,6 +27,13 @@ namespace backend_inkspire.Services
 
         public async Task<PaginatedResponseDTO<BookResponseDTO>> GetBooksAsync(BookFilterDTO filter)
         {
+            // Ensure filter is not null
+            filter ??= new BookFilterDTO();
+
+            // Default page size and number if not provided
+            if (filter.PageSize <= 0) filter.PageSize = 10;
+            if (filter.PageNumber <= 0) filter.PageNumber = 1;
+
             var paginatedBooks = await _bookRepository.GetBooksAsync(filter);
 
             var response = new PaginatedResponseDTO<BookResponseDTO>
@@ -44,6 +50,12 @@ namespace backend_inkspire.Services
 
         public async Task<BookResponseDTO> AddBookAsync(BookDTO bookDto)
         {
+            // Validate input
+            if (bookDto == null)
+            {
+                throw new ArgumentNullException(nameof(bookDto));
+            }
+
             // Check if ISBN already exists
             if (await _bookRepository.BookExistsAsync(b => b.ISBN == bookDto.ISBN))
             {
@@ -56,6 +68,12 @@ namespace backend_inkspire.Services
 
         public async Task<BookResponseDTO> UpdateBookAsync(int id, BookDTO bookDto)
         {
+            // Validate input
+            if (bookDto == null)
+            {
+                throw new ArgumentNullException(nameof(bookDto));
+            }
+
             // Check if ISBN is being changed to one that already exists
             var existingBook = await _bookRepository.GetBookByIdAsync(id);
             if (existingBook == null)
@@ -80,9 +98,20 @@ namespace backend_inkspire.Services
 
         public async Task<bool> AddBookDiscountAsync(int bookId, BookDiscountDTO discountDto)
         {
+            // Validate input
+            if (discountDto == null)
+            {
+                throw new ArgumentNullException(nameof(discountDto));
+            }
+
             if (discountDto.StartDate >= discountDto.EndDate)
             {
                 throw new ArgumentException("Discount end date must be after start date.");
+            }
+
+            if (discountDto.DiscountPercentage <= 0 || discountDto.DiscountPercentage > 100)
+            {
+                throw new ArgumentException("Discount percentage must be between 1 and 100.");
             }
 
             return await _bookRepository.AddBookDiscountAsync(bookId, discountDto);
@@ -95,6 +124,33 @@ namespace backend_inkspire.Services
 
         private BookResponseDTO MapToResponseDTO(Book book)
         {
+            if (book == null) return null;
+
+            // Calculate if the book is currently discounted
+            bool isCurrentlyDiscounted = book.IsOnSale &&
+                book.DiscountPercentage.HasValue &&
+                book.DiscountStartDate.HasValue &&
+                book.DiscountEndDate.HasValue &&
+                DateTime.Now >= book.DiscountStartDate &&
+                DateTime.Now <= book.DiscountEndDate;
+
+            // Calculate the discounted price if applicable
+            decimal? discountedPrice = null;
+            if (isCurrentlyDiscounted && book.DiscountPercentage.HasValue)
+            {
+                discountedPrice = book.Price - (book.Price * book.DiscountPercentage.Value / 100);
+            }
+
+            // Calculate average rating
+            decimal averageRating = 0;
+            int reviewCount = 0;
+
+            if (book.Reviews != null && book.Reviews.Any())
+            {
+                averageRating = (decimal)book.Reviews.Average(r => r.Rating);
+                reviewCount = book.Reviews.Count;
+            }
+
             return new BookResponseDTO
             {
                 Id = book.Id,
@@ -104,7 +160,7 @@ namespace backend_inkspire.Services
                 Publisher = book.Publisher,
                 PublicationDate = book.PublicationDate,
                 Price = book.Price,
-                DiscountedPrice = book.IsCurrentlyDiscounted ? book.CurrentPrice : null,
+                DiscountedPrice = discountedPrice,
                 StockQuantity = book.StockQuantity,
                 Genre = book.Genre,
                 Language = book.Language,
@@ -113,17 +169,18 @@ namespace backend_inkspire.Services
                 AvailableInLibrary = book.AvailableInLibrary,
                 IsBestseller = book.IsBestseller,
                 IsAwardWinner = book.IsAwardWinner,
-                IsNewRelease = book.IsNewRelease,
-                IsNewArrival = book.IsNewArrival,
+                IsNewRelease = book.PublicationDate >= DateTime.Now.AddMonths(-3), // Books published in the last 3 months
+                IsNewArrival = book.ListedDate >= DateTime.Now.AddMonths(-1), // Books added to inventory in the last month
                 IsComingSoon = book.IsComingSoon,
-                IsOnSale = book.IsOnSale,
+                IsOnSale = isCurrentlyDiscounted,
                 DiscountPercentage = book.DiscountPercentage,
                 DiscountStartDate = book.DiscountStartDate,
                 DiscountEndDate = book.DiscountEndDate,
                 SoldCount = book.SoldCount,
                 CoverImageUrl = book.CoverImageUrl,
-                AverageRating = book.AverageRating,
-                ReviewCount = book.Reviews?.Count ?? 0
+                AverageRating = averageRating,
+                ReviewCount = reviewCount,
+                IsBookmarked = false // This should be set based on user context if implemented
             };
         }
     }
