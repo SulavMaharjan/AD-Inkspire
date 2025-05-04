@@ -21,7 +21,7 @@
 # msbuild.log
 # msbuild.err
 # msbuild.wrn
-# **/Migrations
+**/Migrations
 
 # # NuGet Packages (optional)
 # packages/
@@ -427,7 +427,10 @@ FodyWeavers.xsd
 *.sln.iml
 
 # Custom additions for ASP.NET Core
-appsettings.Development.json
-appsettings.Production.json
+**/appsettings.Development.json
+**/appsettings.Production.json
 *.db-shm
 *.db-wal
+
+**/Migrations/*.Designer.cs
+**/Migrations/*.Snapshot.cs
