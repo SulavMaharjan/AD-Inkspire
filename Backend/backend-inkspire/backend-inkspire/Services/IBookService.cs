@@ -1,0 +1,17 @@
+﻿// IBookService.cs
+using backend_inkspire.DTOs;
+using backend_inkspire.Entities;
+
+namespace backend_inkspire.Services
+{
+    public interface IBookService
+    {
+        Task<BookResponseDTO> GetBookByIdAsync(int id);
+        Task<PaginatedResponseDTO<BookResponseDTO>> GetBooksAsync(BookFilterDTO filter);
+        Task<BookResponseDTO> AddBookAsync(BookDTO bookDto);
+        Task<BookResponseDTO> UpdateBookAsync(int id, BookDTO bookDto);
+        Task<bool> DeleteBookAsync(int id);
+        Task<bool> AddBookDiscountAsync(int bookId, BookDiscountDTO discountDto);
+        Task<bool> RemoveBookDiscountAsync(int bookId);
+    }
+}

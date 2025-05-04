@@ -21,7 +21,7 @@
 # msbuild.log
 # msbuild.err
 # msbuild.wrn
-# **/Migrations
+**/Migrations
 
 # # NuGet Packages (optional)
 # packages/
@@ -432,9 +432,5 @@ appsettings.Production.json
 *.db-shm
 *.db-wal
 
-**/Migrations
-
-appsettings.Development.json
-appsettings.Production.json
-*.db-shm
-*.db-wal
+**/Migrations/*.Designer.cs
+**/Migrations/*.Snapshot.cs

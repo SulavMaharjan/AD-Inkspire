@@ -64,9 +64,12 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IJwtService, JwtService>();
+builder.Services.AddScoped<IBookRepository, BookRepository>();
+builder.Services.AddScoped<IBookService, BookService>();
 
 //staff
 builder.Services.AddScoped<IStaffAuthService, StaffAuthService>();
+
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -112,7 +115,7 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// Use CORS before routing
+
 app.UseCors("AllowViteApp");
 
 // Configure the HTTP request pipeline.
