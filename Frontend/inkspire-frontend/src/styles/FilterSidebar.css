@@ -1,0 +1,191 @@
+/* FilterSidebar.css */
+.filter-sidebar {
+  background-color: var(--background-white);
+  width: 300px;
+  height: 100%;
+  position: fixed;
+  top: 0;
+  left: 0;
+  padding-top: 70px;
+  overflow-y: auto;
+  z-index: 90;
+  box-shadow: var(--shadow-md);
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.3s ease;
+}
+
+.filter-header {
+  padding: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--border-color);
+  position: sticky;
+  top: 0;
+  background-color: var(--background-white);
+  z-index: 2;
+}
+
+.filter-header h2 {
+  font-family: var(--font-heading);
+  font-size: 1.25rem;
+  color: var(--primary-color);
+}
+
+.close-filter {
+  background: transparent;
+  border: none;
+  color: var(--text-medium);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.close-filter:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+  color: var(--text-dark);
+}
+
+.filter-content {
+  flex: 1;
+  padding: 1rem;
+  overflow-y: auto;
+}
+
+.filter-section {
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 1.5rem;
+}
+
+.filter-section:last-child {
+  border-bottom: none;
+}
+
+.filter-section h3 {
+  font-family: var(--font-heading);
+  font-size: 1rem;
+  margin-bottom: 0.75rem;
+  color: var(--secondary-color);
+}
+
+.checkbox-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  font-size: 0.9rem;
+  color: var(--text-medium);
+  cursor: pointer;
+}
+
+.checkbox-label input {
+  margin-right: 0.5rem;
+  accent-color: var(--primary-color);
+  cursor: pointer;
+}
+
+.price-range-inputs {
+  display: flex;
+  gap: 1rem;
+}
+
+.price-input {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.price-input label {
+  font-size: 0.8rem;
+  color: var(--text-medium);
+}
+
+.price-input input {
+  padding: 0.5rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-sm);
+  font-family: var(--font-body);
+}
+
+.rating-filter {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.rating-filter button {
+  flex: 1;
+  padding: 0.5rem;
+  background-color: transparent;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-sm);
+  font-family: var(--font-body);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.rating-filter button.active {
+  background-color: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
+}
+
+.filter-actions {
+  padding: 1rem;
+  display: flex;
+  gap: 0.5rem;
+  border-top: 1px solid var(--border-color);
+  background-color: var(--background-white);
+  position: sticky;
+  bottom: 0;
+}
+
+.clear-filters-btn,
+.apply-filters-btn {
+  flex: 1;
+  padding: 0.75rem;
+  font-family: var(--font-body);
+  font-weight: 600;
+  border-radius: var(--border-radius-sm);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.clear-filters-btn {
+  background-color: transparent;
+  border: 1px solid var(--primary-color);
+  color: var(--primary-color);
+}
+
+.clear-filters-btn:hover {
+  background-color: rgba(139, 33, 49, 0.05);
+}
+
+.apply-filters-btn {
+  background-color: var(--primary-color);
+  border: none;
+  color: white;
+}
+
+.apply-filters-btn:hover {
+  background-color: var(--primary-light);
+}
+
+@media (max-width: 768px) {
+  .filter-sidebar {
+    width: 100%;
+    padding-top: 0;
+  }
+}

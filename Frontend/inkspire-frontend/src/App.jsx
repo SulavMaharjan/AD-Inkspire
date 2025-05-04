@@ -7,7 +7,6 @@ import ProtectedRoute from "./components/Auth/ProtectedRoute";
 import DashboardPage from "./pages/DashboardPage";
 import NotFoundPage from "./pages/NotFoundPage";
 import "./styles/App.css";
-import AddBookPage from "./pages/AddBookPage";
 
 function App() {
   return (
@@ -15,6 +14,7 @@ function App() {
       <Router>
         <Routes>
           <Route path="/" element={<LandingPage />} />
+          <Route path="/books" element={<BookListing />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
           <Route
