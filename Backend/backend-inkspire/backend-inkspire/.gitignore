@@ -431,3 +431,10 @@ appsettings.Development.json
 appsettings.Production.json
 *.db-shm
 *.db-wal
+
+**/Migrations
+
+appsettings.Development.json
+appsettings.Production.json
+*.db-shm
+*.db-wal
