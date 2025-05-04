@@ -39,7 +39,6 @@ export const MemberProtectedRoute = ({ children }) => {
   return children;
 };
 
-
 export const StaffProtectedRoute = ({ children }) => {
   const { isAuthenticated, currentRole } = useAuth();
 
