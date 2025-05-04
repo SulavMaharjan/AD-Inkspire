@@ -10,7 +10,7 @@ namespace backend_inkspire.DTOs
         public string Title { get; set; }
 
         [Required(ErrorMessage = "ISBN is required")]
-        [RegularExpression(@"^(?=(?:\D*\d){10}(?:(?:\D*\d){3})?$)[\d-]+$", ErrorMessage = "Invalid ISBN format")]
+        //[RegularExpression(@"^(?=(?:\D*\d){10}(?:(?:\D*\d){3})?$)[\d-]+$", ErrorMessage = "Invalid ISBN format")]
         public string ISBN { get; set; }
 
         [Required(ErrorMessage = "Author is required")]
