@@ -3,9 +3,17 @@ import { AuthProvider } from "./context/AuthContext";
 import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
-import ProtectedRoute from "./components/Auth/ProtectedRoute";
+import {
+  ProtectedRoute,
+  AdminProtectedRoute,
+  MemberProtectedRoute,
+  StaffProtectedRoute,
+} from "./components/Auth/ProtectedRoute";
 import DashboardPage from "./pages/DashboardPage";
 import NotFoundPage from "./pages/NotFoundPage";
+import UnauthorizedPage from "./components/UnauthorizedPage";
+import BookListing from "./components/BookCatalog/BookListing";
+import AddBookPage from "./pages/AddBookPage";
 import "./styles/App.css";
 
 function App() {
@@ -13,10 +21,14 @@ function App() {
     <AuthProvider>
       <Router>
         <Routes>
+          {/* Public routes */}
           <Route path="/" element={<LandingPage />} />
           <Route path="/books" element={<BookListing />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
+          <Route path="/unauthorized" element={<UnauthorizedPage />} />
+
+          {/* Protected routes (any authenticated user) */}
           <Route
             path="/dashboard"
             element={
@@ -25,14 +37,59 @@ function App() {
               </ProtectedRoute>
             }
           />
+
+          {/* Admin protected routes */}
           <Route
-            path="/add-book"
+            path="/admin/*"
             element={
-              <ProtectedRoute>
-                <AddBookPage />
-              </ProtectedRoute>
+              <AdminProtectedRoute>
+                {/* You can nest admin routes here or use Outlet */}
+                <Routes>
+                  <Route
+                    path="dashboard"
+                    element={<div>Admin Dashboard</div>}
+                  />
+                  <Route path="add-book" element={<AddBookPage />} />
+
+                  <Route path="users" element={<div>User Management</div>} />
+                  <Route path="settings" element={<div>Admin Settings</div>} />
+                </Routes>
+              </AdminProtectedRoute>
             }
           />
+
+          {/* Member protected routes */}
+          <Route
+            path="/member/*"
+            element={
+              <MemberProtectedRoute>
+                <Routes>
+                  <Route path="profile" element={<div>Member Profile</div>} />
+                  <Route
+                    path="wishlist"
+                    element={<div>My Favorite Books</div>}
+                  />
+                </Routes>
+              </MemberProtectedRoute>
+            }
+          />
+
+          {/* Staff protected routes */}
+          <Route
+            path="/staff/*"
+            element={
+              <StaffProtectedRoute>
+                <Routes>
+                  <Route
+                    path="manage-orders"
+                    element={<div>Manage Orders</div>}
+                  />
+                </Routes>
+              </StaffProtectedRoute>
+            }
+          />
+
+          {/* Catch-all route */}
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </Router>

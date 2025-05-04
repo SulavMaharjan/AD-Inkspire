@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import { BookIcon, Search, SlidersHorizontal } from "lucide-react";
-import SearchBar from "../BookCatelog/SearchBar";
-import BookCard from "../BookCatelog/BookCard";
-import FilterSidebar from "../BookCatelog/FilterSidebar";
-import CategoryTabs from "../BookCatelog/CategoryTabs";
-import SortSelector from "../BookCatelog/SortSelector";
+import SearchBar from "../BookCatalog/SearchBar";
+import BookCard from "../BookCatalog/BookCard";
+import FilterSidebar from "../BookCatalog/FilterSidebar";
+import CategoryTabs from "../BookCatalog/CategoryTabs";
+import SortSelector from "../BookCatalog/SortSelector";
 import { books } from "../../data/books";
 import "../../styles/BookListing.css";
 import Footer from "../Landing/Footer";

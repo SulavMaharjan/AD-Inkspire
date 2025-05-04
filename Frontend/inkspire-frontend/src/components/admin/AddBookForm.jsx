@@ -356,6 +356,12 @@ const AddBookForm = () => {
                 checked={formData.isComingSoon}
                 onChange={handleToggleChange}
               />
+              <ToggleSwitch
+                label="On Sale"
+                name="isOnSale"
+                checked={formData.isOnSale}
+                onChange={handleToggleChange}
+              />
             </div>
           </div>
         </div>
@@ -428,6 +434,9 @@ const AddBookForm = () => {
               )}
               {formData.isComingSoon && (
                 <span className="book-flag coming-soon">Coming Soon</span>
+              )}
+              {formData.isOnSale && (
+                <span className="book-flag coming-soon">On Sale</span>
               )}
             </div>
           </div>
