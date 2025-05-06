@@ -1,7 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import FormField from "./FormField";
 import ToggleSwitch from "./ToggleSwitch";
-import { Book } from "lucide-react";
+import { Book, Upload } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -9,6 +9,7 @@ import axios from "axios";
 const AddBookForm = () => {
   const { currentRole } = useAuth();
   const navigate = useNavigate();
+  const fileInputRef = useRef(null);
   
   const initialFormData = {
     title: "",
@@ -26,11 +27,11 @@ const AddBookForm = () => {
     isBestseller: false,
     isAwardWinner: false,
     isComingSoon: false,
-    coverImageUrl: "",
-    isOnSale: false,
+    isNewArrival: true,
   };
-
   const [formData, setFormData] = useState(initialFormData);
+  const [CoverImagePath, setCoverImagePath] = useState(null);
+  const [previewImage, setPreviewImage] = useState(null);
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
@@ -99,16 +100,52 @@ const AddBookForm = () => {
     setFormData((prev) => ({ ...prev, [name]: checked }));
   };
 
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        setErrors(prev => ({ ...prev, CoverImagePath: "Image must be less than 5MB" }));
+        return;
+      }
+      
+      // Validate file type
+      if (!['image/jpeg', 'image/png'].includes(file.type)) {
+        setErrors(prev => ({ ...prev, CoverImagePath: "Only JPEG and PNG formats are allowed" }));
+        return;
+      }
+      
+      setCoverImagePath(file);
+      
+      // Create a preview URL for the image
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreviewImage(reader.result);
+      };
+      reader.readAsDataURL(file);
+      
+      // Clear any previous errors
+      if (errors.CoverImagePath) {
+        setErrors(prev => {
+          const newErrors = { ...prev };
+          delete newErrors.CoverImagePath;
+          return newErrors;
+        });
+      }
+    }
+  };
+
   const validateForm = () => {
     const newErrors = {};
-
+  
     // Required fields validation
     if (!formData.title.trim()) newErrors.title = "Title is required";
     if (!formData.isbn.trim()) newErrors.isbn = "ISBN is required";
     if (!formData.author.trim()) newErrors.author = "Author is required";
     if (!formData.publisher.trim()) newErrors.publisher = "Publisher is required";
     if (!formData.publicationDate) newErrors.publicationDate = "Publication date is required";
-
+    if (!CoverImagePath) newErrors.CoverImagePath = "Cover image is required";
+  
     // Price validation
     if (!formData.price.trim()) {
       newErrors.price = "Price is required";
@@ -117,7 +154,7 @@ const AddBookForm = () => {
     } else if (Number(formData.price) <= 0) {
       newErrors.price = "Price must be greater than 0";
     }
-
+  
     // Stock validation
     if (!formData.stockQuantity.trim()) {
       newErrors.stockQuantity = "Stock quantity is required";
@@ -126,11 +163,11 @@ const AddBookForm = () => {
     } else if (Number(formData.stockQuantity) < 0) {
       newErrors.stockQuantity = "Stock quantity must be 0 or greater";
     }
-
+  
     if (!formData.genre) newErrors.genre = "Genre is required";
     if (!formData.language) newErrors.language = "Language is required";
     if (!formData.format) newErrors.format = "Format is required";
-
+  
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -138,54 +175,43 @@ const AddBookForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitError("");
-
+  
     if (!validateForm()) return;
-
+  
     setIsSubmitting(true);
-
+  
     try {
-      // Prepare the data for the API
-      const bookData = {
-        title: formData.title,
-        isbn: formData.isbn,
-        author: formData.author,
-        publisher: formData.publisher,
-        PublicationDate: new Date(formData.publicationDate).toISOString(),
-        price: parseFloat(formData.price),
-        stockQuantity: parseInt(formData.stockQuantity),
-        genre: formData.genre,
-        language: formData.language,
-        format: formData.format,
-        description: formData.description,
-        availableInLibrary: formData.availableInLibrary,
-        isBestseller: formData.isBestseller,
-        isAwardWinner: formData.isAwardWinner,
-        isComingSoon: formData.isComingSoon,
-        coverImageUrl: formData.coverImageUrl,
-        isOnSale: formData.isOnSale,
-      };
-
-      // Get token from localStorage
       const token = localStorage.getItem("token");
       if (!token) {
         throw new Error("Authentication token not found");
       }
-
-      // Make API call directly
+  
+      const formDataToSend = new FormData();
+      
+      // Add all form fields to the FormData object
+      for (const [key, value] of Object.entries(formData)) {
+        // Convert boolean values to strings for proper handling by the backend
+        formDataToSend.append(key, typeof value === 'boolean' ? value.toString() : value);
+      }
+  
+      // Explicitly add the CoverImagePath file with the exact field name expected by the backend
+      formDataToSend.append("CoverImagePath", CoverImagePath);
+  
       const response = await axios.post(
         "https://localhost:7039/api/Books/addBooks",
-        bookData,
+        formDataToSend,
         {
           headers: {
-            "Content-Type": "application/json",
+            "Content-Type": "multipart/form-data",
             Authorization: `Bearer ${token}`,
           },
         }
       );
-
-      // Handle successful submission
+  
       alert("Book added successfully!");
       setFormData(initialFormData);
+      setCoverImagePath(null);
+      setPreviewImage(null);
       
       // Redirect based on role
       if (currentRole === "SuperAdmin") {
@@ -195,8 +221,15 @@ const AddBookForm = () => {
       }
     } catch (error) {
       console.error("Error adding book:", error);
-      const errorMessage = error.response?.data?.message || error.message || "Failed to add book. Please try again.";
-      setSubmitError(errorMessage);
+      
+      // Extract error message from response if available
+      const errorMessage = 
+        error.response?.data || 
+        error.response?.data?.message || 
+        error.message || 
+        "Failed to add book. Please try again.";
+        
+      setSubmitError(typeof errorMessage === 'string' ? errorMessage : JSON.stringify(errorMessage));
     } finally {
       setIsSubmitting(false);
     }
@@ -354,31 +387,53 @@ const AddBookForm = () => {
               rows={6}
             />
 
-            <FormField
-              label="Cover Image URL"
-              name="coverImageUrl"
-              type="url"
-              value={formData.coverImageUrl}
-              onChange={handleChange}
-              placeholder="https://example.com/book-cover.jpg"
-            />
-
-            {formData.coverImageUrl && (
-              <div className="cover-preview">
-                <p className="preview-label">Cover Preview:</p>
-                <div className="image-preview-container">
-                  <img
-                    src={formData.coverImageUrl}
-                    alt="Book cover preview"
-                    className="image-preview"
-                    onError={(e) => {
-                      e.target.src =
-                        "https://via.placeholder.com/150x200?text=Invalid+URL";
-                    }}
+            <div className="file-upload-section">
+              <div className="file-upload-field">
+                <label htmlFor="CoverImagePath">Cover Image *</label>
+                <div className="file-upload-container">
+                  <div className="upload-area" onClick={() => fileInputRef.current.click()}>
+                    {previewImage ? (
+                      <div className="image-preview-wrapper">
+                        <img 
+                          src={previewImage} 
+                          alt="Preview" 
+                          className="image-preview"
+                        />
+                        <div className="image-overlay">
+                          <Upload size={24} />
+                          <span>Change Image</span>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="upload-placeholder">
+                        <Upload size={24} />
+                        <p>Click to upload cover image</p>
+                        <p className="file-requirements">(JPEG, PNG, max 5MB)</p>
+                      </div>
+                    )}
+                  </div>
+                  <input
+                    type="file"
+                    id="CoverImagePath"
+                    name="CoverImagePath"
+                    ref={fileInputRef}
+                    accept="image/jpeg,image/png"
+                    onChange={handleImageChange}
+                    className="file-input"
+                    hidden
                   />
+                  {CoverImagePath && (
+                    <div className="file-info">
+                      <span>{CoverImagePath.name}</span>
+                      <span>{Math.round(CoverImagePath.size / 1024)} KB</span>
+                    </div>
+                  )}
+                  {errors.CoverImagePath && (
+                    <div className="error-message">{errors.CoverImagePath}</div>
+                  )}
                 </div>
               </div>
-            )}
+            </div>
           </div>
 
           <div className="form-section flags">
@@ -414,12 +469,11 @@ const AddBookForm = () => {
               />
 
               <ToggleSwitch
-                label="On Sale"
-                name="isOnSale"
-                checked={formData.isOnSale}
+                label="New Arrival"
+                name="isNewArrival"
+                checked={formData.isNewArrival}
                 onChange={handleToggleChange}
               />
-          
             </div>
           </div>
         </div>
@@ -454,14 +508,10 @@ const AddBookForm = () => {
 
         <div className="book-card-preview">
           <div className="book-card-cover">
-            {formData.coverImageUrl ? (
+            {previewImage ? (
               <img
-                src={formData.coverImageUrl}
+                src={previewImage}
                 alt={formData.title || "Book cover"}
-                onError={(e) => {
-                  e.target.src =
-                    "https://via.placeholder.com/150x200?text=Cover";
-                }}
               />
             ) : (
               <div className="placeholder-cover">
@@ -502,10 +552,9 @@ const AddBookForm = () => {
               {formData.isComingSoon && (
                 <span className="book-flag coming-soon">Coming Soon</span>
               )}
-              {formData.isOnSale && (
-                <span className="book-flag on-sale">On Sale</span>
+              {formData.isNewArrival && (
+                <span className="book-flag new-arrival">New Arrival</span>
               )}
-            
             </div>
           </div>
         </div>
