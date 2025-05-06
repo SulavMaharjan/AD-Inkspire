@@ -53,7 +53,9 @@ namespace backend_inkspire.DTOs
 
         public bool IsComingSoon { get; set; }
 
-        public string CoverImageUrl { get; set; }
+        public IFormFile CoverImagePath { get; set; }
+
+        
     }
 
     public class BookResponseDTO
@@ -82,10 +84,12 @@ namespace backend_inkspire.DTOs
         public DateTime? DiscountStartDate { get; set; }
         public DateTime? DiscountEndDate { get; set; }
         public int SoldCount { get; set; }
-        public string CoverImageUrl { get; set; }
+        public string CoverImagePath { get; set; }
         public decimal AverageRating { get; set; }
         public int ReviewCount { get; set; }
         public bool IsBookmarked { get; set; }
+
+  
     }
 
     public class BookFilterDTO

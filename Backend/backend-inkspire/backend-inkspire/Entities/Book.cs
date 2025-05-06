@@ -80,11 +80,13 @@ namespace backend_inkspire.Entities
             Price - (Price * DiscountPercentage.Value / 100) :
             Price;
 
-        public int SoldCount { get; set; } 
+        public int SoldCount { get; set; }
 
-        public string CoverImageUrl { get; set; }
 
-       
+        // Add a property to store the file path/name
+        public string CoverImagePath { get; set; }
+
+
         public virtual ICollection<Review> Reviews { get; set; }
 
         // Average rating calculation

@@ -8,10 +8,37 @@ namespace backend_inkspire.Services
     public class BookService : IBookService
     {
         private readonly IBookRepository _bookRepository;
+        private readonly IWebHostEnvironment _environment;
 
         public BookService(IBookRepository bookRepository)
         {
             _bookRepository = bookRepository;
+        }
+
+        public BookService(IBookRepository bookRepository, IWebHostEnvironment environment)
+        {
+            _bookRepository = bookRepository;
+            _environment = environment;
+        }
+
+        private async Task<string> SaveImage(IFormFile imageFile)
+        {
+            if (imageFile == null || imageFile.Length == 0)
+                return null;
+
+            string uploadsFolder = Path.Combine(_environment.WebRootPath, "images", "books");
+            if (!Directory.Exists(uploadsFolder))
+                Directory.CreateDirectory(uploadsFolder);
+
+            string uniqueFileName = Guid.NewGuid().ToString() + "_" + imageFile.FileName;
+            string filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+            using (var fileStream = new FileStream(filePath, FileMode.Create))
+            {
+                await imageFile.CopyToAsync(fileStream);
+            }
+
+            return "/images/books/" + uniqueFileName; // Return the relative path for storage
         }
 
         public async Task<BookResponseDTO> GetBookByIdAsync(int id)
@@ -62,8 +89,20 @@ namespace backend_inkspire.Services
                 throw new InvalidOperationException("A book with this ISBN already exists.");
             }
 
-            var book = await _bookRepository.AddBookAsync(bookDto);
-            return MapToResponseDTO(book);
+            // Process image if provided
+            if (bookDto.CoverImagePath != null)
+            {
+                string imagePath = await SaveImage(bookDto.CoverImagePath);
+                // Create a new book with the image path
+                var book = await _bookRepository.AddBookAsync(bookDto);
+                book.CoverImagePath = imagePath;
+                await _bookRepository.SaveChangesAsync();
+                return MapToResponseDTO(book);
+            }
+
+            // If no image was provided
+            var bookWithoutImage = await _bookRepository.AddBookAsync(bookDto);
+            return MapToResponseDTO(bookWithoutImage);
         }
 
         public async Task<BookResponseDTO> UpdateBookAsync(int id, BookDTO bookDto)
@@ -87,6 +126,19 @@ namespace backend_inkspire.Services
                 throw new InvalidOperationException("A book with this ISBN already exists.");
             }
 
+            // Process image if a new one is provided
+            if (bookDto.CoverImagePath != null)
+            {
+                string imagePath = await SaveImage(bookDto.CoverImagePath);
+
+                // Update book with the new image path
+                var book = await _bookRepository.UpdateBookAsync(id, bookDto);
+                book.CoverImagePath = imagePath;
+                await _bookRepository.SaveChangesAsync();
+                return MapToResponseDTO(book);
+            }
+
+            // If no new image was provided, keep the existing image path
             var updatedBook = await _bookRepository.UpdateBookAsync(id, bookDto);
             return MapToResponseDTO(updatedBook);
         }
@@ -177,9 +229,9 @@ namespace backend_inkspire.Services
                 DiscountStartDate = book.DiscountStartDate,
                 DiscountEndDate = book.DiscountEndDate,
                 SoldCount = book.SoldCount,
-                CoverImageUrl = book.CoverImageUrl,
                 AverageRating = averageRating,
                 ReviewCount = reviewCount,
+                CoverImagePath = book.CoverImagePath, // Added this line to include the cover image path
                 IsBookmarked = false // This should be set based on user context if implemented
             };
         }

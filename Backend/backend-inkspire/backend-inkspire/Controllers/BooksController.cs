@@ -37,41 +37,39 @@ namespace backend_inkspire.Controllers
         }
 
         // POST: api/books
-        [HttpPost("addBooks")]
-        [Authorize(Roles = "SuperAdmin,Staff")]
-        public async Task<ActionResult<BookResponseDTO>> PostBook(BookDTO bookDto)
-        {
-            try
-            {
-                var book = await _bookService.AddBookAsync(bookDto);
-                return CreatedAtAction(nameof(GetBook), new { id = book.Id }, book);
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(ex.Message);
-            }
-        }
+      [HttpPost("addBooks")]
+[Authorize(Roles = "SuperAdmin,Staff")]
+public async Task<ActionResult<BookResponseDTO>> PostBook([FromForm] BookDTO bookDto)
+{
+    try
+    {
+        var book = await _bookService.AddBookAsync(bookDto);
+        return CreatedAtAction(nameof(GetBook), new { id = book.Id }, book);
+    }
+    catch (InvalidOperationException ex)
+    {
+        return BadRequest(ex.Message);
+    }
+}
 
-        // PUT: api/books/5
-        [HttpPut("{id}")]
-        [Authorize(Roles = "SuperAdmin,Staff")]
-        public async Task<IActionResult> PutBook(int id, BookDTO bookDto)
+[HttpPut("{id}")]
+[Authorize(Roles = "SuperAdmin,Staff")]
+public async Task<IActionResult> PutBook(int id, [FromForm] BookDTO bookDto)
+{
+    try
+    {
+        var book = await _bookService.UpdateBookAsync(id, bookDto);
+        if (book == null)
         {
-            try
-            {
-                var book = await _bookService.UpdateBookAsync(id, bookDto);
-                if (book == null)
-                {
-                    return NotFound();
-                }
-                return NoContent();
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(ex.Message);
-            }
+            return NotFound();
         }
-
+        return NoContent();
+    }
+    catch (InvalidOperationException ex)
+    {
+        return BadRequest(ex.Message);
+    }
+}
         // DELETE: api/books/5
         [HttpDelete("{id}")]
         [Authorize(Roles = "SuperAdmin,Staff")]

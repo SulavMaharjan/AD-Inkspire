@@ -14,6 +14,11 @@ namespace backend_inkspire.Repositories
             _context = context;
         }
 
+        public async Task SaveChangesAsync()
+        {
+            await _context.SaveChangesAsync();
+        }
+
         public async Task<Book> GetBookByIdAsync(int id)
         {
             return await _context.Books
@@ -196,6 +201,16 @@ namespace backend_inkspire.Repositories
 
         public async Task<Book> AddBookAsync(BookDTO bookDto)
         {
+            if (bookDto.PublicationDate.Kind == DateTimeKind.Unspecified)
+            {
+                bookDto.PublicationDate = DateTime.SpecifyKind(bookDto.PublicationDate, DateTimeKind.Utc);
+            }
+            // If it's Local time, convert to UTC
+            else if (bookDto.PublicationDate.Kind == DateTimeKind.Local)
+            {
+                bookDto.PublicationDate = bookDto.PublicationDate.ToUniversalTime();
+            }
+
             var book = new Book
             {
                 Title = bookDto.Title,
@@ -215,8 +230,8 @@ namespace backend_inkspire.Repositories
                 IsBestseller = bookDto.IsBestseller,
                 IsAwardWinner = bookDto.IsAwardWinner,
                 IsComingSoon = bookDto.IsComingSoon,
-                CoverImageUrl = bookDto.CoverImageUrl,
-                ListedDate = DateTime.UtcNow // Set ListedDate when adding a new book
+                CoverImagePath = null, // Will be set by the service after image upload
+                ListedDate = DateTime.UtcNow
             };
 
             _context.Books.Add(book);
@@ -249,7 +264,7 @@ namespace backend_inkspire.Repositories
             book.IsBestseller = bookDto.IsBestseller;
             book.IsAwardWinner = bookDto.IsAwardWinner;
             book.IsComingSoon = bookDto.IsComingSoon;
-            book.CoverImageUrl = bookDto.CoverImageUrl;
+            // The CoverImagePath is intentionally not updated here, as it will be handled by the service
 
             await _context.SaveChangesAsync();
             return book;
