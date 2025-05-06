@@ -32,7 +32,7 @@ namespace backend_inkspire.Repositories
                 .Include(b => b.Reviews)
                 .AsQueryable();
 
-            // Basic search filters
+            //basic search filters
             if (!string.IsNullOrEmpty(filter.SearchTerm))
             {
                 query = query.Where(b =>
@@ -52,7 +52,7 @@ namespace backend_inkspire.Repositories
                 query = query.Where(b => b.Genre == filter.Genre);
             }
 
-            // Inventory filters
+            //inventory filters
             if (filter.InStock.HasValue)
             {
                 query = filter.InStock.Value
@@ -65,7 +65,7 @@ namespace backend_inkspire.Repositories
                 query = query.Where(b => b.AvailableInLibrary == filter.AvailableInLibrary.Value);
             }
 
-            // Price range filters
+            //price range filters
             if (filter.MinPrice.HasValue)
             {
                 query = query.Where(b => b.IsCurrentlyDiscounted
@@ -80,14 +80,13 @@ namespace backend_inkspire.Repositories
                     : b.Price <= filter.MaxPrice.Value);
             }
 
-            // Rating filter
+            //rating filter
             if (filter.MinRating.HasValue)
             {
                 double minRating = (double)filter.MinRating.Value;
                 query = query.Where(b => b.Reviews.Any() && b.Reviews.Average(r => r.Rating) >= minRating);
             }
 
-            // Additional metadata filters
             if (!string.IsNullOrEmpty(filter.Language))
             {
                 query = query.Where(b => b.Language == filter.Language);
@@ -103,12 +102,11 @@ namespace backend_inkspire.Repositories
                 query = query.Where(b => b.Publisher == filter.Publisher);
             }
 
-            // Special categories filters
+            //categories filters
             if (filter.Bestseller.HasValue)
             {
                 if (filter.Bestseller.Value)
                 {
-                    // For bestsellers, sort by SoldCount and take top books
                     query = query.OrderByDescending(b => b.SoldCount);
                 }
             }
@@ -158,7 +156,7 @@ namespace backend_inkspire.Repositories
                 }
             }
 
-            // Apply sorting
+            //sorting
             query = filter.SortBy.ToLower() switch
             {
                 "publicationdate" => filter.SortAscending
@@ -205,7 +203,6 @@ namespace backend_inkspire.Repositories
             {
                 bookDto.PublicationDate = DateTime.SpecifyKind(bookDto.PublicationDate, DateTimeKind.Utc);
             }
-            // If it's Local time, convert to UTC
             else if (bookDto.PublicationDate.Kind == DateTimeKind.Local)
             {
                 bookDto.PublicationDate = bookDto.PublicationDate.ToUniversalTime();
@@ -230,7 +227,7 @@ namespace backend_inkspire.Repositories
                 IsBestseller = bookDto.IsBestseller,
                 IsAwardWinner = bookDto.IsAwardWinner,
                 IsComingSoon = bookDto.IsComingSoon,
-                CoverImagePath = "/images/books/default-cover.jpg", // Setting a default value to avoid null constraint violation
+                CoverImagePath = "/images/books/default-cover.jpg",
                 ListedDate = DateTime.UtcNow
             };
 
@@ -264,7 +261,6 @@ namespace backend_inkspire.Repositories
             book.IsBestseller = bookDto.IsBestseller;
             book.IsAwardWinner = bookDto.IsAwardWinner;
             book.IsComingSoon = bookDto.IsComingSoon;
-            // The CoverImagePath is intentionally not updated here, as it will be handled by the service
 
             await _context.SaveChangesAsync();
             return book;

@@ -38,7 +38,7 @@ api.interceptors.request.use(
 
 //methods
 const authService = {
-  //register new user (always as member)
+  //register new user
   register: async (name, email, username, password, confirmPassword) => {
     const registerData = {
       name,
@@ -46,7 +46,7 @@ const authService = {
       userName: username,
       password,
       confirmPassword,
-      role: "member", // Hardcoded role as member
+      role: "member",
     };
 
     const response = await api.post("/api/auth/register", registerData);
@@ -61,14 +61,13 @@ const authService = {
     return response;
   },
 
-  //login user with role selection
+  //login user
   login: async (emailOrUsername, password, requestedRole) => {
     const loginData = {
       EmailOrUsername: emailOrUsername,
       Password: password,
     };
 
-    // Send role in properly formatted header
     const config = {
       headers: {
         "X-Requested-Role": requestedRole,
@@ -79,7 +78,6 @@ const authService = {
       const response = await api.post("/api/auth/login", loginData, config);
 
       if (response.isSuccess && response.token) {
-        // Validate that the returned role matches the requested role
         if (
           requestedRole &&
           response.role.toLowerCase() !== requestedRole.toLowerCase()
@@ -115,7 +113,6 @@ const authService = {
     }
   },
 
-  // Get current authenticated user
   getCurrentUser: () => {
     const userStr = localStorage.getItem("user");
     if (!userStr) return null;
@@ -127,17 +124,16 @@ const authService = {
     }
   },
 
-  // Get current user role
+  //get current user role
   getCurrentRole: () => {
     return localStorage.getItem("role");
   },
 
-  // Check if user is authenticated
   isAuthenticated: () => {
     return !!localStorage.getItem("token");
   },
 
-  // Refresh the token
+  //refresh the token
   refreshToken: async () => {
     const refreshToken = localStorage.getItem("refreshToken");
     if (!refreshToken) return false;

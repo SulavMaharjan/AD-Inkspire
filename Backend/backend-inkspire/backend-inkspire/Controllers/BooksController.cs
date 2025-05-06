@@ -24,7 +24,7 @@ namespace backend_inkspire.Controllers
             return Ok(books);
         }
 
-        // GET: api/books/5
+        // GET: api/books/id
         [HttpGet("{id}")]
         public async Task<ActionResult<BookResponseDTO>> GetBook(int id)
         {
@@ -70,7 +70,7 @@ namespace backend_inkspire.Controllers
                 return BadRequest(ex.Message);
             }
         }
-        // DELETE: api/books/5
+        // DELETE: api/books/id
         [HttpDelete("{id}")]
         [Authorize(Roles = "SuperAdmin,Staff")]
         public async Task<IActionResult> DeleteBook(int id)
@@ -83,7 +83,7 @@ namespace backend_inkspire.Controllers
             return NoContent();
         }
 
-        // POST: api/books/5/discount
+        // POST: api/books/id/discount
         [HttpPost("{id}/discount")]
         [Authorize(Roles = "SuperAdmin,Staff")]
         public async Task<IActionResult> AddDiscount(int id, BookDiscountDTO discountDto)
@@ -103,7 +103,7 @@ namespace backend_inkspire.Controllers
             }
         }
 
-        // DELETE: api/books/5/discount
+        // DELETE: api/books/id/discount
         [HttpDelete("{id}/discount")]
         [Authorize(Roles = "SuperAdmin,Staff")]
         public async Task<IActionResult> RemoveDiscount(int id)

@@ -6,57 +6,53 @@ const BookCard = ({ book }) => {
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [imageError, setImageError] = useState(false);
 
-  
   const {
     id,
     title,
     author,
     price,
-    discountedPrice, 
+    discountedPrice,
     discountPercentage,
     averageRating,
     format,
     stockQuantity,
-    isBestseller, 
+    isBestseller,
     isAwardWinner,
-    coverImagePath, 
-    isOnSale
+    coverImagePath,
+    isOnSale,
   } = book;
 
-  // For debugging - log the image path
   useEffect(() => {
     console.log(`Book ID ${id} image path:`, coverImagePath);
   }, [id, coverImagePath]);
 
-  // Normalize the cover image path
   const getCoverImageUrl = () => {
-    // If already an error or no path provided, use placeholder
     if (imageError || !coverImagePath) {
       return "/placeholder-book-cover.jpg";
     }
 
-    // If it's already a full URL
-    if (coverImagePath.startsWith('http')) {
+    if (coverImagePath.startsWith("http")) {
       return coverImagePath;
     }
 
-    // If it's a relative path, ensure it starts with slash
-    const normalizedPath = coverImagePath.startsWith('/') 
-      ? coverImagePath 
+    const normalizedPath = coverImagePath.startsWith("/")
+      ? coverImagePath
       : `/${coverImagePath}`;
-      
+
     return `https://localhost:7039${normalizedPath}`;
   };
 
-  // Calculate discount percentage if not provided directly
-  const discount = discountPercentage || (isOnSale && price && discountedPrice)
-    ? Math.round(((price - discountedPrice) / price) * 100)
-    : 0;
+  const discount =
+    discountPercentage || (isOnSale && price && discountedPrice)
+      ? Math.round(((price - discountedPrice) / price) * 100)
+      : 0;
 
   const handleBookmark = (e) => {
     e.stopPropagation();
     setIsBookmarked(!isBookmarked);
-    console.log(`${isBookmarked ? "Removing" : "Adding"} bookmark for book ID: ${id}`);
+    console.log(
+      `${isBookmarked ? "Removing" : "Adding"} bookmark for book ID: ${id}`
+    );
   };
 
   const handleAddToCart = (e) => {
@@ -67,12 +63,13 @@ const BookCard = ({ book }) => {
 
   const handleBookClick = () => {
     console.log(`Navigating to book detail page for ID: ${id}`);
-    // You could use React Router here:
     // navigate(`/books/${id}`);
   };
 
   const handleImageError = () => {
-    console.error(`Failed to load image for book ID: ${id}, Path: ${coverImagePath}`);
+    console.error(
+      `Failed to load image for book ID: ${id}, Path: ${coverImagePath}`
+    );
     setImageError(true);
   };
 
@@ -98,7 +95,9 @@ const BookCard = ({ book }) => {
         <button
           className={`bookmark-button ${isBookmarked ? "bookmarked" : ""}`}
           onClick={handleBookmark}
-          aria-label={isBookmarked ? "Remove from bookmarks" : "Add to bookmarks"}
+          aria-label={
+            isBookmarked ? "Remove from bookmarks" : "Add to bookmarks"
+          }
         >
           <Heart size={18} fill={isBookmarked ? "#8B2131" : "none"} />
         </button>
@@ -117,13 +116,17 @@ const BookCard = ({ book }) => {
               color="#D4AF37"
             />
           ))}
-          <span className="rating-value">{averageRating?.toFixed(1) || "N/A"}</span>
+          <span className="rating-value">
+            {averageRating?.toFixed(1) || "N/A"}
+          </span>
         </div>
 
         <div className="book-format-availability">
           <span className="book-format">{format || "Paperback"}</span>
           <span
-            className={`book-availability ${stockQuantity > 0 ? "in-stock" : "out-of-stock"}`}
+            className={`book-availability ${
+              stockQuantity > 0 ? "in-stock" : "out-of-stock"
+            }`}
           >
             {stockQuantity > 0 ? `${stockQuantity} in stock` : "Out of stock"}
           </span>
@@ -132,8 +135,12 @@ const BookCard = ({ book }) => {
         <div className="book-price-container">
           {discountedPrice ? (
             <>
-              <span className="book-price">${Number(discountedPrice).toFixed(2)}</span>
-              <span className="book-original-price">${Number(price).toFixed(2)}</span>
+              <span className="book-price">
+                ${Number(discountedPrice).toFixed(2)}
+              </span>
+              <span className="book-original-price">
+                ${Number(price).toFixed(2)}
+              </span>
             </>
           ) : (
             <span className="book-price">${Number(price || 0).toFixed(2)}</span>

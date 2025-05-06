@@ -53,10 +53,10 @@ namespace backend_inkspire.Entities
 
         public bool IsAwardWinner { get; set; }
 
-        // For "New Releases" (published in the past three months)
+        //published in the past three months
         public bool IsNewRelease => PublicationDate >= DateTime.Now.AddMonths(-3);
 
-        // For "New Arrivals" (listed in the past month)
+        //listed in the past month
         public DateTime ListedDate { get; set; }
         public bool IsNewArrival => ListedDate >= DateTime.Now.AddMonths(-1);
 
@@ -81,12 +81,11 @@ namespace backend_inkspire.Entities
 
         public int SoldCount { get; set; }
 
-        // Add a property to store the file path/name
         public string CoverImagePath { get; set; }
 
         public virtual ICollection<Review> Reviews { get; set; }
 
-        // Average rating calculation
+        //average rating calculation
         [NotMapped]
         public decimal AverageRating =>
             Reviews != null && Reviews.Any() ?

@@ -41,16 +41,16 @@ const LoginForm = () => {
       setLoading(true);
       await login(emailOrUsername, password, role);
 
-      // Redirect based on role
+      //redirect based on role
       switch (role) {
         case "member":
           navigate("/");
           break;
         case "staff":
-          navigate("/staff-dashboard");
+          navigate("/");
           break;
         case "superAdmin":
-          navigate("/admin-dashboard");
+          navigate("/admin/add-book");
           break;
         default:
           navigate("/");

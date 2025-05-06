@@ -1,5 +1,4 @@
-﻿// IBookRepository.cs
-using backend_inkspire.DTOs;
+﻿using backend_inkspire.DTOs;
 using backend_inkspire.Entities;
 using System.Linq.Expressions;
 

@@ -13,7 +13,6 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check for user in localStorage on initial load
     const user = authService.getCurrentUser();
     const role = authService.getCurrentRole();
     setCurrentUser(user);
@@ -21,7 +20,7 @@ export const AuthProvider = ({ children }) => {
     setLoading(false);
   }, []);
 
-  // Sign up function - always as member
+  //sign up function
   const signup = async (name, email, username, password, confirmPassword) => {
     const response = await authService.register(
       name,
@@ -40,7 +39,7 @@ export const AuthProvider = ({ children }) => {
     throw new Error(response.message || "Failed to sign up");
   };
 
-  // Login function with role selection
+  //login function
   const login = async (emailOrUsername, password, role) => {
     const response = await authService.login(emailOrUsername, password, role);
 
@@ -53,18 +52,17 @@ export const AuthProvider = ({ children }) => {
     throw new Error(response.message || "Failed to login");
   };
 
-  // Logout function
+  //logout function
   const logout = async () => {
     await authService.logout();
     setCurrentUser(null);
     setCurrentRole(null);
   };
 
-  // Refresh token function
+  //refresh token function
   const refreshToken = async () => {
     const success = await authService.refreshToken();
     if (!success) {
-      // If refresh failed, logout
       await logout();
     }
     return success;

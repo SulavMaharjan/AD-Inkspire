@@ -24,7 +24,7 @@ namespace backend_inkspire.Services
         private async Task<string> SaveImage(IFormFile imageFile)
         {
             if (imageFile == null || imageFile.Length == 0)
-                return "/images/books/default-cover.jpg"; // Return default image path when no image is provided
+                return "/images/books/default-cover.jpg";
 
             string uploadsFolder = Path.Combine(_environment.WebRootPath, "images", "books");
             if (!Directory.Exists(uploadsFolder))
@@ -38,7 +38,7 @@ namespace backend_inkspire.Services
                 await imageFile.CopyToAsync(fileStream);
             }
 
-            return "/images/books/" + uniqueFileName; // Return the relative path for storage
+            return "/images/books/" + uniqueFileName;
         }
 
         public async Task<BookResponseDTO> GetBookByIdAsync(int id)
@@ -54,10 +54,9 @@ namespace backend_inkspire.Services
 
         public async Task<PaginatedResponseDTO<BookResponseDTO>> GetBooksAsync(BookFilterDTO filter)
         {
-            // Ensure filter is not null
             filter ??= new BookFilterDTO();
 
-            // Default page size and number if not provided
+            //default page size and number if not provided
             if (filter.PageSize <= 0) filter.PageSize = 10;
             if (filter.PageNumber <= 0) filter.PageNumber = 1;
 
@@ -77,22 +76,21 @@ namespace backend_inkspire.Services
 
         public async Task<BookResponseDTO> AddBookAsync(BookDTO bookDto)
         {
-            // Validate input
             if (bookDto == null)
             {
                 throw new ArgumentNullException(nameof(bookDto));
             }
 
-            // Check if ISBN already exists
+            //checking if ISBN already exists
             if (await _bookRepository.BookExistsAsync(b => b.ISBN == bookDto.ISBN))
             {
                 throw new InvalidOperationException("A book with this ISBN already exists.");
             }
 
-            // Create a book first with default cover image
+            //default cover image
             var book = await _bookRepository.AddBookAsync(bookDto);
 
-            // Process image if provided and update the book
+            //process image if provided and update the book
             if (bookDto.CoverImagePath != null)
             {
                 string imagePath = await SaveImage(bookDto.CoverImagePath);
@@ -105,13 +103,12 @@ namespace backend_inkspire.Services
 
         public async Task<BookResponseDTO> UpdateBookAsync(int id, BookDTO bookDto)
         {
-            // Validate input
             if (bookDto == null)
             {
                 throw new ArgumentNullException(nameof(bookDto));
             }
 
-            // Check if ISBN is being changed to one that already exists
+            //unique ISBN number
             var existingBook = await _bookRepository.GetBookByIdAsync(id);
             if (existingBook == null)
             {
@@ -124,10 +121,9 @@ namespace backend_inkspire.Services
                 throw new InvalidOperationException("A book with this ISBN already exists.");
             }
 
-            // Update book with basic information
             var updatedBook = await _bookRepository.UpdateBookAsync(id, bookDto);
 
-            // Process image if a new one is provided
+            //process image if a new one is provided
             if (bookDto.CoverImagePath != null)
             {
                 string imagePath = await SaveImage(bookDto.CoverImagePath);
@@ -145,7 +141,6 @@ namespace backend_inkspire.Services
 
         public async Task<bool> AddBookDiscountAsync(int bookId, BookDiscountDTO discountDto)
         {
-            // Validate input
             if (discountDto == null)
             {
                 throw new ArgumentNullException(nameof(discountDto));
@@ -173,7 +168,6 @@ namespace backend_inkspire.Services
         {
             if (book == null) return null;
 
-            // Calculate if the book is currently discounted
             bool isCurrentlyDiscounted = book.IsOnSale &&
                 book.DiscountPercentage.HasValue &&
                 book.DiscountStartDate.HasValue &&
@@ -181,14 +175,14 @@ namespace backend_inkspire.Services
                 DateTime.Now >= book.DiscountStartDate &&
                 DateTime.Now <= book.DiscountEndDate;
 
-            // Calculate the discounted price if applicable
+            //discounted price if applicable
             decimal? discountedPrice = null;
             if (isCurrentlyDiscounted && book.DiscountPercentage.HasValue)
             {
                 discountedPrice = book.Price - (book.Price * book.DiscountPercentage.Value / 100);
             }
 
-            // Calculate average rating
+            //average rating
             decimal averageRating = 0;
             int reviewCount = 0;
 
@@ -216,8 +210,8 @@ namespace backend_inkspire.Services
                 AvailableInLibrary = book.AvailableInLibrary,
                 IsBestseller = book.IsBestseller,
                 IsAwardWinner = book.IsAwardWinner,
-                IsNewRelease = book.PublicationDate >= DateTime.Now.AddMonths(-3), // Books published in the last 3 months
-                IsNewArrival = book.ListedDate >= DateTime.Now.AddMonths(-1), // Books added to inventory in the last month
+                IsNewRelease = book.PublicationDate >= DateTime.Now.AddMonths(-3),
+                IsNewArrival = book.ListedDate >= DateTime.Now.AddMonths(-1),
                 IsComingSoon = book.IsComingSoon,
                 IsOnSale = isCurrentlyDiscounted,
                 DiscountPercentage = book.DiscountPercentage,
@@ -227,7 +221,7 @@ namespace backend_inkspire.Services
                 AverageRating = averageRating,
                 ReviewCount = reviewCount,
                 CoverImagePath = book.CoverImagePath,
-                IsBookmarked = false // This should be set based on user context if implemented
+                IsBookmarked = false
             };
         }
     }

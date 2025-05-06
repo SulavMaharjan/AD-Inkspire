@@ -10,7 +10,7 @@ const AddBookForm = () => {
   const { currentRole } = useAuth();
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
-  
+
   const initialFormData = {
     title: "",
     isbn: "",
@@ -85,7 +85,6 @@ const AddBookForm = () => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
 
-    // Clear error for the field being edited
     if (errors[name]) {
       setErrors((prev) => {
         const newErrors = { ...prev };
@@ -103,30 +102,35 @@ const AddBookForm = () => {
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      // Validate file size (max 5MB)
+      //file size (max 5MB)
       if (file.size > 5 * 1024 * 1024) {
-        setErrors(prev => ({ ...prev, CoverImagePath: "Image must be less than 5MB" }));
+        setErrors((prev) => ({
+          ...prev,
+          CoverImagePath: "Image must be less than 5MB",
+        }));
         return;
       }
-      
-      // Validate file type
-      if (!['image/jpeg', 'image/png'].includes(file.type)) {
-        setErrors(prev => ({ ...prev, CoverImagePath: "Only JPEG and PNG formats are allowed" }));
+
+      //file type
+      if (!["image/jpeg", "image/png"].includes(file.type)) {
+        setErrors((prev) => ({
+          ...prev,
+          CoverImagePath: "Only JPEG and PNG formats are allowed",
+        }));
         return;
       }
-      
+
       setCoverImagePath(file);
-      
-      // Create a preview URL for the image
+
+      //preview URL for the image
       const reader = new FileReader();
       reader.onloadend = () => {
         setPreviewImage(reader.result);
       };
       reader.readAsDataURL(file);
-      
-      // Clear any previous errors
+
       if (errors.CoverImagePath) {
-        setErrors(prev => {
+        setErrors((prev) => {
           const newErrors = { ...prev };
           delete newErrors.CoverImagePath;
           return newErrors;
@@ -137,16 +141,17 @@ const AddBookForm = () => {
 
   const validateForm = () => {
     const newErrors = {};
-  
-    // Required fields validation
+
     if (!formData.title.trim()) newErrors.title = "Title is required";
     if (!formData.isbn.trim()) newErrors.isbn = "ISBN is required";
     if (!formData.author.trim()) newErrors.author = "Author is required";
-    if (!formData.publisher.trim()) newErrors.publisher = "Publisher is required";
-    if (!formData.publicationDate) newErrors.publicationDate = "Publication date is required";
+    if (!formData.publisher.trim())
+      newErrors.publisher = "Publisher is required";
+    if (!formData.publicationDate)
+      newErrors.publicationDate = "Publication date is required";
     if (!CoverImagePath) newErrors.CoverImagePath = "Cover image is required";
-  
-    // Price validation
+
+    //price validation
     if (!formData.price.trim()) {
       newErrors.price = "Price is required";
     } else if (isNaN(Number(formData.price))) {
@@ -154,8 +159,8 @@ const AddBookForm = () => {
     } else if (Number(formData.price) <= 0) {
       newErrors.price = "Price must be greater than 0";
     }
-  
-    // Stock validation
+
+    //stock validation
     if (!formData.stockQuantity.trim()) {
       newErrors.stockQuantity = "Stock quantity is required";
     } else if (isNaN(Number(formData.stockQuantity))) {
@@ -163,11 +168,11 @@ const AddBookForm = () => {
     } else if (Number(formData.stockQuantity) < 0) {
       newErrors.stockQuantity = "Stock quantity must be 0 or greater";
     }
-  
+
     if (!formData.genre) newErrors.genre = "Genre is required";
     if (!formData.language) newErrors.language = "Language is required";
     if (!formData.format) newErrors.format = "Format is required";
-  
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -175,28 +180,28 @@ const AddBookForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitError("");
-  
+
     if (!validateForm()) return;
-  
+
     setIsSubmitting(true);
-  
+
     try {
       const token = localStorage.getItem("token");
       if (!token) {
         throw new Error("Authentication token not found");
       }
-  
+
       const formDataToSend = new FormData();
-      
-      // Add all form fields to the FormData object
+
       for (const [key, value] of Object.entries(formData)) {
-        // Convert boolean values to strings for proper handling by the backend
-        formDataToSend.append(key, typeof value === 'boolean' ? value.toString() : value);
+        formDataToSend.append(
+          key,
+          typeof value === "boolean" ? value.toString() : value
+        );
       }
-  
-      // Explicitly add the CoverImagePath file with the exact field name expected by the backend
+
       formDataToSend.append("CoverImagePath", CoverImagePath);
-  
+
       const response = await axios.post(
         "https://localhost:7039/api/Books/addBooks",
         formDataToSend,
@@ -207,40 +212,38 @@ const AddBookForm = () => {
           },
         }
       );
-  
+
       alert("Book added successfully!");
       setFormData(initialFormData);
       setCoverImagePath(null);
       setPreviewImage(null);
-      
-      // Redirect based on role
+
+      //redirect based on role
       if (currentRole === "SuperAdmin") {
         navigate("/admin-dashboard/books");
-      } else if (currentRole === "Staff") {
-        navigate("/staff-dashboard/books");
       }
     } catch (error) {
       console.error("Error adding book:", error);
-      
-      // Extract error message from response if available
-      const errorMessage = 
-        error.response?.data || 
-        error.response?.data?.message || 
-        error.message || 
+
+      const errorMessage =
+        error.response?.data ||
+        error.response?.data?.message ||
+        error.message ||
         "Failed to add book. Please try again.";
-        
-      setSubmitError(typeof errorMessage === 'string' ? errorMessage : JSON.stringify(errorMessage));
+
+      setSubmitError(
+        typeof errorMessage === "string"
+          ? errorMessage
+          : JSON.stringify(errorMessage)
+      );
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleCancel = () => {
-    // Redirect based on role
     if (currentRole === "SuperAdmin") {
       navigate("/admin-dashboard/books");
-    } else if (currentRole === "Staff") {
-      navigate("/staff-dashboard/books");
     }
   };
 
@@ -248,7 +251,7 @@ const AddBookForm = () => {
     <div className="add-book-form-container">
       <form className="add-book-form" onSubmit={handleSubmit}>
         {submitError && <div className="form-error-message">{submitError}</div>}
-        
+
         <div className="form-grid">
           <div className="form-section basic-info">
             <h2 className="section-title">Basic Information</h2>
@@ -391,12 +394,15 @@ const AddBookForm = () => {
               <div className="file-upload-field">
                 <label htmlFor="CoverImagePath">Cover Image *</label>
                 <div className="file-upload-container">
-                  <div className="upload-area" onClick={() => fileInputRef.current.click()}>
+                  <div
+                    className="upload-area"
+                    onClick={() => fileInputRef.current.click()}
+                  >
                     {previewImage ? (
                       <div className="image-preview-wrapper">
-                        <img 
-                          src={previewImage} 
-                          alt="Preview" 
+                        <img
+                          src={previewImage}
+                          alt="Preview"
                           className="image-preview"
                         />
                         <div className="image-overlay">
@@ -408,7 +414,9 @@ const AddBookForm = () => {
                       <div className="upload-placeholder">
                         <Upload size={24} />
                         <p>Click to upload cover image</p>
-                        <p className="file-requirements">(JPEG, PNG, max 5MB)</p>
+                        <p className="file-requirements">
+                          (JPEG, PNG, max 5MB)
+                        </p>
                       </div>
                     )}
                   </div>
@@ -479,19 +487,15 @@ const AddBookForm = () => {
         </div>
 
         <div className="form-actions">
-          <button 
-            type="button" 
+          <button
+            type="button"
             className="btn-cancel"
             onClick={handleCancel}
             disabled={isSubmitting}
           >
             Cancel
           </button>
-          <button 
-            type="submit" 
-            className="btn-submit" 
-            disabled={isSubmitting}
-          >
+          <button type="submit" className="btn-submit" disabled={isSubmitting}>
             {isSubmitting ? "Adding Book..." : "Add Book"}
             {!isSubmitting && <Book size={18} className="btn-icon" />}
           </button>
@@ -509,10 +513,7 @@ const AddBookForm = () => {
         <div className="book-card-preview">
           <div className="book-card-cover">
             {previewImage ? (
-              <img
-                src={previewImage}
-                alt={formData.title || "Book cover"}
-              />
+              <img src={previewImage} alt={formData.title || "Book cover"} />
             ) : (
               <div className="placeholder-cover">
                 <Book size={40} />

@@ -111,7 +111,7 @@ namespace backend_inkspire.DTOs
         public bool? NewArrival { get; set; }
         public bool? ComingSoon { get; set; }
         public bool? OnSale { get; set; }
-        public string SortBy { get; set; } = "Title"; // Title, PublicationDate, Price, Popularity
+        public string SortBy { get; set; } = "Title";
         public bool SortAscending { get; set; } = true;
         public int PageNumber { get; set; } = 1;
         public int PageSize { get; set; } = 10;

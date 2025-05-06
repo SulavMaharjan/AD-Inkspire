@@ -28,7 +28,6 @@ function App() {
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/unauthorized" element={<UnauthorizedPage />} />
 
-          {/* Protected routes (any authenticated user) */}
           <Route
             path="/dashboard"
             element={
@@ -43,7 +42,6 @@ function App() {
             path="/admin/*"
             element={
               <AdminProtectedRoute>
-                {/* You can nest admin routes here or use Outlet */}
                 <Routes>
                   <Route
                     path="dashboard"
@@ -89,7 +87,6 @@ function App() {
             }
           />
 
-          {/* Catch-all route */}
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </Router>

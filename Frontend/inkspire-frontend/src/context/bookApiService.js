@@ -1,8 +1,5 @@
-// src/context/bookApiService.js
+const API_BASE_URL = "https://localhost:7039/api";
 
-const API_BASE_URL = "https://localhost:7039/api"; // Update this to your actual .NET Core API URL
-
-// Helper function to check if API is available
 export const checkApiAvailability = async () => {
   try {
     const response = await fetch(
@@ -12,7 +9,7 @@ export const checkApiAvailability = async () => {
         headers: {
           "Content-Type": "application/json",
         },
-        signal: AbortSignal.timeout(5000), // 5-second timeout
+        signal: AbortSignal.timeout(5000),
       }
     );
 
@@ -23,7 +20,7 @@ export const checkApiAvailability = async () => {
   }
 };
 
-// Main function to fetch books with filters
+//fetch books
 export const fetchBooks = async (filters = {}) => {
   try {
     const {
@@ -39,7 +36,6 @@ export const fetchBooks = async (filters = {}) => {
       ...otherFilters
     } = filters;
 
-    // Build query string from filters
     const queryParams = new URLSearchParams();
     queryParams.append("pageNumber", pageNumber);
     queryParams.append("pageSize", pageSize);
@@ -52,7 +48,6 @@ export const fetchBooks = async (filters = {}) => {
     if (priceMin !== undefined) queryParams.append("priceMin", priceMin);
     if (priceMax !== undefined) queryParams.append("priceMax", priceMax);
 
-    // Add other filters like bestseller, newRelease, etc.
     Object.entries(otherFilters).forEach(([key, value]) => {
       if (value !== undefined) {
         queryParams.append(key, value);
@@ -80,7 +75,7 @@ export const fetchBooks = async (filters = {}) => {
   }
 };
 
-// Fetch books on sale
+//fetch books on sale
 export const fetchOnSale = async (pageNumber = 1, pageSize = 12) => {
   try {
     const response = await fetch(
@@ -104,7 +99,7 @@ export const fetchOnSale = async (pageNumber = 1, pageSize = 12) => {
   }
 };
 
-// Fetch bestsellers
+//fetch bestsellers
 export const fetchBestsellers = async (pageNumber = 1, pageSize = 12) => {
   try {
     const response = await fetch(
@@ -128,7 +123,7 @@ export const fetchBestsellers = async (pageNumber = 1, pageSize = 12) => {
   }
 };
 
-// Fetch new releases
+//fetch new releases
 export const fetchNewReleases = async (pageNumber = 1, pageSize = 12) => {
   try {
     const response = await fetch(
@@ -152,7 +147,7 @@ export const fetchNewReleases = async (pageNumber = 1, pageSize = 12) => {
   }
 };
 
-// Fetch award winners
+//fetch award winners
 export const fetchAwardWinners = async (pageNumber = 1, pageSize = 12) => {
   try {
     const response = await fetch(
@@ -176,7 +171,7 @@ export const fetchAwardWinners = async (pageNumber = 1, pageSize = 12) => {
   }
 };
 
-// Fetch new arrivals
+//fetch new arrivals
 export const fetchNewArrivals = async (pageNumber = 1, pageSize = 12) => {
   try {
     const response = await fetch(
@@ -200,7 +195,7 @@ export const fetchNewArrivals = async (pageNumber = 1, pageSize = 12) => {
   }
 };
 
-// Fetch coming soon books
+//fetch coming soon books
 export const fetchComingSoon = async (pageNumber = 1, pageSize = 12) => {
   try {
     const response = await fetch(
@@ -224,7 +219,7 @@ export const fetchComingSoon = async (pageNumber = 1, pageSize = 12) => {
   }
 };
 
-// Fetch a book by ID
+//fetch book by ID
 export const fetchBookById = async (bookId) => {
   try {
     const response = await fetch(`${API_BASE_URL}/books/${bookId}`, {
@@ -245,7 +240,7 @@ export const fetchBookById = async (bookId) => {
   }
 };
 
-// Fetch books by genre
+//fetch books by genre
 export const fetchBooksByGenre = async (
   genre,
   pageNumber = 1,
@@ -275,7 +270,7 @@ export const fetchBooksByGenre = async (
   }
 };
 
-// Fetch books by author
+//fetch books by author
 export const fetchBooksByAuthor = async (
   author,
   pageNumber = 1,

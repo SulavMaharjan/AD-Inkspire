@@ -19,7 +19,6 @@ const CategoryTabs = ({
   const handleCategoryChange = (categoryId) => {
     setActiveCategory(categoryId);
 
-    // Call the callback function if provided
     if (onCategoryChange) {
       onCategoryChange(categoryId);
     }

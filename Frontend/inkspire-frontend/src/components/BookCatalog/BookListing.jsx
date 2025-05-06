@@ -41,7 +41,7 @@ const BookListing = () => {
     pageSize: 12,
   });
 
-  // First check if API is available
+  //checking if API is available
   useEffect(() => {
     const checkApi = async () => {
       const isAvailable = await checkApiAvailability();
@@ -57,14 +57,13 @@ const BookListing = () => {
     checkApi();
   }, [retryCount]);
 
-  // Reset pagination when category or search changes
+  //reset pagination when category or search changes
   useEffect(() => {
     setPagination((prev) => ({ ...prev, currentPage: 1 }));
   }, [activeCategory, searchQuery]);
 
-  // Load books based on active category and filters
+  //books based on active category and filters
   useEffect(() => {
-    // Skip fetching if API is not available
     if (!apiAvailable) return;
 
     const loadBooks = async () => {
@@ -81,7 +80,7 @@ const BookListing = () => {
           sortAscending: sortBy === "title" || sortBy === "price-low",
         };
 
-        // Fetch books based on active category
+        //books based on active category
         switch (activeCategory) {
           case "bestsellers":
             response = await fetchBestsellers(
@@ -132,17 +131,15 @@ const BookListing = () => {
           pageSize: response.pageSize || 12,
         });
 
-        // Only fetch sale books when on the "all" category
         if (activeCategory === "all" && !searchQuery) {
-          const saleResponse = await fetchOnSale(1, 4); // Just get a few sale books for display
+          const saleResponse = await fetchOnSale(1, 4);
           setOnSaleBooks(saleResponse.items || []);
         } else {
-          setOnSaleBooks([]); // Clear sale books when on other categories
+          setOnSaleBooks([]);
         }
       } catch (err) {
         console.error("Failed to load books:", err);
 
-        // Show more specific error messages
         if (
           err.message.includes("Failed to connect") ||
           err.message.includes("timed out") ||
@@ -172,7 +169,6 @@ const BookListing = () => {
     pagination.pageSize,
   ]);
 
-  // Map frontend sort options to API parameters
   const mapSortByToApi = (sortOption) => {
     switch (sortOption) {
       case "title":
@@ -191,7 +187,6 @@ const BookListing = () => {
   const handlePageChange = (newPage) => {
     if (newPage >= 1 && newPage <= pagination.totalPages) {
       setPagination((prev) => ({ ...prev, currentPage: newPage }));
-      // Scroll to top when changing pages
       window.scrollTo(0, 0);
     }
   };
@@ -203,13 +198,13 @@ const BookListing = () => {
   const handleRetry = () => {
     setRetryCount((prevCount) => prevCount + 1);
     setLoading(true);
-    setApiAvailable(true); // Reset API availability to trigger a new check
+    setApiAvailable(true);
   };
 
   const handleCategoryChange = (categoryId) => {
     setActiveCategory(categoryId);
-    setPagination((prev) => ({ ...prev, currentPage: 1 })); // Reset to page 1
-    setSearchQuery(""); // Clear search when changing categories
+    setPagination((prev) => ({ ...prev, currentPage: 1 }));
+    setSearchQuery("");
   };
 
   return (
