@@ -24,7 +24,7 @@ namespace backend_inkspire.Services
         private async Task<string> SaveImage(IFormFile imageFile)
         {
             if (imageFile == null || imageFile.Length == 0)
-                return null;
+                return "/images/books/default-cover.jpg"; // Return default image path when no image is provided
 
             string uploadsFolder = Path.Combine(_environment.WebRootPath, "images", "books");
             if (!Directory.Exists(uploadsFolder))
@@ -89,20 +89,18 @@ namespace backend_inkspire.Services
                 throw new InvalidOperationException("A book with this ISBN already exists.");
             }
 
-            // Process image if provided
+            // Create a book first with default cover image
+            var book = await _bookRepository.AddBookAsync(bookDto);
+
+            // Process image if provided and update the book
             if (bookDto.CoverImagePath != null)
             {
                 string imagePath = await SaveImage(bookDto.CoverImagePath);
-                // Create a new book with the image path
-                var book = await _bookRepository.AddBookAsync(bookDto);
                 book.CoverImagePath = imagePath;
                 await _bookRepository.SaveChangesAsync();
-                return MapToResponseDTO(book);
             }
 
-            // If no image was provided
-            var bookWithoutImage = await _bookRepository.AddBookAsync(bookDto);
-            return MapToResponseDTO(bookWithoutImage);
+            return MapToResponseDTO(book);
         }
 
         public async Task<BookResponseDTO> UpdateBookAsync(int id, BookDTO bookDto)
@@ -126,20 +124,17 @@ namespace backend_inkspire.Services
                 throw new InvalidOperationException("A book with this ISBN already exists.");
             }
 
+            // Update book with basic information
+            var updatedBook = await _bookRepository.UpdateBookAsync(id, bookDto);
+
             // Process image if a new one is provided
             if (bookDto.CoverImagePath != null)
             {
                 string imagePath = await SaveImage(bookDto.CoverImagePath);
-
-                // Update book with the new image path
-                var book = await _bookRepository.UpdateBookAsync(id, bookDto);
-                book.CoverImagePath = imagePath;
+                updatedBook.CoverImagePath = imagePath;
                 await _bookRepository.SaveChangesAsync();
-                return MapToResponseDTO(book);
             }
 
-            // If no new image was provided, keep the existing image path
-            var updatedBook = await _bookRepository.UpdateBookAsync(id, bookDto);
             return MapToResponseDTO(updatedBook);
         }
 
@@ -231,7 +226,7 @@ namespace backend_inkspire.Services
                 SoldCount = book.SoldCount,
                 AverageRating = averageRating,
                 ReviewCount = reviewCount,
-                CoverImagePath = book.CoverImagePath, // Added this line to include the cover image path
+                CoverImagePath = book.CoverImagePath,
                 IsBookmarked = false // This should be set based on user context if implemented
             };
         }

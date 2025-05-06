@@ -44,7 +44,7 @@ namespace backend_inkspire.Entities
 
         [Required]
         [MaxLength(50)]
-        public string Format { get; set; } 
+        public string Format { get; set; }
         public string Description { get; set; }
 
         public bool AvailableInLibrary { get; set; }
@@ -61,7 +61,6 @@ namespace backend_inkspire.Entities
         public bool IsNewArrival => ListedDate >= DateTime.Now.AddMonths(-1);
 
         public bool IsComingSoon { get; set; }
-
 
         public bool IsOnSale { get; set; }
         public decimal? DiscountPercentage { get; set; }
@@ -82,10 +81,8 @@ namespace backend_inkspire.Entities
 
         public int SoldCount { get; set; }
 
-
         // Add a property to store the file path/name
         public string CoverImagePath { get; set; }
-
 
         public virtual ICollection<Review> Reviews { get; set; }
 

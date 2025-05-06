@@ -46,7 +46,7 @@ namespace backend_inkspire.DTOs
         public bool IsBestseller { get; set; }
 
         public bool IsNewRelease { get; set; }
-        
+
         public bool IsNewArrival { get; set; }
 
         public bool IsAwardWinner { get; set; }
@@ -55,7 +55,7 @@ namespace backend_inkspire.DTOs
 
         public IFormFile CoverImagePath { get; set; }
 
-        
+
     }
 
     public class BookResponseDTO
@@ -89,7 +89,7 @@ namespace backend_inkspire.DTOs
         public int ReviewCount { get; set; }
         public bool IsBookmarked { get; set; }
 
-  
+
     }
 
     public class BookFilterDTO

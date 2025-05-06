@@ -230,7 +230,7 @@ namespace backend_inkspire.Repositories
                 IsBestseller = bookDto.IsBestseller,
                 IsAwardWinner = bookDto.IsAwardWinner,
                 IsComingSoon = bookDto.IsComingSoon,
-                CoverImagePath = null, // Will be set by the service after image upload
+                CoverImagePath = "/images/books/default-cover.jpg", // Setting a default value to avoid null constraint violation
                 ListedDate = DateTime.UtcNow
             };
 
