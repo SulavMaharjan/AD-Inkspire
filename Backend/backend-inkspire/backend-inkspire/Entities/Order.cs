@@ -156,7 +156,7 @@ namespace backend_inkspire.Entities
 
         [Required]
         [Column(TypeName = "decimal(18,2)")]
-        public decimal DiscountPercentage { get; set; } // 10% after every 10 successful orders
+        public decimal DiscountPercentage { get; set; }
 
         public bool IsUsed { get; set; }
 

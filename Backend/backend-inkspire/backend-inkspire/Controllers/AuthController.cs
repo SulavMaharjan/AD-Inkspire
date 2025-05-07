@@ -48,12 +48,10 @@ namespace backend_inkspire.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginDTO loginDto)
         {
-            // Add debug logging
             Console.WriteLine($"Login attempt: {loginDto.EmailOrUsername}");
 
             if (!ModelState.IsValid)
             {
-                // Log validation errors
                 var errors = string.Join(", ", ModelState.Values
                     .SelectMany(v => v.Errors)
                     .Select(e => e.ErrorMessage));
@@ -63,7 +61,6 @@ namespace backend_inkspire.Controllers
 
             var result = await _authService.LoginAsync(loginDto);
 
-            // Log result
             Console.WriteLine($"Login result: {result.IsSuccess}, Message: {result.Message}");
 
             if (!result.IsSuccess)

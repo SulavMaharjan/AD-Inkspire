@@ -1,5 +1,4 @@
-﻿// BookRepository.cs
-using backend_inkspire.DTOs;
+﻿using backend_inkspire.DTOs;
 using backend_inkspire.Entities;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
@@ -15,6 +14,11 @@ namespace backend_inkspire.Repositories
             _context = context;
         }
 
+        public async Task SaveChangesAsync()
+        {
+            await _context.SaveChangesAsync();
+        }
+
         public async Task<Book> GetBookByIdAsync(int id)
         {
             return await _context.Books
@@ -24,14 +28,17 @@ namespace backend_inkspire.Repositories
 
         public async Task<PaginatedResponseDTO<Book>> GetBooksAsync(BookFilterDTO filter)
         {
-            var query = _context.Books.AsQueryable();
+            var query = _context.Books
+                .Include(b => b.Reviews)
+                .AsQueryable();
 
-
+            //basic search filters
             if (!string.IsNullOrEmpty(filter.SearchTerm))
             {
                 query = query.Where(b =>
                     b.Title.Contains(filter.SearchTerm) ||
                     b.ISBN.Contains(filter.SearchTerm) ||
+                    b.Author.Contains(filter.SearchTerm) ||
                     b.Description.Contains(filter.SearchTerm));
             }
 
@@ -45,6 +52,7 @@ namespace backend_inkspire.Repositories
                 query = query.Where(b => b.Genre == filter.Genre);
             }
 
+            //inventory filters
             if (filter.InStock.HasValue)
             {
                 query = filter.InStock.Value
@@ -57,21 +65,28 @@ namespace backend_inkspire.Repositories
                 query = query.Where(b => b.AvailableInLibrary == filter.AvailableInLibrary.Value);
             }
 
+            //price range filters
             if (filter.MinPrice.HasValue)
             {
-                query = query.Where(b => b.CurrentPrice >= filter.MinPrice.Value);
+                query = query.Where(b => b.IsCurrentlyDiscounted
+                    ? (b.Price - (b.Price * b.DiscountPercentage.Value / 100)) >= filter.MinPrice.Value
+                    : b.Price >= filter.MinPrice.Value);
             }
 
             if (filter.MaxPrice.HasValue)
             {
-                query = query.Where(b => b.CurrentPrice <= filter.MaxPrice.Value);
+                query = query.Where(b => b.IsCurrentlyDiscounted
+                    ? (b.Price - (b.Price * b.DiscountPercentage.Value / 100)) <= filter.MaxPrice.Value
+                    : b.Price <= filter.MaxPrice.Value);
             }
+
+            //rating filter
             if (filter.MinRating.HasValue)
             {
-            
                 double minRating = (double)filter.MinRating.Value;
                 query = query.Where(b => b.Reviews.Any() && b.Reviews.Average(r => r.Rating) >= minRating);
             }
+
             if (!string.IsNullOrEmpty(filter.Language))
             {
                 query = query.Where(b => b.Language == filter.Language);
@@ -87,9 +102,13 @@ namespace backend_inkspire.Repositories
                 query = query.Where(b => b.Publisher == filter.Publisher);
             }
 
+            //categories filters
             if (filter.Bestseller.HasValue)
             {
-                query = query.Where(b => b.IsBestseller == filter.Bestseller.Value);
+                if (filter.Bestseller.Value)
+                {
+                    query = query.OrderByDescending(b => b.SoldCount);
+                }
             }
 
             if (filter.AwardWinner.HasValue)
@@ -99,12 +118,18 @@ namespace backend_inkspire.Repositories
 
             if (filter.NewRelease.HasValue)
             {
-                query = query.Where(b => b.IsNewRelease == filter.NewRelease.Value);
+                var threeMonthsAgo = DateTime.UtcNow.AddMonths(-3);
+                query = filter.NewRelease.Value
+                    ? query.Where(b => b.PublicationDate >= threeMonthsAgo)
+                    : query.Where(b => b.PublicationDate < threeMonthsAgo);
             }
 
             if (filter.NewArrival.HasValue)
             {
-                query = query.Where(b => b.IsNewArrival == filter.NewArrival.Value);
+                var oneMonthAgo = DateTime.UtcNow.AddMonths(-1);
+                query = filter.NewArrival.Value
+                    ? query.Where(b => b.ListedDate >= oneMonthAgo)
+                    : query.Where(b => b.ListedDate < oneMonthAgo);
             }
 
             if (filter.ComingSoon.HasValue)
@@ -114,29 +139,48 @@ namespace backend_inkspire.Repositories
 
             if (filter.OnSale.HasValue)
             {
-                query = query.Where(b => b.IsOnSale == filter.OnSale.Value);
+                if (filter.OnSale.Value)
+                {
+                    var now = DateTime.UtcNow;
+                    query = query.Where(b =>
+                        b.IsOnSale &&
+                        b.DiscountPercentage.HasValue &&
+                        b.DiscountStartDate.HasValue &&
+                        b.DiscountEndDate.HasValue &&
+                        now >= b.DiscountStartDate &&
+                        now <= b.DiscountEndDate);
+                }
+                else
+                {
+                    query = query.Where(b => !b.IsOnSale);
+                }
             }
 
-            // Apply sorting
+            //sorting
             query = filter.SortBy.ToLower() switch
             {
                 "publicationdate" => filter.SortAscending
                     ? query.OrderBy(b => b.PublicationDate)
                     : query.OrderByDescending(b => b.PublicationDate),
                 "price" => filter.SortAscending
-                    ? query.OrderBy(b => b.CurrentPrice)
-                    : query.OrderByDescending(b => b.CurrentPrice),
+                    ? query.OrderBy(b => b.IsCurrentlyDiscounted
+                        ? (b.Price - (b.Price * b.DiscountPercentage.Value / 100))
+                        : b.Price)
+                    : query.OrderByDescending(b => b.IsCurrentlyDiscounted
+                        ? (b.Price - (b.Price * b.DiscountPercentage.Value / 100))
+                        : b.Price),
                 "popularity" => filter.SortAscending
                     ? query.OrderBy(b => b.SoldCount)
                     : query.OrderByDescending(b => b.SoldCount),
+                "rating" => filter.SortAscending
+                    ? query.OrderBy(b => b.Reviews.Any() ? b.Reviews.Average(r => r.Rating) : 0)
+                    : query.OrderByDescending(b => b.Reviews.Any() ? b.Reviews.Average(r => r.Rating) : 0),
                 _ => filter.SortAscending
                     ? query.OrderBy(b => b.Title)
                     : query.OrderByDescending(b => b.Title),
             };
 
-        
             var totalCount = await query.CountAsync();
-
 
             var items = await query
                 .Skip((filter.PageNumber - 1) * filter.PageSize)
@@ -155,6 +199,15 @@ namespace backend_inkspire.Repositories
 
         public async Task<Book> AddBookAsync(BookDTO bookDto)
         {
+            if (bookDto.PublicationDate.Kind == DateTimeKind.Unspecified)
+            {
+                bookDto.PublicationDate = DateTime.SpecifyKind(bookDto.PublicationDate, DateTimeKind.Utc);
+            }
+            else if (bookDto.PublicationDate.Kind == DateTimeKind.Local)
+            {
+                bookDto.PublicationDate = bookDto.PublicationDate.ToUniversalTime();
+            }
+
             var book = new Book
             {
                 Title = bookDto.Title,
@@ -162,8 +215,8 @@ namespace backend_inkspire.Repositories
                 Author = bookDto.Author,
                 Publisher = bookDto.Publisher,
                 PublicationDate = bookDto.PublicationDate.Kind == DateTimeKind.Local
-            ? bookDto.PublicationDate.ToUniversalTime()
-            : bookDto.PublicationDate,
+                    ? bookDto.PublicationDate.ToUniversalTime()
+                    : bookDto.PublicationDate,
                 Price = bookDto.Price,
                 StockQuantity = bookDto.StockQuantity,
                 Genre = bookDto.Genre,
@@ -174,7 +227,8 @@ namespace backend_inkspire.Repositories
                 IsBestseller = bookDto.IsBestseller,
                 IsAwardWinner = bookDto.IsAwardWinner,
                 IsComingSoon = bookDto.IsComingSoon,
-                CoverImageUrl = bookDto.CoverImageUrl
+                CoverImagePath = "/images/books/default-cover.jpg",
+                ListedDate = DateTime.UtcNow
             };
 
             _context.Books.Add(book);
@@ -195,8 +249,8 @@ namespace backend_inkspire.Repositories
             book.Author = bookDto.Author;
             book.Publisher = bookDto.Publisher;
             book.PublicationDate = bookDto.PublicationDate.Kind == DateTimeKind.Local
-            ? bookDto.PublicationDate.ToUniversalTime()
-            : bookDto.PublicationDate;
+                ? bookDto.PublicationDate.ToUniversalTime()
+                : bookDto.PublicationDate;
             book.Price = bookDto.Price;
             book.StockQuantity = bookDto.StockQuantity;
             book.Genre = bookDto.Genre;
@@ -207,7 +261,6 @@ namespace backend_inkspire.Repositories
             book.IsBestseller = bookDto.IsBestseller;
             book.IsAwardWinner = bookDto.IsAwardWinner;
             book.IsComingSoon = bookDto.IsComingSoon;
-            book.CoverImageUrl = bookDto.CoverImageUrl;
 
             await _context.SaveChangesAsync();
             return book;
@@ -236,8 +289,12 @@ namespace backend_inkspire.Repositories
 
             book.IsOnSale = true;
             book.DiscountPercentage = discountDto.DiscountPercentage;
-            book.DiscountStartDate = discountDto.StartDate;
-            book.DiscountEndDate = discountDto.EndDate;
+            book.DiscountStartDate = discountDto.StartDate.Kind == DateTimeKind.Local
+                ? discountDto.StartDate.ToUniversalTime()
+                : discountDto.StartDate;
+            book.DiscountEndDate = discountDto.EndDate.Kind == DateTimeKind.Local
+                ? discountDto.EndDate.ToUniversalTime()
+                : discountDto.EndDate;
 
             await _context.SaveChangesAsync();
             return true;

@@ -1,5 +1,4 @@
-﻿// IBookRepository.cs
-using backend_inkspire.DTOs;
+﻿using backend_inkspire.DTOs;
 using backend_inkspire.Entities;
 using System.Linq.Expressions;
 
@@ -15,5 +14,6 @@ namespace backend_inkspire.Repositories
         Task<bool> AddBookDiscountAsync(int bookId, BookDiscountDTO discountDto);
         Task<bool> RemoveBookDiscountAsync(int bookId);
         Task<bool> BookExistsAsync(Expression<Func<Book, bool>> predicate);
+        Task SaveChangesAsync();
     }
 }

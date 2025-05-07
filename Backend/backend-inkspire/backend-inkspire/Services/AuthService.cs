@@ -28,7 +28,7 @@ namespace backend_inkspire.Services
         {
             var response = new AuthResponseDTO();
 
-            // Check if email or username already exists
+            //checking if email or username already exists
             var existingUser = await _userRepository.GetUserByEmailOrUsernameAsync(registerDto.Email);
             if (existingUser != null)
             {
@@ -45,7 +45,7 @@ namespace backend_inkspire.Services
                 return response;
             }
 
-            // Create new user
+            //create new user
             var user = new User
             {
                 UserName = registerDto.UserName,
@@ -62,7 +62,7 @@ namespace backend_inkspire.Services
                 return response;
             }
 
-            // Assign "Member" role to user
+            //"Member" role to user
             if (!await _roleManager.RoleExistsAsync("Member"))
             {
                 await _roleManager.CreateAsync(new Roles { Name = "Member" });
@@ -70,10 +70,9 @@ namespace backend_inkspire.Services
 
             await _userManager.AddToRoleAsync(user, "Member");
 
-            // Get roles for token
             var roles = await _userRepository.GetUserRolesAsync(user);
 
-            // Generate token
+            //generate token
             var token = _jwtService.GenerateJwtToken(user, roles);
 
             response.IsSuccess = true;

@@ -12,14 +12,13 @@ using backend_inkspire;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
 builder.Services.AddControllers();
 
-// Add DbContext
+//DbContext
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Add Identity
+//Identity
 builder.Services.AddIdentity<User, Roles>(options =>
 {
     options.Password.RequireDigit = true;
@@ -59,7 +58,7 @@ builder.Services.AddAuthentication(x =>
     };
 });
 
-// Register Services
+//Register Services
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
@@ -101,12 +100,12 @@ builder.Services.AddSwaggerGen(option =>
     });
 });
 
-// Add CORS policy
+//CORS policy
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowViteApp",
         builder => builder
-            .WithOrigins("http://localhost:5173") // Default Vite dev server port
+            .WithOrigins("http://localhost:5173")
             .AllowAnyMethod()
             .AllowAnyHeader()
             .AllowCredentials());
@@ -131,5 +130,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.UseStaticFiles();
 
 app.Run();

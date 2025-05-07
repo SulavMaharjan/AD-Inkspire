@@ -44,7 +44,7 @@ namespace backend_inkspire.Entities
 
         [Required]
         [MaxLength(50)]
-        public string Format { get; set; } 
+        public string Format { get; set; }
         public string Description { get; set; }
 
         public bool AvailableInLibrary { get; set; }
@@ -53,15 +53,14 @@ namespace backend_inkspire.Entities
 
         public bool IsAwardWinner { get; set; }
 
-        // For "New Releases" (published in the past three months)
+        //published in the past three months
         public bool IsNewRelease => PublicationDate >= DateTime.Now.AddMonths(-3);
 
-        // For "New Arrivals" (listed in the past month)
+        //listed in the past month
         public DateTime ListedDate { get; set; }
         public bool IsNewArrival => ListedDate >= DateTime.Now.AddMonths(-1);
 
         public bool IsComingSoon { get; set; }
-
 
         public bool IsOnSale { get; set; }
         public decimal? DiscountPercentage { get; set; }
@@ -80,14 +79,13 @@ namespace backend_inkspire.Entities
             Price - (Price * DiscountPercentage.Value / 100) :
             Price;
 
-        public int SoldCount { get; set; } 
+        public int SoldCount { get; set; }
 
-        public string CoverImageUrl { get; set; }
+        public string CoverImagePath { get; set; }
 
-       
         public virtual ICollection<Review> Reviews { get; set; }
 
-        // Average rating calculation
+        //average rating calculation
         [NotMapped]
         public decimal AverageRating =>
             Reviews != null && Reviews.Any() ?

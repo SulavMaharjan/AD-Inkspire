@@ -11,7 +11,6 @@ const FilterSidebar = ({ setShowFilters }) => {
   const [selectedPublishers, setSelectedPublishers] = useState([]);
   const [ratingFilter, setRatingFilter] = useState(0);
 
-  // Mock data for filters
   const genres = [
     "Fiction",
     "Non-Fiction",
@@ -124,7 +123,6 @@ const FilterSidebar = ({ setShowFilters }) => {
   };
 
   const applyFilters = () => {
-    // In a real app, this would filter the books displayed
     console.log("Applying filters:", {
       genres: selectedGenres,
       authors: selectedAuthors,

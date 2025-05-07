@@ -1,6 +1,4 @@
-﻿// IBookService.cs
-using backend_inkspire.DTOs;
-using backend_inkspire.Entities;
+﻿using backend_inkspire.DTOs;
 
 namespace backend_inkspire.Services
 {

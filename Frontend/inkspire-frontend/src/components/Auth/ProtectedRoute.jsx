@@ -39,9 +39,6 @@ export const MemberProtectedRoute = ({ children }) => {
   return children;
 };
 
-/**
- * Staff protected route component that checks if user is authenticated and has staff role
- */
 export const StaffProtectedRoute = ({ children }) => {
   const { isAuthenticated, currentRole } = useAuth();
 

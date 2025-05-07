@@ -10,8 +10,6 @@ namespace backend_inkspire
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
         {
         }
-
-        // Add DbSets for our new entities
         public DbSet<Book> Books { get; set; }
         public DbSet<Review> Reviews { get; set; }
         public DbSet<Announcement> Announcements { get; set; }
@@ -26,8 +24,6 @@ namespace backend_inkspire
         {
             base.OnModelCreating(builder);
 
-            // PostgreSQL uses lowercase table names by convention
-            // Set the table names with correct casing
             builder.Entity<User>().ToTable("Users");
             builder.Entity<Roles>().ToTable("Roles");
             builder.Entity<IdentityUserRole<long>>().ToTable("UserRoles");
@@ -43,10 +39,10 @@ namespace backend_inkspire
                 .IsUnique();
 
             builder.Entity<Book>()
-    .Property(b => b.PublicationDate)
-    .HasConversion(
-        v => v.Kind == DateTimeKind.Local ? v.ToUniversalTime() : v,
-        v => DateTime.SpecifyKind(v, DateTimeKind.Utc));
+                .Property(b => b.PublicationDate)
+                .HasConversion(
+                    v => v.Kind == DateTimeKind.Local ? v.ToUniversalTime() : v,
+                    v => DateTime.SpecifyKind(v, DateTimeKind.Utc));
 
             builder.Entity<Book>()
                 .Property(b => b.ListedDate)
@@ -90,12 +86,11 @@ namespace backend_inkspire
             builder.Entity<CartItem>().ToTable("CartItems");
             builder.Entity<UserDiscount>().ToTable("UserDiscounts");
 
-            // Add unique constraint for user cart
+            //add unique constraint for user cart
             builder.Entity<Cart>()
                 .HasIndex(c => c.UserId)
                 .IsUnique();
 
-            // Seed Roles
             builder.Entity<Roles>().HasData(
                 new Roles
                 {
@@ -120,7 +115,7 @@ namespace backend_inkspire
                 }
             );
 
-            // Seed SuperAdmin User
+            //seed SuperAdmin
             var superAdmin = new User
             {
                 Id = 1,
@@ -136,7 +131,7 @@ namespace backend_inkspire
             superAdmin.PasswordHash = new PasswordHasher<User>().HashPassword(superAdmin, "anjan@123");
             builder.Entity<User>().HasData(superAdmin);
 
-            // Assign SuperAdmin Role to User
+            //assign SuperAdmin Role
             builder.Entity<IdentityUserRole<long>>().HasData(
                 new IdentityUserRole<long>
                 {

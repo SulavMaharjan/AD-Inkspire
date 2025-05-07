@@ -1,52 +1,96 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Heart, ShoppingCart, Star } from "lucide-react";
 import "../../styles/BookCard.css";
 
 const BookCard = ({ book }) => {
   const [isBookmarked, setIsBookmarked] = useState(false);
+  const [imageError, setImageError] = useState(false);
 
   const {
+    id,
     title,
     author,
-    coverImage,
     price,
-    originalPrice,
-    onSale,
-    discount,
-    rating,
+    discountedPrice,
+    discountPercentage,
+    averageRating,
     format,
-    availability,
-    bestseller,
-    awardWinner,
+    stockQuantity,
+    isBestseller,
+    isAwardWinner,
+    coverImagePath,
+    isOnSale,
   } = book;
+
+  useEffect(() => {
+    console.log(`Book ID ${id} image path:`, coverImagePath);
+  }, [id, coverImagePath]);
+
+  const getCoverImageUrl = () => {
+    if (imageError || !coverImagePath) {
+      return "/placeholder-book-cover.jpg";
+    }
+
+    if (coverImagePath.startsWith("http")) {
+      return coverImagePath;
+    }
+
+    const normalizedPath = coverImagePath.startsWith("/")
+      ? coverImagePath
+      : `/${coverImagePath}`;
+
+    return `https://localhost:7039${normalizedPath}`;
+  };
+
+  const discount =
+    discountPercentage || (isOnSale && price && discountedPrice)
+      ? Math.round(((price - discountedPrice) / price) * 100)
+      : 0;
 
   const handleBookmark = (e) => {
     e.stopPropagation();
     setIsBookmarked(!isBookmarked);
+    console.log(
+      `${isBookmarked ? "Removing" : "Adding"} bookmark for book ID: ${id}`
+    );
   };
 
   const handleAddToCart = (e) => {
     e.stopPropagation();
+    console.log(`Adding book ID: ${id} to cart`);
     alert(`Added ${title} to cart!`);
   };
 
-  // Calculate discount percentage if not provided
-  const discountPercentage =
-    discount || Math.round(((originalPrice - price) / originalPrice) * 100);
+  const handleBookClick = () => {
+    console.log(`Navigating to book detail page for ID: ${id}`);
+    // navigate(`/books/${id}`);
+  };
+
+  const handleImageError = () => {
+    console.error(
+      `Failed to load image for book ID: ${id}, Path: ${coverImagePath}`
+    );
+    setImageError(true);
+  };
 
   return (
-    <div className="book-card">
+    <div className="book-card" onClick={handleBookClick}>
       <div className="book-card-image-container">
-        <img src={coverImage} alt={title} className="book-cover" />
+        <img
+          src={getCoverImageUrl()}
+          alt={title}
+          className="book-cover"
+          onError={handleImageError}
+        />
 
-        {onSale && (
+        {isOnSale && discount > 0 && (
           <div className="sale-badge">
-            <span>{discountPercentage}% OFF</span>
+            <span>{discount}% OFF</span>
           </div>
         )}
 
-        {bestseller && <div className="bestseller-badge">Bestseller</div>}
-        {awardWinner && <div className="award-badge">Award Winner</div>}
+        {isBestseller && <div className="bestseller-badge">Bestseller</div>}
+        {isAwardWinner && <div className="award-badge">Award Winner</div>}
 
         <button
           className={`bookmark-button ${isBookmarked ? "bookmarked" : ""}`}
@@ -68,37 +112,45 @@ const BookCard = ({ book }) => {
             <Star
               key={i}
               size={14}
-              fill={i < Math.floor(rating) ? "#D4AF37" : "none"}
+              fill={i < Math.floor(averageRating || 0) ? "#D4AF37" : "none"}
               color="#D4AF37"
             />
           ))}
-          <span className="rating-value">{rating}</span>
+          <span className="rating-value">
+            {averageRating?.toFixed(1) || "N/A"}
+          </span>
         </div>
 
         <div className="book-format-availability">
-          <span className="book-format">{format}</span>
+          <span className="book-format">{format || "Paperback"}</span>
           <span
             className={`book-availability ${
-              availability > 0 ? "in-stock" : "out-of-stock"
+              stockQuantity > 0 ? "in-stock" : "out-of-stock"
             }`}
           >
-            {availability > 0 ? `${availability} in stock` : "Out of stock"}
+            {stockQuantity > 0 ? `${stockQuantity} in stock` : "Out of stock"}
           </span>
         </div>
 
         <div className="book-price-container">
-          <span className="book-price">${price.toFixed(2)}</span>
-          {onSale && (
-            <span className="book-original-price">
-              ${originalPrice.toFixed(2)}
-            </span>
+          {discountedPrice ? (
+            <>
+              <span className="book-price">
+                ${Number(discountedPrice).toFixed(2)}
+              </span>
+              <span className="book-original-price">
+                ${Number(price).toFixed(2)}
+              </span>
+            </>
+          ) : (
+            <span className="book-price">${Number(price || 0).toFixed(2)}</span>
           )}
         </div>
 
         <button
           className="add-to-cart-button"
           onClick={handleAddToCart}
-          disabled={availability <= 0}
+          disabled={stockQuantity <= 0}
         >
           <ShoppingCart size={16} />
           <span>Add to Cart</span>

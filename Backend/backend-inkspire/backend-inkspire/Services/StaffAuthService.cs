@@ -28,7 +28,7 @@ namespace backend_inkspire.Services
         {
             var response = new AuthResponseDTO();
 
-            // Check if the creator is an admin
+            //checking if the creator is an admin
             var creator = await _userRepository.GetUserByEmailOrUsernameAsync(createdByEmail);
             if (creator == null)
             {
@@ -45,7 +45,7 @@ namespace backend_inkspire.Services
                 return response;
             }
 
-            // Check if email or username already exists
+            //checking if email or username already exists
             var existingUser = await _userRepository.GetUserByEmailOrUsernameAsync(registerDto.Email);
             if (existingUser != null)
             {
@@ -62,13 +62,13 @@ namespace backend_inkspire.Services
                 return response;
             }
 
-            // Create new staff user
+            //create new staff
             var user = new User
             {
                 UserName = registerDto.UserName,
                 Email = registerDto.Email,
                 Name = registerDto.Name,
-                EmailConfirmed = true // Staff emails are pre-confirmed
+                EmailConfirmed = true
             };
 
             var result = await _userRepository.RegisterUserAsync(user, registerDto.Password);
@@ -80,19 +80,16 @@ namespace backend_inkspire.Services
                 return response;
             }
 
-            // Ensure "Staff" role exists
             if (!await _roleManager.RoleExistsAsync("Staff"))
             {
                 await _roleManager.CreateAsync(new Roles { Name = "Staff" });
             }
 
-            // Assign "Staff" role to user
             await _userManager.AddToRoleAsync(user, "Staff");
 
-            // Get roles for token
             var roles = await _userRepository.GetUserRolesAsync(user);
 
-            // Generate token
+            //generate token
             var token = _jwtService.GenerateJwtToken(user, roles);
 
             response.IsSuccess = true;
@@ -112,7 +109,6 @@ namespace backend_inkspire.Services
 
         public async Task<AuthResponseDTO> StaffLoginAsync(LoginDTO loginDto)
         {
-            // Use the existing login flow from AuthService
             var user = await _userRepository.GetUserByEmailOrUsernameAsync(loginDto.EmailOrUsername);
             if (user == null)
             {
@@ -133,7 +129,6 @@ namespace backend_inkspire.Services
                 };
             }
 
-            // Check if user has the Staff role
             var roles = await _userRepository.GetUserRolesAsync(user);
             if (!roles.Contains("Staff") && !roles.Contains("SuperAdmin"))
             {
@@ -144,7 +139,7 @@ namespace backend_inkspire.Services
                 };
             }
 
-            // Generate token
+            //generate token
             var token = _jwtService.GenerateJwtToken(user, roles);
 
             return new AuthResponseDTO

@@ -24,7 +24,7 @@ namespace backend_inkspire.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            // Get the email of the admin creating this staff account
+            //get admin creating this staff account
             var creatorEmail = User.FindFirstValue(ClaimTypes.Email);
             if (string.IsNullOrEmpty(creatorEmail))
                 return Unauthorized(new { IsSuccess = false, Message = "Admin authentication required" });

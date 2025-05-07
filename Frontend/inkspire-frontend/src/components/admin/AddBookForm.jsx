@@ -1,9 +1,16 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import FormField from "./FormField";
 import ToggleSwitch from "./ToggleSwitch";
-import { Book } from "lucide-react";
+import { Book, Upload } from "lucide-react";
+import { useAuth } from "../../context/AuthContext";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const AddBookForm = () => {
+  const { currentRole } = useAuth();
+  const navigate = useNavigate();
+  const fileInputRef = useRef(null);
+
   const initialFormData = {
     title: "",
     isbn: "",
@@ -20,12 +27,14 @@ const AddBookForm = () => {
     isBestseller: false,
     isAwardWinner: false,
     isComingSoon: false,
-    coverImageUrl: "",
+    isNewArrival: true,
   };
-
   const [formData, setFormData] = useState(initialFormData);
+  const [CoverImagePath, setCoverImagePath] = useState(null);
+  const [previewImage, setPreviewImage] = useState(null);
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
 
   const genreOptions = [
     { value: "Fiction", label: "Fiction" },
@@ -76,7 +85,6 @@ const AddBookForm = () => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
 
-    // Clear error for the field being edited
     if (errors[name]) {
       setErrors((prev) => {
         const newErrors = { ...prev };
@@ -91,10 +99,49 @@ const AddBookForm = () => {
     setFormData((prev) => ({ ...prev, [name]: checked }));
   };
 
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      //file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        setErrors((prev) => ({
+          ...prev,
+          CoverImagePath: "Image must be less than 5MB",
+        }));
+        return;
+      }
+
+      //file type
+      if (!["image/jpeg", "image/png"].includes(file.type)) {
+        setErrors((prev) => ({
+          ...prev,
+          CoverImagePath: "Only JPEG and PNG formats are allowed",
+        }));
+        return;
+      }
+
+      setCoverImagePath(file);
+
+      //preview URL for the image
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreviewImage(reader.result);
+      };
+      reader.readAsDataURL(file);
+
+      if (errors.CoverImagePath) {
+        setErrors((prev) => {
+          const newErrors = { ...prev };
+          delete newErrors.CoverImagePath;
+          return newErrors;
+        });
+      }
+    }
+  };
+
   const validateForm = () => {
     const newErrors = {};
 
-    // Required fields validation
     if (!formData.title.trim()) newErrors.title = "Title is required";
     if (!formData.isbn.trim()) newErrors.isbn = "ISBN is required";
     if (!formData.author.trim()) newErrors.author = "Author is required";
@@ -102,33 +149,29 @@ const AddBookForm = () => {
       newErrors.publisher = "Publisher is required";
     if (!formData.publicationDate)
       newErrors.publicationDate = "Publication date is required";
+    if (!CoverImagePath) newErrors.CoverImagePath = "Cover image is required";
 
-    // Price validation
+    //price validation
     if (!formData.price.trim()) {
       newErrors.price = "Price is required";
-    } else if (isNaN(Number(formData.price)) || Number(formData.price) <= 0) {
-      newErrors.price = "Price must be a positive number";
+    } else if (isNaN(Number(formData.price))) {
+      newErrors.price = "Price must be a number";
+    } else if (Number(formData.price) <= 0) {
+      newErrors.price = "Price must be greater than 0";
     }
 
-    // Stock validation
+    //stock validation
     if (!formData.stockQuantity.trim()) {
       newErrors.stockQuantity = "Stock quantity is required";
-    } else if (
-      isNaN(Number(formData.stockQuantity)) ||
-      Number(formData.stockQuantity) < 0
-    ) {
-      newErrors.stockQuantity = "Stock quantity must be a non-negative number";
+    } else if (isNaN(Number(formData.stockQuantity))) {
+      newErrors.stockQuantity = "Stock quantity must be a number";
+    } else if (Number(formData.stockQuantity) < 0) {
+      newErrors.stockQuantity = "Stock quantity must be 0 or greater";
     }
 
     if (!formData.genre) newErrors.genre = "Genre is required";
     if (!formData.language) newErrors.language = "Language is required";
     if (!formData.format) newErrors.format = "Format is required";
-
-    // ISBN format validation (simple validation for demo)
-    const isbnRegex = /^(?=(?:\D*\d){10}(?:(?:\D*\d){3})?$)[\d-]+$/;
-    if (formData.isbn && !isbnRegex.test(formData.isbn.replace(/-/g, ""))) {
-      newErrors.isbn = "Invalid ISBN format";
-    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -136,30 +179,79 @@ const AddBookForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setSubmitError("");
 
     if (!validateForm()) return;
 
     setIsSubmitting(true);
 
     try {
-      // In a real app, this would be an API call to add the book
-      console.log("Submitting book data:", formData);
+      const token = localStorage.getItem("token");
+      if (!token) {
+        throw new Error("Authentication token not found");
+      }
 
-      // Mock successful submission
-      setTimeout(() => {
-        alert("Book added successfully!");
-        setFormData(initialFormData);
-        setIsSubmitting(false);
-      }, 1000);
+      const formDataToSend = new FormData();
+
+      for (const [key, value] of Object.entries(formData)) {
+        formDataToSend.append(
+          key,
+          typeof value === "boolean" ? value.toString() : value
+        );
+      }
+
+      formDataToSend.append("CoverImagePath", CoverImagePath);
+
+      const response = await axios.post(
+        "https://localhost:7039/api/Books/addBooks",
+        formDataToSend,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      alert("Book added successfully!");
+      setFormData(initialFormData);
+      setCoverImagePath(null);
+      setPreviewImage(null);
+
+      //redirect based on role
+      if (currentRole === "SuperAdmin") {
+        navigate("/admin-dashboard/books");
+      }
     } catch (error) {
       console.error("Error adding book:", error);
+
+      const errorMessage =
+        error.response?.data ||
+        error.response?.data?.message ||
+        error.message ||
+        "Failed to add book. Please try again.";
+
+      setSubmitError(
+        typeof errorMessage === "string"
+          ? errorMessage
+          : JSON.stringify(errorMessage)
+      );
+    } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleCancel = () => {
+    if (currentRole === "SuperAdmin") {
+      navigate("/admin-dashboard/books");
     }
   };
 
   return (
     <div className="add-book-form-container">
       <form className="add-book-form" onSubmit={handleSubmit}>
+        {submitError && <div className="form-error-message">{submitError}</div>}
+
         <div className="form-grid">
           <div className="form-section basic-info">
             <h2 className="section-title">Basic Information</h2>
@@ -298,31 +390,58 @@ const AddBookForm = () => {
               rows={6}
             />
 
-            <FormField
-              label="Cover Image URL"
-              name="coverImageUrl"
-              type="url"
-              value={formData.coverImageUrl}
-              onChange={handleChange}
-              placeholder="https://example.com/book-cover.jpg"
-            />
-
-            {formData.coverImageUrl && (
-              <div className="cover-preview">
-                <p className="preview-label">Cover Preview:</p>
-                <div className="image-preview-container">
-                  <img
-                    src={formData.coverImageUrl}
-                    alt="Book cover preview"
-                    className="image-preview"
-                    onError={(e) => {
-                      e.target.src =
-                        "https://via.placeholder.com/150x200?text=Invalid+URL";
-                    }}
+            <div className="file-upload-section">
+              <div className="file-upload-field">
+                <label htmlFor="CoverImagePath">Cover Image *</label>
+                <div className="file-upload-container">
+                  <div
+                    className="upload-area"
+                    onClick={() => fileInputRef.current.click()}
+                  >
+                    {previewImage ? (
+                      <div className="image-preview-wrapper">
+                        <img
+                          src={previewImage}
+                          alt="Preview"
+                          className="image-preview"
+                        />
+                        <div className="image-overlay">
+                          <Upload size={24} />
+                          <span>Change Image</span>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="upload-placeholder">
+                        <Upload size={24} />
+                        <p>Click to upload cover image</p>
+                        <p className="file-requirements">
+                          (JPEG, PNG, max 5MB)
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                  <input
+                    type="file"
+                    id="CoverImagePath"
+                    name="CoverImagePath"
+                    ref={fileInputRef}
+                    accept="image/jpeg,image/png"
+                    onChange={handleImageChange}
+                    className="file-input"
+                    hidden
                   />
+                  {CoverImagePath && (
+                    <div className="file-info">
+                      <span>{CoverImagePath.name}</span>
+                      <span>{Math.round(CoverImagePath.size / 1024)} KB</span>
+                    </div>
+                  )}
+                  {errors.CoverImagePath && (
+                    <div className="error-message">{errors.CoverImagePath}</div>
+                  )}
                 </div>
               </div>
-            )}
+            </div>
           </div>
 
           <div className="form-section flags">
@@ -356,10 +475,11 @@ const AddBookForm = () => {
                 checked={formData.isComingSoon}
                 onChange={handleToggleChange}
               />
+
               <ToggleSwitch
-                label="On Sale"
-                name="isOnSale"
-                checked={formData.isOnSale}
+                label="New Arrival"
+                name="isNewArrival"
+                checked={formData.isNewArrival}
                 onChange={handleToggleChange}
               />
             </div>
@@ -367,7 +487,12 @@ const AddBookForm = () => {
         </div>
 
         <div className="form-actions">
-          <button type="button" className="btn-cancel">
+          <button
+            type="button"
+            className="btn-cancel"
+            onClick={handleCancel}
+            disabled={isSubmitting}
+          >
             Cancel
           </button>
           <button type="submit" className="btn-submit" disabled={isSubmitting}>
@@ -387,15 +512,8 @@ const AddBookForm = () => {
 
         <div className="book-card-preview">
           <div className="book-card-cover">
-            {formData.coverImageUrl ? (
-              <img
-                src={formData.coverImageUrl}
-                alt={formData.title || "Book cover"}
-                onError={(e) => {
-                  e.target.src =
-                    "https://via.placeholder.com/150x200?text=Cover";
-                }}
-              />
+            {previewImage ? (
+              <img src={previewImage} alt={formData.title || "Book cover"} />
             ) : (
               <div className="placeholder-cover">
                 <Book size={40} />
@@ -435,8 +553,8 @@ const AddBookForm = () => {
               {formData.isComingSoon && (
                 <span className="book-flag coming-soon">Coming Soon</span>
               )}
-              {formData.isOnSale && (
-                <span className="book-flag coming-soon">On Sale</span>
+              {formData.isNewArrival && (
+                <span className="book-flag new-arrival">New Arrival</span>
               )}
             </div>
           </div>

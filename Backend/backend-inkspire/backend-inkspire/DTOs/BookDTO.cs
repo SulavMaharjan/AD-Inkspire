@@ -45,11 +45,17 @@ namespace backend_inkspire.DTOs
 
         public bool IsBestseller { get; set; }
 
+        public bool IsNewRelease { get; set; }
+
+        public bool IsNewArrival { get; set; }
+
         public bool IsAwardWinner { get; set; }
 
         public bool IsComingSoon { get; set; }
 
-        public string CoverImageUrl { get; set; }
+        public IFormFile CoverImagePath { get; set; }
+
+
     }
 
     public class BookResponseDTO
@@ -78,10 +84,12 @@ namespace backend_inkspire.DTOs
         public DateTime? DiscountStartDate { get; set; }
         public DateTime? DiscountEndDate { get; set; }
         public int SoldCount { get; set; }
-        public string CoverImageUrl { get; set; }
+        public string CoverImagePath { get; set; }
         public decimal AverageRating { get; set; }
         public int ReviewCount { get; set; }
         public bool IsBookmarked { get; set; }
+
+
     }
 
     public class BookFilterDTO
@@ -103,7 +111,7 @@ namespace backend_inkspire.DTOs
         public bool? NewArrival { get; set; }
         public bool? ComingSoon { get; set; }
         public bool? OnSale { get; set; }
-        public string SortBy { get; set; } = "Title"; // Title, PublicationDate, Price, Popularity
+        public string SortBy { get; set; } = "Title";
         public bool SortAscending { get; set; } = true;
         public int PageNumber { get; set; } = 1;
         public int PageSize { get; set; } = 10;
