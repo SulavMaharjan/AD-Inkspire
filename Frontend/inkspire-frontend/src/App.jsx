@@ -14,6 +14,8 @@ import NotFoundPage from "./pages/NotFoundPage";
 import UnauthorizedPage from "./components/UnauthorizedPage";
 import BookListing from "./components/BookCatalog/BookListing";
 import AddBookPage from "./pages/AddBookPage";
+import BookDetails from "./pages/BookDetails";
+import PurchasedBooks from "./pages/PurchasedBooks";
 import "./styles/App.css";
 
 function App() {
@@ -27,7 +29,8 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/unauthorized" element={<UnauthorizedPage />} />
-
+          <Route path="/bookDetail/:id" element={<BookDetails />} />
+      
           <Route
             path="/dashboard"
             element={

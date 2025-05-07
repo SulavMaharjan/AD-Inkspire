@@ -1,36 +1,15 @@
 import React, { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
 import "../styles/BookDetails.css";
 import Navbar from "../components/Navigation/Navbar";
 import Footer from "../components/Landing/Footer";
+import { fetchBookById } from "../context/bookApiService"; // Assuming this is where your API functions are
 
 const BookDetails = () => {
-  // Sample book data - this would normally come from an API
-  const [book, setBook] = useState({
-    id: 1,
-    title: "The Midnight Library",
-    author: "Matt Haig",
-    ISBN: "9780525559474",
-    publisher: "Viking",
-    publicationDate: "2020-09-29",
-    language: "English",
-    format: "Hardcover",
-    genre: ["Fiction", "Fantasy", "Contemporary"],
-    pages: 304,
-    price: 24.99,
-    discount: 0,
-    rating: 4.5,
-    stock: 12,
-    description:
-      "Between life and death there is a library, and within that library, the shelves go on forever. Every book provides a chance to try another life you could have lived. To see how things would be if you had made other choices... Would you have done anything different, if you had the chance to undo your regrets?",
-    coverImage:
-      "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1627042661l/58613224.jpg",
-    isOnSale: false,
-    isNewRelease: true,
-    isNewArrival: true,
-    isAwardWinner: true,
-    isBestseller: true,
-  });
-
+  const { id } = useParams(); // Get book ID from URL
+  const [book, setBook] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [reviewRating, setReviewRating] = useState(0);
@@ -51,24 +30,65 @@ const BookDetails = () => {
       date: "2024-02-20",
     },
   ]);
+  
+  // Fetch book details when component mounts or ID changes
+  useEffect(() => {
+    const getBookDetails = async () => {
+      try {
+        setLoading(true);
+        const bookData = await fetchBookById(id);
+        setBook(bookData);
+        setLoading(false);
+      } catch (err) {
+        console.error("Error fetching book details:", err);
+        setError("Failed to load book details. Please try again later.");
+        setLoading(false);
+      }
+    };
 
-  // Calculate sale price if applicable
-  const salePrice = book.isOnSale ? book.price * (1 - book.discount) : null;
+    if (id) {
+      getBookDetails();
+    }
+  }, [id]);
+
+  // Handle image retrieval, similar to BookCard component
+  const getCoverImageUrl = (coverImagePath) => {
+    if (!coverImagePath) {
+      return "/placeholder-book-cover.jpg";
+    }
+
+    if (coverImagePath.startsWith("http")) {
+      return coverImagePath;
+    }
+
+    const normalizedPath = coverImagePath.startsWith("/")
+      ? coverImagePath
+      : `/${coverImagePath}`;
+
+    return `https://localhost:7039${normalizedPath}`;
+  };
 
   const handleQuantityChange = (e) => {
     const value = parseInt(e.target.value);
-    if (value > 0 && value <= book.stock) {
+    if (book && value > 0 && value <= book.stockQuantity) {
       setQuantity(value);
     }
   };
 
   const handleAddToCart = () => {
-    alert(`Added ${quantity} copy/copies of "${book.title}" to your cart`);
-    // In a real app, this would send a request to the server
+    if (book) {
+      alert(`Added ${quantity} copy/copies of "${book.title}" to your cart`);
+      // In a real app, this would send a request to the server
+    }
   };
 
   const handleSubmitReview = (e) => {
     e.preventDefault();
+    if (reviewRating === 0) {
+      alert("Please select a rating");
+      return;
+    }
+    
     const newReview = {
       id: reviews.length + 1,
       username: "CurrentUser", // In a real app, this would be the logged-in user
@@ -82,6 +102,47 @@ const BookDetails = () => {
     setReviewComment("");
   };
 
+  if (loading) {
+    return (
+      <div>
+        <Navbar />
+        <div className="book-details-container">
+          <div className="loading">Loading book details...</div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div>
+        <Navbar />
+        <div className="book-details-container">
+          <div className="error">{error}</div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (!book) {
+    return (
+      <div>
+        <Navbar />
+        <div className="book-details-container">
+          <div className="error">Book not found</div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  // Calculate discount percentage if not directly provided
+  const discountPercentage = book.discountPercentage || 
+    (book.isOnSale && book.price && book.discountedPrice) ? 
+      Math.round(((book.price - book.discountedPrice) / book.price) * 100) : 0;
+
   return (
     <div>
       <Navbar />
@@ -90,18 +151,28 @@ const BookDetails = () => {
           <div className="book-image-section">
             <div className="book-image-container">
               <img
-                src="https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1627042661l/58613224.jpg"
+                src={getCoverImageUrl(book.coverImagePath)}
                 alt={book.title}
-                className="book-cover"
+                className="bookDetail-cover"
+                onError={(e) => {
+                  console.error(`Failed to load image: ${book.coverImagePath}`);
+                  e.target.src = "/placeholder-book-cover.jpg";
+                }}
               />
-              {/* {book.isOnSale && } */}
-              <span className="sale-badge">ON SALE</span>
-              {book.isNewRelease && (
-                <span className="new-release-badge">NEW RELEASE</span>
-              )}
-              {book.isAwardWinner && (
-                <span className="award-badge">AWARD WINNER</span>
-              )}
+              <div className="badges-container">
+                {book.isOnSale && discountPercentage > 0 && (
+                  <span className="sale-badge">{discountPercentage}% OFF</span>
+                )}
+                {book.isNewRelease && (
+                  <span className="new-release-badge">NEW</span>
+                )}
+                {book.isAwardWinner && (
+                  <span className="award-badge">AWARD</span>
+                )}
+                {book.isBestseller && (
+                  <span className="bestseller-badge">BESTSELLER</span>
+                )}
+              </div>
             </div>
           </div>
 
@@ -115,41 +186,43 @@ const BookDetails = () => {
                   <span
                     key={i}
                     className={
-                      i < Math.floor(book.rating) ? "star filled" : "star"
+                      i < Math.floor(book.averageRating || 0) ? "star filled" : "star"
                     }
                   >
                     ★
                   </span>
                 ))}
               </div>
-              <span className="rating-value">{book.rating}</span>
+              <span className="rating-value">{book.averageRating?.toFixed(1) || "N/A"}</span>
               <span className="review-count">({reviews.length} reviews)</span>
             </div>
 
             <div className="book-price-section">
-              {book.isOnSale ? (
+              {book.discountedPrice ? (
                 <>
                   <span className="original-price">
-                    ${book.price.toFixed(2)}
+                    ${Number(book.price).toFixed(2)}
                   </span>
-                  <span className="sale-price">${salePrice.toFixed(2)}</span>
-                  <span className="discount-percentage">
-                    Save {(book.discount * 100).toFixed(0)}%
-                  </span>
+                  <span className="sale-price">${Number(book.discountedPrice).toFixed(2)}</span>
+                  {discountPercentage > 0 && (
+                    <span className="discount-percentage">
+                      Save {discountPercentage}%
+                    </span>
+                  )}
                 </>
               ) : (
-                <span className="price">${book.price.toFixed(2)}</span>
+                <span className="price">${Number(book.price || 0).toFixed(2)}</span>
               )}
             </div>
 
             <div className="book-availability">
               <span
                 className={`availability-status ${
-                  book.stock > 0 ? "in-stock" : "out-of-stock"
+                  book.stockQuantity > 0 ? "in-stock" : "out-of-stock"
                 }`}
               >
-                {book.stock > 0
-                  ? `In Stock (${book.stock} available)`
+                {book.stockQuantity > 0
+                  ? `In Stock (${book.stockQuantity} available)`
                   : "Out of Stock"}
               </span>
             </div>
@@ -162,15 +235,16 @@ const BookDetails = () => {
                   id="quantity"
                   name="quantity"
                   min="1"
-                  max={book.stock}
+                  max={book.stockQuantity}
                   value={quantity}
                   onChange={handleQuantityChange}
+                  disabled={book.stockQuantity <= 0}
                 />
               </div>
               <button
                 className="add-to-cart-button"
                 onClick={handleAddToCart}
-                disabled={book.stock === 0}
+                disabled={book.stockQuantity <= 0}
               >
                 Add to Cart
               </button>
@@ -181,38 +255,40 @@ const BookDetails = () => {
               <div className="details-grid">
                 <div className="detail-item">
                   <span className="detail-label">Format:</span>
-                  <span className="detail-value">{book.format}</span>
+                  <span className="detail-value">{book.format || "Not specified"}</span>
                 </div>
                 <div className="detail-item">
                   <span className="detail-label">ISBN:</span>
-                  <span className="detail-value">{book.ISBN}</span>
+                  <span className="detail-value">{book.isbn || "Not available"}</span>
                 </div>
                 <div className="detail-item">
                   <span className="detail-label">Publisher:</span>
-                  <span className="detail-value">{book.publisher}</span>
+                  <span className="detail-value">{book.publisher || "Not specified"}</span>
                 </div>
                 <div className="detail-item">
                   <span className="detail-label">Publication Date:</span>
-                  <span className="detail-value">{book.publicationDate}</span>
+                  <span className="detail-value">{book.publicationDate || "Not specified"}</span>
                 </div>
                 <div className="detail-item">
                   <span className="detail-label">Language:</span>
-                  <span className="detail-value">{book.language}</span>
+                  <span className="detail-value">{book.language || "Not specified"}</span>
                 </div>
                 <div className="detail-item">
                   <span className="detail-label">Pages:</span>
-                  <span className="detail-value">{book.pages}</span>
+                  <span className="detail-value">{book.pages || "Not specified"}</span>
                 </div>
                 <div className="detail-item">
                   <span className="detail-label">Genre:</span>
-                  <span className="detail-value">{book.genre.join(", ")}</span>
+                  <span className="detail-value">
+                    {book.genres ? (Array.isArray(book.genres) ? book.genres.join(", ") : book.genres) : "Not specified"}
+                  </span>
                 </div>
               </div>
             </div>
 
             <div className="book-description">
               <h3>Description</h3>
-              <p>{book.description}</p>
+              <p>{book.description || "No description available."}</p>
             </div>
           </div>
         </div>
