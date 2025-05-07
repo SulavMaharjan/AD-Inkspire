@@ -300,14 +300,15 @@ namespace backend_inkspire.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime>("CreatedDate")
+                    b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<DateTime>("LastUpdatedDate")
+                    b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<long>("UserId")
-                        .HasColumnType("bigint");
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
@@ -325,7 +326,7 @@ namespace backend_inkspire.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime>("AddedDate")
+                    b.Property<DateTime>("AddedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("BookId")
@@ -489,21 +490,21 @@ namespace backend_inkspire.Migrations
                         new
                         {
                             Id = 1L,
-                            ConcurrencyStamp = "f2b04a1a-a2c0-42d0-994c-c197b5e8e6a2",
+                            ConcurrencyStamp = "bb093f0c-945f-432a-941d-77c1cca57efe",
                             Name = "SuperAdmin",
                             NormalizedName = "SUPERADMIN"
                         },
                         new
                         {
                             Id = 2L,
-                            ConcurrencyStamp = "7c83a905-9adf-47b0-b41d-f1a4b42bceb8",
+                            ConcurrencyStamp = "f3a3f4de-02f5-415f-932d-0c9b693b5853",
                             Name = "Staff",
                             NormalizedName = "STAFF"
                         },
                         new
                         {
                             Id = 3L,
-                            ConcurrencyStamp = "e7baf9d9-5fce-4ba6-9db6-c557eed49691",
+                            ConcurrencyStamp = "2bae1fbd-151b-4862-9d42-9961fa210535",
                             Name = "Member",
                             NormalizedName = "MEMBER"
                         });
@@ -584,16 +585,16 @@ namespace backend_inkspire.Migrations
                         {
                             Id = 1L,
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "af1ad888-c149-4325-ad41-1fec3f43ee93",
+                            ConcurrencyStamp = "6d2be186-3ce1-44d9-9bc8-c526eaac613f",
                             Email = "anjan@gmail.com",
                             EmailConfirmed = true,
                             LockoutEnabled = false,
                             Name = "Anjan",
                             NormalizedEmail = "ANJAN@GMAIL.COM",
                             NormalizedUserName = "ANJAN",
-                            PasswordHash = "AQAAAAIAAYagAAAAEAp/M11gUP1BonScHPjPE8KoDywvYxrfHy/mJ6Y1AX8exWy94QsSAjTr0LMpRq6KIA==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEFH8cYuVbsy9vnlUJ07J8q++DLPkjIOmUf6btrbUdgQN2VRFnEUqDkiMHL2V1XxI9A==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "57f72981-63fe-41e3-b189-061426f46c43",
+                            SecurityStamp = "6a635f3e-783b-418f-b134-5041551251d0",
                             TwoFactorEnabled = false,
                             UserName = "anjan"
                         });
@@ -699,27 +700,16 @@ namespace backend_inkspire.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("backend_inkspire.Entities.Cart", b =>
-                {
-                    b.HasOne("backend_inkspire.Entities.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("backend_inkspire.Entities.CartItem", b =>
                 {
                     b.HasOne("backend_inkspire.Entities.Book", "Book")
                         .WithMany()
                         .HasForeignKey("BookId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("backend_inkspire.Entities.Cart", "Cart")
-                        .WithMany("CartItems")
+                        .WithMany("Items")
                         .HasForeignKey("CartId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -796,7 +786,7 @@ namespace backend_inkspire.Migrations
 
             modelBuilder.Entity("backend_inkspire.Entities.Cart", b =>
                 {
-                    b.Navigation("CartItems");
+                    b.Navigation("Items");
                 });
 
             modelBuilder.Entity("backend_inkspire.Entities.Order", b =>
