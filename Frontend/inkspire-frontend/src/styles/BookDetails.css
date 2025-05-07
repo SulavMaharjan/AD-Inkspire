@@ -29,56 +29,71 @@
 
 /* Image Section */
 .book-image-section {
-  flex: 0 0 350px;
+  flex: 0 0 400px; /* Reduced from 350px */
 }
 
 .book-image-container {
   position: relative;
   margin-bottom: 1rem;
   border-radius: 8px;
-  /* overflow: hidden; */
   box-shadow: var(--shadow);
+  overflow: hidden; /* Keep image contained within border radius */
+  aspect-ratio: 2/3; /* Standard book aspect ratio */
 }
 
-.book-cover {
+.bookDetail-cover {
   width: 100%;
-  height: auto;
+  height: 100%;
+  object-fit: cover; 
   display: block;
   transition: transform 0.3s ease;
 }
 
-.book-cover:hover {
+.bookDetail-cover:hover {
   transform: scale(1.03);
+}
+
+/* Badge container to organize badges vertically */
+.badges-container {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  width: auto;
+  max-width: 90%; /* Prevent badges from being too wide */
 }
 
 .sale-badge,
 .new-release-badge,
-.award-badge {
-  position: absolute;
+.award-badge,
+.bestseller-badge {
   padding: 0.3rem 0.8rem;
   color: white;
   font-weight: bold;
   font-size: 0.75rem;
   text-transform: uppercase;
   border-radius: 4px;
+  display: inline-block;
+  text-align: center;
+  white-space: nowrap;
 }
 
 .sale-badge {
   background-color: var(--danger-color);
-  top: 10px;
-  right: 10px;
 }
 
 .new-release-badge {
   background-color: var(--accent-color);
-  top: 45px;
-  right: 10px;
 }
 
 .award-badge {
   background-color: var(--primary-color);
-  top: 80px;
-  right: 10px;
+}
+
+.bestseller-badge {
+  background-color: #8e44ad; /* Purple color for bestseller */
 }
 
 .action-buttons {
@@ -390,7 +405,7 @@
 
   .book-image-section {
     flex: 0 0 100%;
-    max-width: 350px;
+    max-width: 300px;
     margin: 0 auto;
   }
 

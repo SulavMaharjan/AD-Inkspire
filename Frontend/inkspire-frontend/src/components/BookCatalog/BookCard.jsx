@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { Heart, ShoppingCart, Star } from "lucide-react";
+import { Heart, ShoppingCart, Star, Eye } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import "../../styles/BookCard.css";
 
 const BookCard = ({ book }) => {
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [imageError, setImageError] = useState(false);
+  const navigate = useNavigate();
 
   const {
     id,
@@ -63,7 +65,12 @@ const BookCard = ({ book }) => {
 
   const handleBookClick = () => {
     console.log(`Navigating to book detail page for ID: ${id}`);
-    // navigate(`/books/${id}`);
+    navigate(`/bookDetail/${id}`);
+  };
+
+  const handleViewDetails = (e) => {
+    e.stopPropagation();
+    navigate(`/bookDetail/${id}`);
   };
 
   const handleImageError = () => {
@@ -147,14 +154,24 @@ const BookCard = ({ book }) => {
           )}
         </div>
 
-        <button
-          className="add-to-cart-button"
-          onClick={handleAddToCart}
-          disabled={stockQuantity <= 0}
-        >
-          <ShoppingCart size={16} />
-          <span>Add to Cart</span>
-        </button>
+        <div className="book-card-actions">
+          <button
+            className="add-to-cart-button"
+            onClick={handleAddToCart}
+            disabled={stockQuantity <= 0}
+          >
+            <ShoppingCart size={16} />
+            <span>Add to Cart</span>
+          </button>
+          
+          <button
+            className="view-details-button"
+            onClick={handleViewDetails}
+          >
+            <Eye size={16} />
+            <span>View Details</span>
+          </button>
+        </div>
       </div>
     </div>
   );
