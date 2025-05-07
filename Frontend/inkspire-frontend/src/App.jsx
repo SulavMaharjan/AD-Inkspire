@@ -30,6 +30,7 @@ function App() {
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/unauthorized" element={<UnauthorizedPage />} />
           <Route path="/bookDetail/:id" element={<BookDetails />} />
+          <Route path="/purchasedBook" element={<PurchasedBooks />} />
       
           <Route
             path="/dashboard"
