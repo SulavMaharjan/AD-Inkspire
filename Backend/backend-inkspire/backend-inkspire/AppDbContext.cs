@@ -10,20 +10,25 @@ namespace backend_inkspire
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
         {
         }
+
+        // Existing DbSets
         public DbSet<Book> Books { get; set; }
         public DbSet<Review> Reviews { get; set; }
         public DbSet<Announcement> Announcements { get; set; }
         public DbSet<Bookmark> Bookmarks { get; set; }
         public DbSet<Order> Orders { get; set; }
         public DbSet<OrderItem> OrderItems { get; set; }
+        public DbSet<UserDiscount> UserDiscounts { get; set; }
+
+        // New DbSets for Cart functionality
         public DbSet<Cart> Carts { get; set; }
         public DbSet<CartItem> CartItems { get; set; }
-        public DbSet<UserDiscount> UserDiscounts { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
 
+            // Identity table configurations
             builder.Entity<User>().ToTable("Users");
             builder.Entity<Roles>().ToTable("Roles");
             builder.Entity<IdentityUserRole<long>>().ToTable("UserRoles");
@@ -82,15 +87,31 @@ namespace backend_inkspire
             // Order entities configuration
             builder.Entity<Order>().ToTable("Orders");
             builder.Entity<OrderItem>().ToTable("OrderItems");
-            builder.Entity<Cart>().ToTable("Carts");
-            builder.Entity<CartItem>().ToTable("CartItems");
             builder.Entity<UserDiscount>().ToTable("UserDiscounts");
 
-            //add unique constraint for user cart
+            // Cart entities configuration
+            builder.Entity<Cart>().ToTable("Carts");
+            builder.Entity<CartItem>().ToTable("CartItems");
+
+            // Configure relationships for Cart entities
+            builder.Entity<Cart>()
+                .HasMany(c => c.Items)
+                .WithOne(i => i.Cart)
+                .HasForeignKey(i => i.CartId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<CartItem>()
+                .HasOne(ci => ci.Book)
+                .WithMany()
+                .HasForeignKey(ci => ci.BookId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Ensure each user has only one cart
             builder.Entity<Cart>()
                 .HasIndex(c => c.UserId)
                 .IsUnique();
 
+            // Seed roles
             builder.Entity<Roles>().HasData(
                 new Roles
                 {
@@ -115,7 +136,7 @@ namespace backend_inkspire
                 }
             );
 
-            //seed SuperAdmin
+            // Seed SuperAdmin
             var superAdmin = new User
             {
                 Id = 1,
@@ -131,7 +152,7 @@ namespace backend_inkspire
             superAdmin.PasswordHash = new PasswordHasher<User>().HashPassword(superAdmin, "anjan@123");
             builder.Entity<User>().HasData(superAdmin);
 
-            //assign SuperAdmin Role
+            // Assign SuperAdmin Role
             builder.Entity<IdentityUserRole<long>>().HasData(
                 new IdentityUserRole<long>
                 {

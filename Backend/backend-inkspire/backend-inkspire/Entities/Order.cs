@@ -91,60 +91,6 @@ namespace backend_inkspire.Entities
         public virtual Book Book { get; set; }
     }
 
-    public class Cart
-    {
-        [Key]
-        public int Id { get; set; }
-
-        [Required]
-        public long UserId { get; set; }
-
-        public DateTime CreatedDate { get; set; }
-
-        public DateTime LastUpdatedDate { get; set; }
-
- 
-        [ForeignKey("UserId")]
-        public virtual User User { get; set; }
-
-        public virtual ICollection<CartItem> CartItems { get; set; }
-
-        public Cart()
-        {
-            CreatedDate = DateTime.Now;
-            LastUpdatedDate = DateTime.Now;
-            CartItems = new List<CartItem>();
-        }
-    }
-
-    public class CartItem
-    {
-        [Key]
-        public int Id { get; set; }
-
-        [Required]
-        public int CartId { get; set; }
-
-        [Required]
-        public int BookId { get; set; }
-
-        [Required]
-        public int Quantity { get; set; }
-
-        public DateTime AddedDate { get; set; }
-
-      
-        [ForeignKey("CartId")]
-        public virtual Cart Cart { get; set; }
-
-        [ForeignKey("BookId")]
-        public virtual Book Book { get; set; }
-
-        public CartItem()
-        {
-            AddedDate = DateTime.Now;
-        }
-    }
 
     public class UserDiscount
     {
