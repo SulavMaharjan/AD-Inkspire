@@ -1,9 +1,6 @@
 ﻿using backend_inkspire.DTOs;
 using backend_inkspire.Entities;
 using backend_inkspire.Repositories;
-using System;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace backend_inkspire.Services
 {

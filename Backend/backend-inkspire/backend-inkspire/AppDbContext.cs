@@ -10,8 +10,6 @@ namespace backend_inkspire
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
         {
         }
-
-        // Existing DbSets
         public DbSet<Book> Books { get; set; }
         public DbSet<Review> Reviews { get; set; }
         public DbSet<Announcement> Announcements { get; set; }
@@ -20,7 +18,7 @@ namespace backend_inkspire
         public DbSet<OrderItem> OrderItems { get; set; }
         public DbSet<UserDiscount> UserDiscounts { get; set; }
 
-        // New DbSets for Cart functionality
+        //new DbSets for Cart functionality
         public DbSet<Cart> Carts { get; set; }
         public DbSet<CartItem> CartItems { get; set; }
 

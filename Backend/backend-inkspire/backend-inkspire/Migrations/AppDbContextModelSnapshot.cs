@@ -355,38 +355,47 @@ namespace backend_inkspire.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<decimal>("AppliedDiscountPercentage")
-                        .HasColumnType("numeric");
+                    b.Property<int?>("AppliedUserDiscountId")
+                        .HasColumnType("integer");
 
                     b.Property<string>("ClaimCode")
                         .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)");
+                        .HasColumnType("text");
 
-                    b.Property<decimal>("DiscountAmount")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("FinalAmount")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<bool>("IsDiscountApplied")
-                        .HasColumnType("boolean");
-
-                    b.Property<DateTime>("OrderDate")
+                    b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)");
+                    b.Property<decimal>("DiscountAmount")
+                        .HasColumnType("numeric");
+
+                    b.Property<bool>("HasUsedStackableDiscount")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsQualifiedForBulkDiscount")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime?>("PickupDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal>("SubTotal")
+                        .HasColumnType("numeric");
 
                     b.Property<decimal>("TotalAmount")
-                        .HasColumnType("decimal(18,2)");
+                        .HasColumnType("numeric");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<long>("UserId")
                         .HasColumnType("bigint");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("AppliedUserDiscountId")
+                        .IsUnique();
 
                     b.HasIndex("UserId");
 
@@ -401,8 +410,23 @@ namespace backend_inkspire.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("Author")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<int>("BookId")
                         .HasColumnType("integer");
+
+                    b.Property<string>("BookTitle")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<decimal?>("DiscountedPrice")
+                        .HasColumnType("numeric");
+
+                    b.Property<string>("ISBN")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<int>("OrderId")
                         .HasColumnType("integer");
@@ -410,11 +434,11 @@ namespace backend_inkspire.Migrations
                     b.Property<int>("Quantity")
                         .HasColumnType("integer");
 
-                    b.Property<decimal>("Subtotal")
-                        .HasColumnType("decimal(18,2)");
+                    b.Property<decimal>("SubTotal")
+                        .HasColumnType("numeric");
 
                     b.Property<decimal>("UnitPrice")
-                        .HasColumnType("decimal(18,2)");
+                        .HasColumnType("numeric");
 
                     b.HasKey("Id");
 
@@ -490,21 +514,21 @@ namespace backend_inkspire.Migrations
                         new
                         {
                             Id = 1L,
-                            ConcurrencyStamp = "bb093f0c-945f-432a-941d-77c1cca57efe",
+                            ConcurrencyStamp = "d33e9cfb-ebfc-4c48-816d-4746dbe6c22a",
                             Name = "SuperAdmin",
                             NormalizedName = "SUPERADMIN"
                         },
                         new
                         {
                             Id = 2L,
-                            ConcurrencyStamp = "f3a3f4de-02f5-415f-932d-0c9b693b5853",
+                            ConcurrencyStamp = "bb37832f-3aae-4fe5-8e60-77731382b0fc",
                             Name = "Staff",
                             NormalizedName = "STAFF"
                         },
                         new
                         {
                             Id = 3L,
-                            ConcurrencyStamp = "2bae1fbd-151b-4862-9d42-9961fa210535",
+                            ConcurrencyStamp = "3920614e-9729-4b93-acb3-29185924a17a",
                             Name = "Member",
                             NormalizedName = "MEMBER"
                         });
@@ -585,16 +609,16 @@ namespace backend_inkspire.Migrations
                         {
                             Id = 1L,
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "6d2be186-3ce1-44d9-9bc8-c526eaac613f",
+                            ConcurrencyStamp = "17609937-badc-4744-8d43-a9a14eb5c903",
                             Email = "anjan@gmail.com",
                             EmailConfirmed = true,
                             LockoutEnabled = false,
                             Name = "Anjan",
                             NormalizedEmail = "ANJAN@GMAIL.COM",
                             NormalizedUserName = "ANJAN",
-                            PasswordHash = "AQAAAAIAAYagAAAAEFH8cYuVbsy9vnlUJ07J8q++DLPkjIOmUf6btrbUdgQN2VRFnEUqDkiMHL2V1XxI9A==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEJaRii6pdcMmMCDwru8CrLQ4NZkcCKVV06UQr8bkESgm8jaP03B22SUhQWjzeoGgDw==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "6a635f3e-783b-418f-b134-5041551251d0",
+                            SecurityStamp = "79867c97-d9eb-48d5-bf99-3cfd3f9eb6f7",
                             TwoFactorEnabled = false,
                             UserName = "anjan"
                         });
@@ -608,16 +632,19 @@ namespace backend_inkspire.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime>("CreatedDate")
+                    b.Property<int?>("AppliedToOrderId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<decimal>("DiscountPercentage")
-                        .HasColumnType("decimal(18,2)");
+                        .HasColumnType("numeric");
 
                     b.Property<bool>("IsUsed")
                         .HasColumnType("boolean");
 
-                    b.Property<DateTime?>("UsedDate")
+                    b.Property<DateTime?>("UsedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<long>("UserId")
@@ -721,11 +748,17 @@ namespace backend_inkspire.Migrations
 
             modelBuilder.Entity("backend_inkspire.Entities.Order", b =>
                 {
+                    b.HasOne("backend_inkspire.Entities.UserDiscount", "AppliedUserDiscount")
+                        .WithOne("AppliedOrder")
+                        .HasForeignKey("backend_inkspire.Entities.Order", "AppliedUserDiscountId");
+
                     b.HasOne("backend_inkspire.Entities.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("AppliedUserDiscount");
 
                     b.Navigation("User");
                 });
@@ -739,7 +772,7 @@ namespace backend_inkspire.Migrations
                         .IsRequired();
 
                     b.HasOne("backend_inkspire.Entities.Order", "Order")
-                        .WithMany("OrderItems")
+                        .WithMany("Items")
                         .HasForeignKey("OrderId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -791,7 +824,13 @@ namespace backend_inkspire.Migrations
 
             modelBuilder.Entity("backend_inkspire.Entities.Order", b =>
                 {
-                    b.Navigation("OrderItems");
+                    b.Navigation("Items");
+                });
+
+            modelBuilder.Entity("backend_inkspire.Entities.UserDiscount", b =>
+                {
+                    b.Navigation("AppliedOrder")
+                        .IsRequired();
                 });
 #pragma warning restore 612, 618
         }
