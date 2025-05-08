@@ -1,8 +1,5 @@
 ﻿using backend_inkspire.Entities;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace backend_inkspire.Repositories
 {

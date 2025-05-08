@@ -321,5 +321,24 @@ namespace backend_inkspire.Repositories
         {
             return await _context.Books.AnyAsync(predicate);
         }
+
+        // Add to BookRepository class
+        public async Task<bool> UpdateBookStockAsync(int bookId, int quantityChange)
+        {
+            var book = await _context.Books.FindAsync(bookId);
+            if (book == null)
+            {
+                return false;
+            }
+
+            book.StockQuantity += quantityChange;
+            if (book.StockQuantity < 0)
+            {
+                return false; // Prevent negative stock
+            }
+
+            await _context.SaveChangesAsync();
+            return true;
+        }
     }
 }

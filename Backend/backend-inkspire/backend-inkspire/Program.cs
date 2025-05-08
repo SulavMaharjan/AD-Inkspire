@@ -76,6 +76,11 @@ builder.Services.AddScoped<IBookmarkService, BookmarkService>();
 //staff
 builder.Services.AddScoped<IStaffAuthService, StaffAuthService>();
 
+builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+builder.Services.AddScoped<IUserDiscountRepository, UserDiscountRepository>();
+
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();

@@ -14,6 +14,8 @@ namespace backend_inkspire.Repositories
         Task<bool> AddBookDiscountAsync(int bookId, BookDiscountDTO discountDto);
         Task<bool> RemoveBookDiscountAsync(int bookId);
         Task<bool> BookExistsAsync(Expression<Func<Book, bool>> predicate);
+
+        Task<bool> UpdateBookStockAsync(int bookId, int quantityChange);
         Task SaveChangesAsync();
     }
 }
