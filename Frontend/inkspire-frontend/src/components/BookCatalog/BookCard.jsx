@@ -3,7 +3,7 @@ import { Heart, ShoppingCart, Star, Eye } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import "../../styles/BookCard.css";
 
-const BookCard = ({ book }) => {
+const BookCard = ({ book, onAddToCart }) => {
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [imageError, setImageError] = useState(false);
   const navigate = useNavigate();
@@ -57,10 +57,11 @@ const BookCard = ({ book }) => {
     );
   };
 
-  const handleAddToCart = (e) => {
+  const handleAddToCartClick = (e) => {
     e.stopPropagation();
-    console.log(`Adding book ID: ${id} to cart`);
-    alert(`Added ${title} to cart!`);
+    if (onAddToCart) {
+      onAddToCart(book);
+    }
   };
 
   const handleBookClick = () => {
@@ -157,7 +158,7 @@ const BookCard = ({ book }) => {
         <div className="book-card-actions">
           <button
             className="add-to-cart-button"
-            onClick={handleAddToCart}
+            onClick={handleAddToCartClick}
             disabled={stockQuantity <= 0}
           >
             <ShoppingCart size={16} />
