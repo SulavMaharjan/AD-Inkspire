@@ -25,23 +25,4 @@ namespace backend_inkspire.DTOs
         public string Comment { get; set; }
         public DateTime CreatedDate { get; set; }
     }
-
-    public class BookmarkDTO
-    {
-        [Required]
-        public int BookId { get; set; }
-    }
-
-    public class BookmarkResponseDTO
-    {
-        public int Id { get; set; }
-        public int BookId { get; set; }
-        public string BookTitle { get; set; }
-        public string Author { get; set; }
-        public decimal Price { get; set; }
-        public decimal? DiscountedPrice { get; set; }
-        public string CoverImageUrl { get; set; }
-        public bool IsInStock { get; set; }
-        public DateTime CreatedDate { get; set; }
-    }
 }

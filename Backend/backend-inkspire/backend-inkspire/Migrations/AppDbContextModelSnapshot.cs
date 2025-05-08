@@ -276,7 +276,7 @@ namespace backend_inkspire.Migrations
                     b.Property<int>("BookId")
                         .HasColumnType("integer");
 
-                    b.Property<DateTime>("CreatedDate")
+                    b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<long>("UserId")
@@ -490,21 +490,21 @@ namespace backend_inkspire.Migrations
                         new
                         {
                             Id = 1L,
-                            ConcurrencyStamp = "57b41a5e-dbdf-4cb8-a6bb-9d60b3b0bf14",
+                            ConcurrencyStamp = "91dfe08b-2cfa-4fb1-bf08-3cd5b146ee76",
                             Name = "SuperAdmin",
                             NormalizedName = "SUPERADMIN"
                         },
                         new
                         {
                             Id = 2L,
-                            ConcurrencyStamp = "1893f616-7e2e-42dd-a795-e152a4ecf808",
+                            ConcurrencyStamp = "52a2ae31-8fe0-4356-a4c6-bf3b171efbda",
                             Name = "Staff",
                             NormalizedName = "STAFF"
                         },
                         new
                         {
                             Id = 3L,
-                            ConcurrencyStamp = "981ac9ff-7d6e-4e52-96ae-0b53efb5778c",
+                            ConcurrencyStamp = "da6ba954-5c3a-4a8e-96aa-6ced4ac08828",
                             Name = "Member",
                             NormalizedName = "MEMBER"
                         });
@@ -585,16 +585,16 @@ namespace backend_inkspire.Migrations
                         {
                             Id = 1L,
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "1fb2effe-a268-40c6-8064-286734548584",
+                            ConcurrencyStamp = "a18c6129-b51e-41f2-9d51-bf9ca84a19f4",
                             Email = "anjan@gmail.com",
                             EmailConfirmed = true,
                             LockoutEnabled = false,
                             Name = "Anjan",
                             NormalizedEmail = "ANJAN@GMAIL.COM",
                             NormalizedUserName = "ANJAN",
-                            PasswordHash = "AQAAAAIAAYagAAAAECIx7Te97WrlamejCKuLf8+JG4/+NpsPxFHbKZUd2RmYhG/HEBlRKB4FGLw9EJXRvg==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEJAMdJnRDJBmbUFD7uWmWPrFRJLmbS2fTX2nD2syIUwQIghWp/kuTbqn42WFWLM9lA==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "13b0f5dc-aa8e-4841-b6f0-f8b185d94491",
+                            SecurityStamp = "e39dc961-3e31-4039-8ed3-d2b2c5b8d039",
                             TwoFactorEnabled = false,
                             UserName = "anjan"
                         });
