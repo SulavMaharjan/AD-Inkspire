@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { ShoppingCart, Heart, X } from "lucide-react";
 import "../styles/BookDetails.css";
 import Navbar from "../components/Navigation/Navbar";
@@ -10,11 +10,13 @@ import { addToCart } from "../context/cartService";
 
 const BookDetails = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const { fetchCart } = useContext(CartContext);
   const [book, setBook] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isBookmarked, setIsBookmarked] = useState(false);
+  const [bookmarkLoading, setBookmarkLoading] = useState(false);
   const [reviewRating, setReviewRating] = useState(0);
   const [reviewComment, setReviewComment] = useState("");
   const [reviews, setReviews] = useState([
@@ -33,12 +35,12 @@ const BookDetails = () => {
       date: "2024-02-20",
     },
   ]);
-  
+
   // Quantity modal state
   const [showQuantityModal, setShowQuantityModal] = useState(false);
   const [quantity, setQuantity] = useState(1);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
-  
+
   // Toast notification state
   const [toast, setToast] = useState(null);
 
@@ -48,6 +50,33 @@ const BookDetails = () => {
     setTimeout(() => setToast(null), 3000);
   };
 
+  // Check if book is already bookmarked when component mounts
+  const checkBookmarkStatus = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    try {
+      const response = await fetch(
+        `https://localhost:7039/api/bookmarks/check/${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.ok) {
+        const isBookmarked = await response.json();
+        setIsBookmarked(isBookmarked);
+      }
+    } catch (error) {
+      console.error(
+        `Failed to check bookmark status for book ID: ${id}`,
+        error
+      );
+    }
+  };
+
   useEffect(() => {
     const getBookDetails = async () => {
       try {
@@ -55,6 +84,9 @@ const BookDetails = () => {
         const bookData = await fetchBookById(id);
         setBook(bookData);
         setLoading(false);
+
+        // Check bookmark status after book data is loaded
+        checkBookmarkStatus();
       } catch (err) {
         console.error("Error fetching book details:", err);
         setError("Failed to load book details. Please try again later.");
@@ -92,23 +124,25 @@ const BookDetails = () => {
 
   const incrementQuantity = () => {
     if (book) {
-      setQuantity(prev => Math.min(book.stockQuantity, prev + 1));
+      setQuantity((prev) => Math.min(book.stockQuantity, prev + 1));
     }
   };
 
   const decrementQuantity = () => {
-    setQuantity(prev => Math.max(1, prev - 1));
+    setQuantity((prev) => Math.max(1, prev - 1));
   };
 
   const handleAddToCartClick = () => {
     // Check if user is authenticated
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (!token) {
       // Navigate to login page with return info
-      window.location.href = `/login?returnUrl=${encodeURIComponent(window.location.pathname)}&action=addToCart&bookId=${book.id}`;
+      window.location.href = `/login?returnUrl=${encodeURIComponent(
+        window.location.pathname
+      )}&action=addToCart&bookId=${book.id}`;
       return;
     }
-    
+
     setShowQuantityModal(true);
     setQuantity(1);
   };
@@ -120,47 +154,108 @@ const BookDetails = () => {
 
     try {
       setIsAddingToCart(true);
-      console.log(`Adding book ID: ${book.id} to cart with quantity ${quantity}`);
-      
+      console.log(
+        `Adding book ID: ${book.id} to cart with quantity ${quantity}`
+      );
+
       // Call the API to add to cart
       const result = await addToCart(book.id, quantity);
-      
+
       // Show success message
       showToast(`Added ${quantity} "${book.title}" to your cart!`, "success");
-      
+
       // Update cart in context
       if (fetchCart) {
         fetchCart();
       }
-      
+
       // Close the modal
       setShowQuantityModal(false);
     } catch (error) {
       console.error("Failed to add to cart:", error);
-      
+
       // Show error message
       showToast(
-        error.message === 'Authentication required' 
-          ? 'Please log in to add items to your cart'
+        error.message === "Authentication required"
+          ? "Please log in to add items to your cart"
           : `Failed to add "${book.title}" to cart: ${error.message}`,
         "error"
       );
-      
+
       // If authentication error, redirect to login
-      if (error.message === 'Authentication required') {
-        window.location.href = `/login?returnUrl=${encodeURIComponent(window.location.pathname)}&action=addToCart&bookId=${book.id}`;
+      if (error.message === "Authentication required") {
+        window.location.href = `/login?returnUrl=${encodeURIComponent(
+          window.location.pathname
+        )}&action=addToCart&bookId=${book.id}`;
       }
     } finally {
       setIsAddingToCart(false);
     }
   };
 
-  const handleBookmark = () => {
-    setIsBookmarked(!isBookmarked);
-    showToast(
-      `${isBookmarked ? "Removed from" : "Added to"} bookmarks`,
-      "success"
-    );
+  const handleBookmark = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      // Redirect to login if not authenticated
+      navigate(
+        `/login?returnUrl=${encodeURIComponent(
+          window.location.pathname
+        )}&action=bookmark&bookId=${id}`
+      );
+      return;
+    }
+
+    setBookmarkLoading(true);
+
+    try {
+      if (isBookmarked) {
+        // Remove bookmark
+        const response = await fetch(
+          `https://localhost:7039/api/bookmarks/${id}`,
+          {
+            method: "DELETE",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        if (response.ok) {
+          setIsBookmarked(false);
+          showToast(`"${book.title}" removed from your bookmarks`, "success");
+        } else {
+          const errorData = await response.json();
+          console.error(`Failed to remove bookmark: ${errorData}`);
+          showToast(`Failed to remove from bookmarks`, "error");
+        }
+      } else {
+        // Add bookmark
+        const response = await fetch("https://localhost:7039/api/bookmarks", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            bookId: id,
+          }),
+        });
+
+        if (response.ok) {
+          setIsBookmarked(true);
+          showToast(`"${book.title}" added to your bookmarks`, "success");
+        } else {
+          const errorData = await response.json();
+          console.error(`Failed to add bookmark: ${errorData}`);
+          showToast(`Failed to bookmark`, "error");
+        }
+      }
+    } catch (error) {
+      console.error(`Bookmark operation failed for book ID: ${id}`, error);
+      showToast(`Bookmark operation failed: ${error.message}`, "error");
+    } finally {
+      setBookmarkLoading(false);
+    }
   };
 
   const handleSubmitReview = (e) => {
@@ -169,7 +264,7 @@ const BookDetails = () => {
       showToast("Please select a rating", "error");
       return;
     }
-    
+
     const newReview = {
       id: reviews.length + 1,
       username: "CurrentUser",
@@ -220,9 +315,11 @@ const BookDetails = () => {
     );
   }
 
-  const discountPercentage = book.discountPercentage || 
-    (book.isOnSale && book.price && book.discountedPrice) ? 
-      Math.round(((book.price - book.discountedPrice) / book.price) * 100) : 0;
+  const discountPercentage =
+    book.discountPercentage ||
+    (book.isOnSale && book.price && book.discountedPrice)
+      ? Math.round(((book.price - book.discountedPrice) / book.price) * 100)
+      : 0;
 
   return (
     <div>
@@ -248,10 +345,13 @@ const BookDetails = () => {
                   <span className="sale-badge">{discountPercentage}% OFF</span>
                 )}
               </div>
-              
+
               <button
-                className={`bookmark-button ${isBookmarked ? "bookmarked" : ""}`}
+                className={`bookmark-button ${
+                  isBookmarked ? "bookmarked" : ""
+                } ${bookmarkLoading ? "loading" : ""}`}
                 onClick={handleBookmark}
+                disabled={bookmarkLoading}
                 aria-label={
                   isBookmarked ? "Remove from bookmarks" : "Add to bookmarks"
                 }
@@ -271,14 +371,18 @@ const BookDetails = () => {
                   <span
                     key={i}
                     className={
-                      i < Math.floor(book.averageRating || 0) ? "star filled" : "star"
+                      i < Math.floor(book.averageRating || 0)
+                        ? "star filled"
+                        : "star"
                     }
                   >
                     ★
                   </span>
                 ))}
               </div>
-              <span className="rating-value">{book.averageRating?.toFixed(1) || "N/A"}</span>
+              <span className="rating-value">
+                {book.averageRating?.toFixed(1) || "N/A"}
+              </span>
               <span className="review-count">({reviews.length} reviews)</span>
             </div>
 
@@ -288,7 +392,9 @@ const BookDetails = () => {
                   <span className="original-price">
                     ${Number(book.price).toFixed(2)}
                   </span>
-                  <span className="sale-price">${Number(book.discountedPrice).toFixed(2)}</span>
+                  <span className="sale-price">
+                    ${Number(book.discountedPrice).toFixed(2)}
+                  </span>
                   {discountPercentage > 0 && (
                     <span className="discount-percentage">
                       Save {discountPercentage}%
@@ -296,7 +402,9 @@ const BookDetails = () => {
                   )}
                 </>
               ) : (
-                <span className="price">${Number(book.price || 0).toFixed(2)}</span>
+                <span className="price">
+                  ${Number(book.price || 0).toFixed(2)}
+                </span>
               )}
             </div>
 
@@ -341,32 +449,48 @@ const BookDetails = () => {
               <div className="details-grid">
                 <div className="detail-item">
                   <span className="detail-label">Format:</span>
-                  <span className="detail-value">{book.format || "Not specified"}</span>
+                  <span className="detail-value">
+                    {book.format || "Not specified"}
+                  </span>
                 </div>
                 <div className="detail-item">
                   <span className="detail-label">ISBN:</span>
-                  <span className="detail-value">{book.isbn || "Not available"}</span>
+                  <span className="detail-value">
+                    {book.isbn || "Not available"}
+                  </span>
                 </div>
                 <div className="detail-item">
                   <span className="detail-label">Publisher:</span>
-                  <span className="detail-value">{book.publisher || "Not specified"}</span>
+                  <span className="detail-value">
+                    {book.publisher || "Not specified"}
+                  </span>
                 </div>
                 <div className="detail-item">
                   <span className="detail-label">Publication Date:</span>
-                  <span className="detail-value">{book.publicationDate || "Not specified"}</span>
+                  <span className="detail-value">
+                    {book.publicationDate || "Not specified"}
+                  </span>
                 </div>
                 <div className="detail-item">
                   <span className="detail-label">Language:</span>
-                  <span className="detail-value">{book.language || "Not specified"}</span>
+                  <span className="detail-value">
+                    {book.language || "Not specified"}
+                  </span>
                 </div>
                 <div className="detail-item">
                   <span className="detail-label">Pages:</span>
-                  <span className="detail-value">{book.pages || "Not specified"}</span>
+                  <span className="detail-value">
+                    {book.pages || "Not specified"}
+                  </span>
                 </div>
                 <div className="detail-item">
                   <span className="detail-label">Genre:</span>
                   <span className="detail-value">
-                    {book.genres ? (Array.isArray(book.genres) ? book.genres.join(", ") : book.genres) : "Not specified"}
+                    {book.genres
+                      ? Array.isArray(book.genres)
+                        ? book.genres.join(", ")
+                        : book.genres
+                      : "Not specified"}
                   </span>
                 </div>
               </div>
@@ -441,19 +565,22 @@ const BookDetails = () => {
         </div>
       </div>
       {showQuantityModal && book && (
-        <div className="quantity-modal-overlay" onClick={() => setShowQuantityModal(false)}>
+        <div
+          className="quantity-modal-overlay"
+          onClick={() => setShowQuantityModal(false)}
+        >
           <div className="quantity-modal" onClick={(e) => e.stopPropagation()}>
-            <button className="close-modal" onClick={() => setShowQuantityModal(false)}>
+            <button
+              className="close-modal"
+              onClick={() => setShowQuantityModal(false)}
+            >
               <X size={20} />
             </button>
             <h3>Select Quantity</h3>
             <p>{book.title}</p>
-            
+
             <div className="quantity-selector">
-              <button 
-                onClick={decrementQuantity}
-                disabled={quantity <= 1}
-              >
+              <button onClick={decrementQuantity} disabled={quantity <= 1}>
                 -
               </button>
               <input
@@ -463,22 +590,22 @@ const BookDetails = () => {
                 value={quantity}
                 onChange={handleQuantityChange}
               />
-              <button 
+              <button
                 onClick={incrementQuantity}
                 disabled={quantity >= book.stockQuantity}
               >
                 +
               </button>
             </div>
-            
+
             <p className="stock-info">{book.stockQuantity} available</p>
-            
+
             <button
               className="confirm-add-to-cart"
               onClick={handleAddToCartConfirm}
               disabled={isAddingToCart}
             >
-              {isAddingToCart ? 'Adding...' : `Add ${quantity} to Cart`}
+              {isAddingToCart ? "Adding..." : `Add ${quantity} to Cart`}
             </button>
           </div>
         </div>
