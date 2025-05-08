@@ -21,31 +21,31 @@ const AdminLayout = ({ children }) => {
         <nav className="sidebar-nav">
           <ul className="nav-list">
             <li className="nav-item">
-              <a href="#" className="nav-link">
+              <a href="#" className="admin-nav-link">
                 <Home size={18} />
                 <span>Dashboard</span>
               </a>
             </li>
             <li className="nav-item active">
-              <a href="#" className="nav-link">
+              <a href="#" className="admin-nav-link">
                 <BookOpen size={18} />
                 <span>Books</span>
               </a>
             </li>
             <li className="nav-item">
-              <a href="#" className="nav-link">
+              <a href="#" className="admin-nav-link">
                 <Users size={18} />
                 <span>Members</span>
               </a>
             </li>
             <li className="nav-item">
-              <a href="#" className="nav-link">
+              <a href="#" className="admin-nav-link">
                 <ShoppingCart size={18} />
                 <span>Orders</span>
               </a>
             </li>
             <li className="nav-item">
-              <a href="#" className="nav-link">
+              <a href="#" className="admin-nav-link">
                 <Settings size={18} />
                 <span>Settings</span>
               </a>
