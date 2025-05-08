@@ -35,7 +35,7 @@
   position: absolute;
   top: 0.5rem;
   right: 0.5rem;
-  background: linear-gradient(135deg, var(--error-color), #FF5252);
+  background: linear-gradient(135deg, var(--error-color), #ff5252);
   color: white;
   font-weight: 600;
   font-size: 0.75rem;
@@ -238,4 +238,30 @@
 
 .view-details-button:active {
   background-color: var(--secondary-dark, #1d4e87);
+}
+
+.book-card-toast {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 8px 12px;
+  border-radius: 4px;
+  color: white;
+  font-size: 14px;
+  z-index: 100;
+  white-space: nowrap;
+}
+
+.book-card-toast.success {
+  background-color: #4caf50;
+}
+
+.book-card-toast.error {
+  background-color: #f44336;
+}
+
+.bookmark-button.loading {
+  opacity: 0.6;
+  cursor: not-allowed;
 }

@@ -3,9 +3,10 @@ import { Heart, ShoppingCart, Star, Eye } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import "../../styles/BookCard.css";
 
-const BookCard = ({ book }) => {
+const BookCard = ({ book, onAddToCart, onBookmarkToggle }) => {
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [imageError, setImageError] = useState(false);
+  const [bookmarkLoading, setBookmarkLoading] = useState(false);
   const navigate = useNavigate();
 
   const {
@@ -26,7 +27,37 @@ const BookCard = ({ book }) => {
 
   useEffect(() => {
     console.log(`Book ID ${id} image path:`, coverImagePath);
-  }, [id, coverImagePath]);
+
+    // Check if book is already bookmarked when component mounts
+    checkBookmarkStatus();
+  }, [id]);
+
+  // Check if the book is already bookmarked
+  const checkBookmarkStatus = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    try {
+      const response = await fetch(
+        `https://localhost:7039/api/bookmarks/check/${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.ok) {
+        const isBookmarked = await response.json();
+        setIsBookmarked(isBookmarked);
+      }
+    } catch (error) {
+      console.error(
+        `Failed to check bookmark status for book ID: ${id}`,
+        error
+      );
+    }
+  };
 
   const getCoverImageUrl = () => {
     if (imageError || !coverImagePath) {
@@ -49,18 +80,96 @@ const BookCard = ({ book }) => {
       ? Math.round(((price - discountedPrice) / price) * 100)
       : 0;
 
-  const handleBookmark = (e) => {
+  const handleBookmark = async (e) => {
     e.stopPropagation();
-    setIsBookmarked(!isBookmarked);
-    console.log(
-      `${isBookmarked ? "Removing" : "Adding"} bookmark for book ID: ${id}`
-    );
+
+    const token = localStorage.getItem("token");
+    if (!token) {
+      // Redirect to login if not authenticated
+      navigate(
+        `/login?returnUrl=${encodeURIComponent(
+          window.location.pathname
+        )}&action=bookmark&bookId=${id}`
+      );
+      return;
+    }
+
+    setBookmarkLoading(true);
+
+    try {
+      if (isBookmarked) {
+        // Remove bookmark
+        const response = await fetch(
+          `https://localhost:7039/api/bookmarks/${id}`,
+          {
+            method: "DELETE",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        if (response.ok) {
+          setIsBookmarked(false);
+          // Call the parent component's onBookmarkToggle function
+          if (onBookmarkToggle) {
+            onBookmarkToggle(
+              `"${title}" removed from your bookmarks`,
+              "success"
+            );
+          }
+        } else {
+          const errorData = await response.json();
+          console.error(`Failed to remove bookmark: ${errorData}`);
+          if (onBookmarkToggle) {
+            onBookmarkToggle(`Failed to remove from bookmarks`, "error");
+          }
+        }
+      } else {
+        // Add bookmark
+        const response = await fetch("https://localhost:7039/api/bookmarks", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            bookId: id,
+          }),
+        });
+
+        if (response.ok) {
+          setIsBookmarked(true);
+          // Call the parent component's onBookmarkToggle function
+          if (onBookmarkToggle) {
+            onBookmarkToggle(`"${title}" added to your bookmarks`, "success");
+          }
+        } else {
+          const errorData = await response.json();
+          console.error(`Failed to add bookmark: ${errorData}`);
+          if (onBookmarkToggle) {
+            onBookmarkToggle(`Failed to bookmark`, "error");
+          }
+        }
+      }
+    } catch (error) {
+      console.error(`Bookmark operation failed for book ID: ${id}`, error);
+      if (onBookmarkToggle) {
+        onBookmarkToggle(
+          `Bookmark operation failed: ${error.message}`,
+          "error"
+        );
+      }
+    } finally {
+      setBookmarkLoading(false);
+    }
   };
 
-  const handleAddToCart = (e) => {
+  const handleAddToCartClick = (e) => {
     e.stopPropagation();
-    console.log(`Adding book ID: ${id} to cart`);
-    alert(`Added ${title} to cart!`);
+    if (onAddToCart) {
+      onAddToCart(book);
+    }
   };
 
   const handleBookClick = () => {
@@ -100,11 +209,14 @@ const BookCard = ({ book }) => {
         {isAwardWinner && <div className="award-badge">Award Winner</div>}
 
         <button
-          className={`bookmark-button ${isBookmarked ? "bookmarked" : ""}`}
+          className={`bookmark-button ${isBookmarked ? "bookmarked" : ""} ${
+            bookmarkLoading ? "loading" : ""
+          }`}
           onClick={handleBookmark}
           aria-label={
             isBookmarked ? "Remove from bookmarks" : "Add to bookmarks"
           }
+          disabled={bookmarkLoading}
         >
           <Heart size={18} fill={isBookmarked ? "#8B2131" : "none"} />
         </button>
@@ -157,17 +269,14 @@ const BookCard = ({ book }) => {
         <div className="book-card-actions">
           <button
             className="add-to-cart-button"
-            onClick={handleAddToCart}
+            onClick={handleAddToCartClick}
             disabled={stockQuantity <= 0}
           >
             <ShoppingCart size={16} />
             <span>Add to Cart</span>
           </button>
-          
-          <button
-            className="view-details-button"
-            onClick={handleViewDetails}
-          >
+
+          <button className="view-details-button" onClick={handleViewDetails}>
             <Eye size={16} />
             <span>View Details</span>
           </button>

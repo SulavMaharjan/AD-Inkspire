@@ -67,6 +67,11 @@ builder.Services.AddScoped<IBookRepository, BookRepository>();
 builder.Services.AddScoped<IBookService, BookService>();
 builder.Services.AddScoped<ICartRepository, CartRepository>();
 builder.Services.AddScoped<ICartService, CartService>();
+// Repository registration
+builder.Services.AddScoped<IBookmarkRepository, BookmarkRepository>();
+
+// Service registration
+builder.Services.AddScoped<IBookmarkService, BookmarkService>();
 
 //staff
 builder.Services.AddScoped<IStaffAuthService, StaffAuthService>();
