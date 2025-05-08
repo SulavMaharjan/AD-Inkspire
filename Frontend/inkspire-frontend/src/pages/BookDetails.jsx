@@ -160,18 +160,13 @@ const BookDetails = () => {
                 }}
               />
               <div className="badges-container">
+                {book.isAwardWinner && (
+                  <span className="award-badge">AWARD WINNER</span>
+                )}
                 {book.isOnSale && discountPercentage > 0 && (
                   <span className="sale-badge">{discountPercentage}% OFF</span>
                 )}
-                {book.isNewRelease && (
-                  <span className="new-release-badge">NEW</span>
-                )}
-                {book.isAwardWinner && (
-                  <span className="award-badge">AWARD</span>
-                )}
-                {book.isBestseller && (
-                  <span className="bestseller-badge">BESTSELLER</span>
-                )}
+          
               </div>
             </div>
           </div>
