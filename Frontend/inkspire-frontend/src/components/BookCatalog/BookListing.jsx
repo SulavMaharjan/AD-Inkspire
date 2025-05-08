@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import {
   BookIcon,
   SlidersHorizontal,
   AlertTriangle,
   RefreshCw,
+  X,
 } from "lucide-react";
 import SearchBar from "../BookCatalog/SearchBar";
 import BookCard from "../BookCatalog/BookCard";
@@ -11,6 +12,8 @@ import FilterSidebar from "../BookCatalog/FilterSidebar";
 import CategoryTabs from "../BookCatalog/CategoryTabs";
 import SortSelector from "../BookCatalog/SortSelector";
 import Footer from "../Landing/Footer";
+import { CartContext } from "../../context/CartContext";
+import { addToCart } from "../../context/cartService";
 import {
   checkApiAvailability,
   fetchBooks,
@@ -24,6 +27,7 @@ import {
 import "../../styles/BookListing.css";
 
 const BookListing = () => {
+  const { fetchCart } = useContext(CartContext);
   const [showFilters, setShowFilters] = useState(false);
   const [activeCategory, setActiveCategory] = useState("all");
   const [sortBy, setSortBy] = useState("popularity");
@@ -40,6 +44,21 @@ const BookListing = () => {
     totalItems: 0,
     pageSize: 12,
   });
+
+  // Quantity modal state
+  const [selectedBook, setSelectedBook] = useState(null);
+  const [showQuantityModal, setShowQuantityModal] = useState(false);
+  const [quantity, setQuantity] = useState(1);
+  const [isAddingToCart, setIsAddingToCart] = useState(false);
+  
+  // Toast notification state
+  const [toast, setToast] = useState(null);
+
+  // Handle showing toast messages
+  const showToast = (message, type = "success") => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000);
+  };
 
   //checking if API is available
   useEffect(() => {
@@ -207,6 +226,86 @@ const BookListing = () => {
     setSearchQuery("");
   };
 
+  // Handle adding to cart
+  const handleAddToCart = (book) => {
+    // Check if user is authenticated
+    const token = localStorage.getItem('token');
+    if (!token) {
+      // Navigate to login page with return info
+      window.location.href = `/login?returnUrl=${encodeURIComponent(window.location.pathname)}&action=addToCart&bookId=${book.id}`;
+      return;
+    }
+    
+    // Set selected book and show modal
+    setSelectedBook(book);
+    setQuantity(1);
+    setShowQuantityModal(true);
+  };
+
+  const handleQuantityChange = (e) => {
+    const value = parseInt(e.target.value);
+    if (!isNaN(value) && selectedBook) {
+      setQuantity(Math.max(1, Math.min(selectedBook.stockQuantity, value)));
+    }
+  };
+
+  const incrementQuantity = () => {
+    if (selectedBook) {
+      setQuantity(prev => Math.min(selectedBook.stockQuantity, prev + 1));
+    }
+  };
+
+  const decrementQuantity = () => {
+    setQuantity(prev => Math.max(1, prev - 1));
+  };
+
+  const closeQuantityModal = () => {
+    setShowQuantityModal(false);
+    setSelectedBook(null);
+  };
+
+  const handleAddToCartConfirm = async () => {
+    if (!selectedBook || quantity < 1 || quantity > selectedBook.stockQuantity) {
+      return;
+    }
+
+    try {
+      setIsAddingToCart(true);
+      console.log(`Adding book ID: ${selectedBook.id} to cart with quantity ${quantity}`);
+      
+      // Call the API to add to cart
+      const result = await addToCart(selectedBook.id, quantity);
+      
+      // Show success message
+      showToast(`Added ${quantity} "${selectedBook.title}" to your cart!`, "success");
+      
+      // Update cart in context
+      if (fetchCart) {
+        fetchCart();
+      }
+      
+      // Close the modal
+      closeQuantityModal();
+    } catch (error) {
+      console.error("Failed to add to cart:", error);
+      
+      // Show error message
+      showToast(
+        error.message === 'Authentication required' 
+          ? 'Please log in to add items to your cart'
+          : `Failed to add "${selectedBook.title}" to cart: ${error.message}`,
+        "error"
+      );
+      
+      // If authentication error, redirect to login
+      if (error.message === 'Authentication required') {
+        window.location.href = `/login?returnUrl=${encodeURIComponent(window.location.pathname)}&action=addToCart&bookId=${selectedBook.id}`;
+      }
+    } finally {
+      setIsAddingToCart(false);
+    }
+  };
+
   return (
     <div className="book-listing-container">
       <header className="book-listing-header">
@@ -269,7 +368,11 @@ const BookListing = () => {
                   <h2>On Sale Books</h2>
                   <div className="books-grid">
                     {onSaleBooks.map((book) => (
-                      <BookCard key={book.id} book={book} />
+                      <BookCard 
+                        key={book.id} 
+                        book={book} 
+                        onAddToCart={() => handleAddToCart(book)}
+                      />
                     ))}
                   </div>
                 </section>
@@ -290,7 +393,11 @@ const BookListing = () => {
                   <>
                     <div className="books-grid">
                       {books.map((book) => (
-                        <BookCard key={book.id} book={book} />
+                        <BookCard 
+                          key={book.id} 
+                          book={book} 
+                          onAddToCart={() => handleAddToCart(book)}
+                        />
                       ))}
                     </div>
 
@@ -338,6 +445,59 @@ const BookListing = () => {
           )}
         </main>
       </div>
+
+      {/* Quantity Modal */}
+      {showQuantityModal && selectedBook && (
+        <div className="quantity-modal-overlay" onClick={closeQuantityModal}>
+          <div className="quantity-modal" onClick={(e) => e.stopPropagation()}>
+            <button className="close-modal" onClick={closeQuantityModal}>
+              <X size={20} />
+            </button>
+            <h3>Select Quantity</h3>
+            <p>{selectedBook.title}</p>
+            
+            <div className="quantity-selector">
+              <button 
+                onClick={decrementQuantity}
+                disabled={quantity <= 1}
+              >
+                -
+              </button>
+              <input
+                type="number"
+                min="1"
+                max={selectedBook.stockQuantity}
+                value={quantity}
+                onChange={handleQuantityChange}
+              />
+              <button 
+                onClick={incrementQuantity}
+                disabled={quantity >= selectedBook.stockQuantity}
+              >
+                +
+              </button>
+            </div>
+            
+            <p className="stock-info">{selectedBook.stockQuantity} available</p>
+            
+            <button
+              className="confirm-add-to-cart"
+              onClick={handleAddToCartConfirm}
+              disabled={isAddingToCart}
+            >
+              {isAddingToCart ? 'Adding...' : `Add ${quantity} to Cart`}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Toast Notification */}
+      {toast && (
+        <div className={`toast-notification ${toast.type}`}>
+          <p>{toast.message}</p>
+        </div>
+      )}
+
       <Footer />
     </div>
   );
