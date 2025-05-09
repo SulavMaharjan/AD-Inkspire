@@ -17,6 +17,7 @@ import AddBookPage from "./pages/AddBookPage";
 import BookDetails from "./pages/BookDetails";
 import PurchasedBooks from "./pages/PurchasedBooks";
 import "./styles/App.css";
+import StaffPage from "./pages/StaffPage";
 
 function App() {
   return (
@@ -31,7 +32,8 @@ function App() {
           <Route path="/unauthorized" element={<UnauthorizedPage />} />
           <Route path="/bookDetail/:id" element={<BookDetails />} />
           <Route path="/purchasedBook" element={<PurchasedBooks />} />
-      
+          <Route path="/staffclaimcode" element={<StaffPage />} />
+
           <Route
             path="/dashboard"
             element={
