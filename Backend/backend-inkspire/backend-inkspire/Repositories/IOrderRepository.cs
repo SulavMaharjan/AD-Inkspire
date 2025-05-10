@@ -22,7 +22,7 @@ namespace backend_inkspire.Repositories
             int pageSize = 10);
         Task<int> GetUserCompletedOrderCountAsync(long userId);
         Task<Order> CreateOrderAsync(Order order);
-        Task<bool> UpdateOrderStatusAsync(long orderId, OrderStatus status);
+        Task<bool> UpdateOrderStatusAsync(int orderId, OrderStatus status);
         Task<bool> CancelOrderAsync(long orderId);
         Task SaveChangesAsync();
     }

@@ -39,9 +39,9 @@ namespace backend_inkspire.Controllers
             }
         }
 
-        // GET: api/orders/5
+        // GET: api/orders/id
         [HttpGet("{id}")]
-        [Authorize(Roles = "Member")]
+        [Authorize(Roles = "Member,SuperAdmin,Staff")]
         public async Task<ActionResult<OrderResponseDTO>> GetOrder(int id)
         {
             string userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -97,7 +97,7 @@ namespace backend_inkspire.Controllers
             return Ok(orders);
         }
 
-        // POST: api/orders/5/cancel
+        // POST: api/orders/id/cancel
         [HttpPost("{id}/cancel")]
         [Authorize(Roles = "Member")]
         public async Task<IActionResult> CancelOrder(int id)
@@ -117,7 +117,7 @@ namespace backend_inkspire.Controllers
             return NoContent();
         }
 
-        // POST: api/orders/5/status
+        // POST: api/orders/id/status
         [HttpPost("{id}/status")]
         [Authorize(Roles = "Staff,SuperAdmin")]
         public async Task<IActionResult> UpdateOrderStatus(int id, [FromBody] UpdateOrderStatusDTO updateOrderStatusDTO)

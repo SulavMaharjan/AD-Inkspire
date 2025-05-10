@@ -17,9 +17,15 @@ namespace backend_inkspire.Entities
         public virtual ICollection<CartItem> Items { get; set; } = new List<CartItem>();
 
         [NotMapped]
-        public decimal TotalAmount => Items?.Sum(i => i.Quantity * (i.Book.IsCurrentlyDiscounted
-            ? (i.Book.Price - (i.Book.Price * i.Book.DiscountPercentage.Value / 100))
-            : i.Book.Price)) ?? 0;
+        public decimal TotalAmount => Items?.Sum(i => i.Quantity * (
+            i.Book.IsOnSale &&
+            i.Book.DiscountPercentage.HasValue &&
+            i.Book.DiscountStartDate.HasValue &&
+            i.Book.DiscountEndDate.HasValue &&
+            DateTime.Now >= i.Book.DiscountStartDate &&
+            DateTime.Now <= i.Book.DiscountEndDate
+                ? (i.Book.Price - (i.Book.Price * i.Book.DiscountPercentage.Value / 100))
+                : i.Book.Price)) ?? 0;
     }
 
     public class CartItem

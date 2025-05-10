@@ -43,7 +43,7 @@ namespace backend_inkspire.Services
                 throw new InvalidOperationException("Your cart is empty");
             }
 
-            //checking items are in stock
+            // Checking items are in stock
             foreach (var item in cart.Items)
             {
                 var book = await _bookRepository.GetBookByIdAsync(item.BookId);
@@ -69,15 +69,18 @@ namespace backend_inkspire.Services
             bool hasUsedStackableDiscount = false;
             UserDiscount appliedDiscount = null;
 
-            //checking for bulk discount (5% for 5+ books)
+            //checking for bulk discount
             int totalItems = cart.Items.Sum(i => i.Quantity);
             if (totalItems >= 5)
             {
                 isQualifiedForBulkDiscount = true;
-                discountAmount += subtotal * 0.05m;
+                decimal bulkDiscountAmount = subtotal * 0.05m;
+                discountAmount += bulkDiscountAmount;
+
+                Console.WriteLine($"Applying bulk discount: {totalItems} items in cart. Discount amount: ${bulkDiscountAmount:0.00}");
             }
 
-            //checking stackable 10% discount after every 10 orders
+            //checking 10% discount after every 10 orders
             if (createOrderDto.UseAvailableDiscount)
             {
                 //get user discounts
@@ -86,12 +89,21 @@ namespace backend_inkspire.Services
                 {
                     appliedDiscount = availableDiscounts.OrderBy(d => d.CreatedAt).First();
                     hasUsedStackableDiscount = true;
-                    discountAmount += subtotal * (appliedDiscount.DiscountPercentage / 100);
+                    decimal stackableDiscountAmount = subtotal * (appliedDiscount.DiscountPercentage / 100);
+                    discountAmount += stackableDiscountAmount;
+
+                    Console.WriteLine($"Applying stackable discount: {appliedDiscount.DiscountPercentage}%. Discount amount: ${stackableDiscountAmount:0.00}");
+                }
+                else
+                {
+                    Console.WriteLine("No available discounts found for this user.");
                 }
             }
 
             //final total
             decimal totalAmount = subtotal - discountAmount;
+
+            Console.WriteLine($"Order summary - Subtotal: ${subtotal:0.00}, Total discount: ${discountAmount:0.00}, Final total: ${totalAmount:0.00}");
 
             //create order
             var order = new Order
@@ -151,24 +163,19 @@ namespace backend_inkspire.Services
                 await _bookRepository.UpdateBookStockAsync(item.BookId, -item.Quantity);
             }
 
-            // If stackable discount was used, mark it as used
             if (appliedDiscount != null)
             {
                 await _userDiscountRepository.UseDiscountAsync(appliedDiscount.Id, order.Id);
+                Console.WriteLine($"Discount {appliedDiscount.Id} marked as used for order {order.Id}");
             }
 
-            //check if user qualifies for a new discount (every 10th order)
-            await CheckAndCreateDiscountAsync(userId);
-
-            //clear cart
             await _cartRepository.ClearCartAsync(cart.Id);
 
-            //confirmation email
+            //email
             await SendOrderConfirmationEmailAsync(order);
 
             return MapToOrderResponseDTO(order);
         }
-
         public async Task<OrderResponseDTO> GetOrderByIdAsync(int orderId, long userId)
         {
             var order = await _orderRepository.GetOrderByIdAsync(orderId);
@@ -339,6 +346,7 @@ namespace backend_inkspire.Services
                 .Select(s => s[_random.Next(s.Length)]).ToArray());
         }
 
+
         private async Task<bool> CheckAndCreateDiscountAsync(string userId)
         {
             if (!long.TryParse(userId, out long userIdLong))
@@ -349,28 +357,49 @@ namespace backend_inkspire.Services
             //completed order count for the user
             int completedOrderCount = await _orderRepository.GetUserCompletedOrderCountAsync(userIdLong);
 
-            //10th completed order 10% discount
+            Console.WriteLine($"User {userId} has {completedOrderCount} completed orders");
+
             if (completedOrderCount > 0 && completedOrderCount % 10 == 0)
             {
-                //create a new discount for the user
-                var discount = new UserDiscount
+
+                int discountMilestone = completedOrderCount / 10;
+
+                //get all user discounts
+                var allUserDiscounts = await _userDiscountRepository.GetAllUserDiscountsAsync(userIdLong);
+
+                // Count how many discounts have been created already
+                int existingDiscounts = allUserDiscounts.Count;
+
+                Console.WriteLine($"User has {existingDiscounts} total discounts created, current milestone: {discountMilestone}");
+
+                //only create a new discount if we haven't already created one for this milestone
+                if (existingDiscounts < discountMilestone)
                 {
-                    UserId = userIdLong,
-                    DiscountPercentage = 10,
-                    IsUsed = false,
-                    CreatedAt = DateTime.UtcNow
-                };
+                    Console.WriteLine($"Creating new 10% discount for user {userId} at order milestone {discountMilestone}");
 
-                await _userDiscountRepository.CreateUserDiscountAsync(discount);
+                    //create a new discount for the user
+                    var discount = new UserDiscount
+                    {
+                        UserId = userIdLong,
+                        DiscountPercentage = 10,
+                        IsUsed = false,
+                        CreatedAt = DateTime.UtcNow
+                    };
 
-                //discount notification email
-                await SendDiscountNotificationEmailAsync(userId, discount);
-                return true;
+                    await _userDiscountRepository.CreateUserDiscountAsync(discount);
+
+                    //discount notification email
+                    await SendDiscountNotificationEmailAsync(userId, discount);
+                    return true;
+                }
+                else
+                {
+                    Console.WriteLine($"Discount already exists for milestone {discountMilestone}, not creating a new one");
+                }
             }
 
             return false;
         }
-
         private OrderResponseDTO MapToOrderResponseDTO(Order order)
         {
             if (order == null)
