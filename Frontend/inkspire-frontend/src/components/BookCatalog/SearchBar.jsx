@@ -10,7 +10,6 @@ const SearchBar = ({ searchQuery, setSearchQuery }) => {
   return (
     <div className="search-bar-container">
       <div className="search-bar">
-        <Search size={18} className="search-icon" />
         <input
           type="text"
           placeholder="Search by title, author, ISBN or description..."

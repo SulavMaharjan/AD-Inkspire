@@ -34,7 +34,7 @@ const AdminLayout = ({ children }) => {
             </Link>
           </li>
           <li className="nav-item">
-            <Link to="/admin/users" className="admin-nav-link">
+            <Link to="/admin/members" className="admin-nav-link">
               <Users size={18} />
               <span>Members</span>
             </Link>

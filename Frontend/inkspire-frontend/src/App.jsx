@@ -1,5 +1,5 @@
 import React from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Outlet } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import { NotificationProvider } from "./context/NotificationContext";
 import LandingPage from "./pages/LandingPage";
@@ -18,18 +18,54 @@ import BookListing from "./components/BookCatalog/BookListing";
 import AddBookPage from "./pages/AddBookPage";
 import BookDetails from "./pages/BookDetails";
 import PurchasedBooks from "./pages/PurchasedBooks";
-// Remove NotificationToast component import
 import "./styles/App.css";
 import StaffPage from "./pages/StaffPage";
 import BookmarkedList from "./pages/BookmarkedList";
 import AnnouncementManagement from "./components/admin/AnnouncementManagement";
+import MemberManagement from "./components/admin/MemberManagement";
+import AdminLayout from "./components/admin/AdminLayout";
+
+// Create an AdminDashboard wrapper component
+const AdminDashboardWrapper = () => {
+  return (
+    <AdminLayout>
+      <div>Admin Dashboard</div>
+    </AdminLayout>
+  );
+};
+
+// Create an AdminAddBook wrapper component
+const AdminAddBookWrapper = () => {
+  return (
+    <AdminLayout>
+      <AddBookPage />
+    </AdminLayout>
+  );
+};
+
+// Create an AdminAnnouncements wrapper component
+const AdminAnnouncementsWrapper = () => {
+  return (
+    <AdminLayout>
+      <AnnouncementManagement />
+    </AdminLayout>
+  );
+};
+
+// Create an AdminMembers wrapper component
+const AdminMembersWrapper = () => {
+  return (
+    <AdminLayout>
+      <MemberManagement />
+    </AdminLayout>
+  );
+};
 
 function App() {
   return (
     <AuthProvider>
       <NotificationProvider>
         <Router>
-          {/* Remove NotificationToast from here */}
           <Routes>
             {/* Public routes */}
             <Route path="/" element={<LandingPage />} />
@@ -50,24 +86,22 @@ function App() {
                 </ProtectedRoute>
               }
             />
+            
             {/* Admin protected routes */}
             <Route
               path="/admin/*"
               element={
                 <AdminProtectedRoute>
                   <Routes>
-                    <Route
-                      path="dashboard"
-                      element={<div>Admin Dashboard</div>}
-                    />
-                    <Route path="add-book" element={<AddBookPage />} />
-                    <Route path="users" element={<div>User Management</div>} />
-                    <Route path="settings" element={<div>Admin Settings</div>} />
-                    <Route path="announcements" element={<AnnouncementManagement />} />
+                    <Route path="dashboard" element={<AdminDashboardWrapper />} />
+                    <Route path="add-book" element={<AdminAddBookWrapper />} />
+                    <Route path="announcements" element={<AdminAnnouncementsWrapper />} />
+                    <Route path="members" element={<AdminMembersWrapper />} />
                   </Routes>
                 </AdminProtectedRoute>
               }
             />
+            
             {/* Member protected routes */}
             <Route
               path="/member/*"
@@ -83,6 +117,7 @@ function App() {
                 </MemberProtectedRoute>
               }
             />
+            
             {/* Staff protected routes */}
             <Route
               path="/staff/*"
@@ -97,6 +132,7 @@ function App() {
                 </StaffProtectedRoute>
               }
             />
+            
             <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </Router>
@@ -104,4 +140,5 @@ function App() {
     </AuthProvider>
   );
 }
+
 export default App;
