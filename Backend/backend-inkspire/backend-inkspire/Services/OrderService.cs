@@ -43,7 +43,7 @@ namespace backend_inkspire.Services
                 throw new InvalidOperationException("Your cart is empty");
             }
 
-            // Checking items are in stock
+            //checking items are in stock
             foreach (var item in cart.Items)
             {
                 var book = await _bookRepository.GetBookByIdAsync(item.BookId);
@@ -157,6 +157,20 @@ namespace backend_inkspire.Services
 
             await _orderRepository.CreateOrderAsync(order);
 
+            var orderWithUser = await _orderRepository.GetOrderByIdAsync(order.Id);
+
+            try
+            {
+                Console.WriteLine($"Attempting to send order confirmation email for order {order.Id}");
+                //email
+                await SendOrderConfirmationEmailAsync(orderWithUser);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Failed to send order confirmation email: {ex.Message}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
+            }
+
             //update book stock
             foreach (var item in order.Items)
             {
@@ -171,11 +185,9 @@ namespace backend_inkspire.Services
 
             await _cartRepository.ClearCartAsync(cart.Id);
 
-            //email
-            await SendOrderConfirmationEmailAsync(order);
-
             return MapToOrderResponseDTO(order);
         }
+   
         public async Task<OrderResponseDTO> GetOrderByIdAsync(int orderId, long userId)
         {
             var order = await _orderRepository.GetOrderByIdAsync(orderId);
@@ -295,10 +307,30 @@ namespace backend_inkspire.Services
                 return false;
             }
 
-            // If completed, check and create discount if eligible
+            //check and create discount if eligible
             if (status == OrderStatus.Completed)
             {
-                await CheckAndCreateDiscountAsync(order.UserId.ToString());
+                try
+                {
+                    //pickup confirmation email
+                    await SendOrderPickupConfirmationEmailAsync(order);
+                    Console.WriteLine($"Sent pickup confirmation email for order {orderId} with status change to Completed");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Failed to send order completion email: {ex.Message}");
+                    Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                }
+
+                try
+                {
+                    await CheckAndCreateDiscountAsync(order.UserId.ToString());
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Failed to check and create discount: {ex.Message}");
+                    Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                }
             }
 
             return true;
@@ -386,10 +418,14 @@ namespace backend_inkspire.Services
                         CreatedAt = DateTime.UtcNow
                     };
 
-                    await _userDiscountRepository.CreateUserDiscountAsync(discount);
+                    var createdDiscount = await _userDiscountRepository.CreateUserDiscountAsync(discount);
+                    if (createdDiscount == null || createdDiscount.Id == 0)
+                    {
+                        Console.WriteLine("Failed to create discount record in database");
+                        return false;
+                    }
 
-                    //discount notification email
-                    await SendDiscountNotificationEmailAsync(userId, discount);
+                    Console.WriteLine($"Successfully created 10% discount for user {userId}");
                     return true;
                 }
                 else
@@ -400,6 +436,7 @@ namespace backend_inkspire.Services
 
             return false;
         }
+
         private OrderResponseDTO MapToOrderResponseDTO(Order order)
         {
             if (order == null)
@@ -438,109 +475,150 @@ namespace backend_inkspire.Services
         {
             try
             {
-                //get user email
+                //user load
+                if (order.User == null)
+                {
+                    Console.WriteLine($"Warning: Order {order.Id} has no associated User object");
+
+                    var user = await _userDiscountRepository.GetUserByIdAsync(order.UserId.ToString());
+                    if (user != null && !string.IsNullOrEmpty(user.Email))
+                    {
+                        Console.WriteLine($"Retrieved user email {user.Email} for order {order.Id}");
+                        await SendOrderConfirmationEmailToAddressAsync(user.Email, order);
+                        return;
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Failed to load user data for order {order.Id}, userId: {order.UserId}");
+                        return;
+                    }
+                }
+
+                //user email
                 string userEmail = order.User?.Email;
                 if (string.IsNullOrEmpty(userEmail))
                 {
+                    Console.WriteLine($"User email is null or empty for order {order.Id}, userId: {order.UserId}");
                     return;
                 }
 
-                string subject = $"Order Confirmation - Order #{order.Id}";
-
-                string body = $@"
-                <html>
-                <head>
-                    <style>
-                        body {{ font-family: Arial, sans-serif; }}
-                        .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
-                        .header {{ background-color: #f8f9fa; padding: 10px; text-align: center; }}
-                        .content {{ padding: 20px; }}
-                        .footer {{ background-color: #f8f9fa; padding: 10px; text-align: center; font-size: 12px; }}
-                        table {{ width: 100%; border-collapse: collapse; }}
-                        th, td {{ padding: 10px; text-align: left; border-bottom: 1px solid #ddd; }}
-                        .total {{ font-weight: bold; }}
-                    </style>
-                </head>
-                <body>
-                    <div class='container'>
-                        <div class='header'>
-                            <h1>Order Confirmation</h1>
-                        </div>
-                        <div class='content'>
-                            <p>Thank you for your order!</p>
-                            <p>Your order has been received and is being processed. Here are your order details:</p>
-                            
-                            <h3>Order Information</h3>
-                            <p>Order Number: {order.Id}</p>
-                            <p>Order Date: {order.CreatedAt:yyyy-MM-dd HH:mm:ss}</p>
-                            <p>Claim Code: <strong>{order.ClaimCode}</strong></p>
-                            <p>Status: {order.Status}</p>
-                            
-                            <h3>Order Summary</h3>
-                            <table>
-                                <tr>
-                                    <th>Book</th>
-                                    <th>Quantity</th>
-                                    <th>Price</th>
-                                    <th>Subtotal</th>
-                                </tr>";
-
-                //order items
-                foreach (var item in order.Items)
-                {
-                    decimal displayPrice = item.DiscountedPrice ?? item.UnitPrice;
-                    body += $@"
-                                <tr>
-                                    <td>{item.BookTitle}</td>
-                                    <td>{item.Quantity}</td>
-                                    <td>${displayPrice:0.00}</td>
-                                    <td>${item.SubTotal:0.00}</td>
-                                </tr>";
-                }
-
-                //order totals
-                body += $@"
-                                <tr>
-                                    <td colspan='3' class='total'>Subtotal</td>
-                                    <td>${order.SubTotal:0.00}</td>
-                                </tr>";
-
-                if (order.DiscountAmount > 0)
-                {
-                    body += $@"
-                                <tr>
-                                    <td colspan='3' class='total'>Discount</td>
-                                    <td>-${order.DiscountAmount:0.00}</td>
-                                </tr>";
-                }
-
-                body += $@"
-                                <tr>
-                                    <td colspan='3' class='total'>Total</td>
-                                    <td>${order.TotalAmount:0.00}</td>
-                                </tr>
-                            </table>
-                            
-                            <h3>Pickup Instructions</h3>
-                            <p>Present your membership ID and claim code <strong>{order.ClaimCode}</strong> at our store to pick up your order.</p>
-                            
-                            <p>If you have any questions about your order, please contact our customer service.</p>
-                            
-                            <p>Thank you for shopping with us!</p>
-                        </div>
-                        <div class='footer'>
-                            <p>© " + DateTime.Now.Year + @" InkSpire Book Store. All rights reserved.</p>
-                        </div>
-                    </div>
-                </body>
-                </html>";
-
-                //send email
-                await _emailService.SendEmailAsync(userEmail, subject, body, true);
+                Console.WriteLine($"Sending order confirmation email to {userEmail} for order {order.Id}");
+                await SendOrderConfirmationEmailToAddressAsync(userEmail, order);
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error sending order confirmation email: {ex.Message}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                if (ex.InnerException != null)
+                {
+                    Console.WriteLine($"Inner exception: {ex.InnerException.Message}");
+                }
+            }
+        }
+
+        private async Task SendOrderConfirmationEmailToAddressAsync(string email, Order order)
+        {
+            string subject = $"Order Confirmation - Order #{order.Id}";
+
+            string body = $@"
+    <html>
+    <head>
+        <style>
+            body {{ font-family: Arial, sans-serif; }}
+            .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+            .header {{ background-color: #f8f9fa; padding: 10px; text-align: center; }}
+            .content {{ padding: 20px; }}
+            .footer {{ background-color: #f8f9fa; padding: 10px; text-align: center; font-size: 12px; }}
+            table {{ width: 100%; border-collapse: collapse; }}
+            th, td {{ padding: 10px; text-align: left; border-bottom: 1px solid #ddd; }}
+            .total {{ font-weight: bold; }}
+        </style>
+    </head>
+    <body>
+        <div class='container'>
+            <div class='header'>
+                <h1>Order Confirmation</h1>
+            </div>
+            <div class='content'>
+                <p>Thank you for your order!</p>
+                <p>Your order has been received and is being processed. Here are your order details:</p>
+                
+                <h3>Order Information</h3>
+                <p>Order Number: {order.Id}</p>
+                <p>Order Date: {order.CreatedAt:yyyy-MM-dd HH:mm:ss}</p>
+                <p>Claim Code: <strong>{order.ClaimCode}</strong></p>
+                <p>Status: {order.Status}</p>
+                
+                <h3>Order Summary</h3>
+                <table>
+                    <tr>
+                        <th>Book</th>
+                        <th>Quantity</th>
+                        <th>Price</th>
+                        <th>Subtotal</th>
+                    </tr>";
+
+            //order items
+            foreach (var item in order.Items)
+            {
+                decimal displayPrice = item.DiscountedPrice ?? item.UnitPrice;
+                body += $@"
+                    <tr>
+                        <td>{item.BookTitle}</td>
+                        <td>{item.Quantity}</td>
+                        <td>${displayPrice:0.00}</td>
+                        <td>${item.SubTotal:0.00}</td>
+                    </tr>";
+            }
+
+            //order totals
+            body += $@"
+                    <tr>
+                        <td colspan='3' class='total'>Subtotal</td>
+                        <td>${order.SubTotal:0.00}</td>
+                    </tr>";
+
+            if (order.DiscountAmount > 0)
+            {
+                body += $@"
+                    <tr>
+                        <td colspan='3' class='total'>Discount</td>
+                        <td>-${order.DiscountAmount:0.00}</td>
+                    </tr>";
+            }
+
+            body += $@"
+                    <tr>
+                        <td colspan='3' class='total'>Total</td>
+                        <td>${order.TotalAmount:0.00}</td>
+                    </tr>
+                </table>
+                
+                <h3>Pickup Instructions</h3>
+                <p>Present your claim code <strong>{order.ClaimCode}</strong> at our store to pick up your order.</p>
+                
+                <p>If you have any questions about your order, please contact our customer service.</p>
+                
+                <p>Thank you for shopping with us!</p>
+            </div>
+            <div class='footer'>
+                <p>© " + DateTime.Now.Year + @" InkSpire Book Store. All rights reserved.</p>
+            </div>
+        </div>
+    </body>
+    </html>";
+
+            try
+            {
+                Console.WriteLine($"About to call SendEmailAsync for order {order.Id}");
+                //send email
+                await _emailService.SendEmailAsync(email, subject, body, true);
+                Console.WriteLine($"Successfully sent email for order {order.Id}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Exception in SendEmailAsync for order {order.Id}: {ex.Message}");
+                throw;
             }
         }
 
@@ -548,53 +626,94 @@ namespace backend_inkspire.Services
         {
             try
             {
-                //get user email
+                //user load
+                if (order.User == null)
+                {
+                    Console.WriteLine($"Warning: Order {order.Id} has no associated User object for cancellation email");
+
+                    var user = await _userDiscountRepository.GetUserByIdAsync(order.UserId.ToString());
+                    if (user != null && !string.IsNullOrEmpty(user.Email))
+                    {
+                        Console.WriteLine($"Retrieved user email {user.Email} for cancelled order {order.Id}");
+                        await SendOrderCancellationEmailToAddressAsync(user.Email, order);
+                        return;
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Failed to load user data for cancelled order {order.Id}, userId: {order.UserId}");
+                        return;
+                    }
+                }
+
+                //user email
                 string userEmail = order.User?.Email;
                 if (string.IsNullOrEmpty(userEmail))
                 {
+                    Console.WriteLine($"User email is null or empty for cancelled order {order.Id}, userId: {order.UserId}");
                     return;
                 }
 
-                string subject = $"Order Cancellation - Order #{order.Id}";
-
-                string body = $@"
-                <html>
-                <head>
-                    <style>
-                        body {{ font-family: Arial, sans-serif; }}
-                        .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
-                        .header {{ background-color: #f8f9fa; padding: 10px; text-align: center; }}
-                        .content {{ padding: 20px; }}
-                        .footer {{ background-color: #f8f9fa; padding: 10px; text-align: center; font-size: 12px; }}
-                    </style>
-                </head>
-                <body>
-                    <div class='container'>
-                        <div class='header'>
-                            <h1>Order Cancellation</h1>
-                        </div>
-                        <div class='content'>
-                            <p>Your order #{order.Id} has been cancelled.</p>
-                            <p>Order details:</p>
-                            <p>Order Date: {order.CreatedAt:yyyy-MM-dd HH:mm:ss}</p>
-                            <p>Cancellation Date: {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}</p>
-                            
-                            <p>If you did not request this cancellation or have any questions, please contact our customer service.</p>
-                            
-                            <p>Thank you for your understanding.</p>
-                        </div>
-                        <div class='footer'>
-                            <p>© " + DateTime.Now.Year + @" InkSpire Book Store. All rights reserved.</p>
-                        </div>
-                    </div>
-                </body>
-                </html>";
-
-                await _emailService.SendEmailAsync(userEmail, subject, body, true);
+                Console.WriteLine($"Sending order cancellation email to {userEmail} for order {order.Id}");
+                await SendOrderCancellationEmailToAddressAsync(userEmail, order);
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error sending order cancellation email: {ex.Message}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                if (ex.InnerException != null)
+                {
+                    Console.WriteLine($"Inner exception: {ex.InnerException.Message}");
+                }
+            }
+        }
+
+        private async Task SendOrderCancellationEmailToAddressAsync(string email, Order order)
+        {
+            string subject = $"Order Cancellation - Order #{order.Id}";
+
+            string body = $@"
+    <html>
+    <head>
+        <style>
+            body {{ font-family: Arial, sans-serif; }}
+            .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+            .header {{ background-color: #f8f9fa; padding: 10px; text-align: center; }}
+            .content {{ padding: 20px; }}
+            .footer {{ background-color: #f8f9fa; padding: 10px; text-align: center; font-size: 12px; }}
+        </style>
+    </head>
+    <body>
+        <div class='container'>
+            <div class='header'>
+                <h1>Order Cancellation</h1>
+            </div>
+            <div class='content'>
+                <p>Your order #{order.Id} has been cancelled.</p>
+                <p>Order details:</p>
+                <p>Order Date: {order.CreatedAt:yyyy-MM-dd HH:mm:ss}</p>
+                <p>Cancellation Date: {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}</p>
+                
+                <p>If you did not request this cancellation or have any questions, please contact our customer service.</p>
+                
+                <p>Thank you for your understanding.</p>
+            </div>
+            <div class='footer'>
+                <p>© {DateTime.Now.Year} InkSpire Book Store. All rights reserved.</p>
+            </div>
+        </div>
+    </body>
+    </html>";
+
+            try
+            {
+                Console.WriteLine($"About to call SendEmailAsync for cancelled order {order.Id}");
+                await _emailService.SendEmailAsync(email, subject, body, true);
+                Console.WriteLine($"Successfully sent cancellation email for order {order.Id}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Exception in SendEmailAsync for cancelled order {order.Id}: {ex.Message}");
+                throw;
             }
         }
 
@@ -602,107 +721,94 @@ namespace backend_inkspire.Services
         {
             try
             {
-                //get user email
+                //user load
+                if (order.User == null)
+                {
+                    Console.WriteLine($"Warning: Order {order.Id} has no associated User object for pickup confirmation email");
+
+                    var user = await _userDiscountRepository.GetUserByIdAsync(order.UserId.ToString());
+                    if (user != null && !string.IsNullOrEmpty(user.Email))
+                    {
+                        Console.WriteLine($"Retrieved user email {user.Email} for picked up order {order.Id}");
+                        await SendOrderPickupConfirmationEmailToAddressAsync(user.Email, order);
+                        return;
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Failed to load user data for picked up order {order.Id}, userId: {order.UserId}");
+                        return;
+                    }
+                }
+
+                //user email
                 string userEmail = order.User?.Email;
                 if (string.IsNullOrEmpty(userEmail))
                 {
+                    Console.WriteLine($"User email is null or empty for picked up order {order.Id}, userId: {order.UserId}");
                     return;
                 }
 
-                string subject = $"Order Pickup Confirmation - Order #{order.Id}";
-
-                string body = $@"
-                <html>
-                <head>
-                    <style>
-                        body {{ font-family: Arial, sans-serif; }}
-                        .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
-                        .header {{ background-color: #f8f9fa; padding: 10px; text-align: center; }}
-                        .content {{ padding: 20px; }}
-                        .footer {{ background-color: #f8f9fa; padding: 10px; text-align: center; font-size: 12px; }}
-                    </style>
-                </head>
-                <body>
-                    <div class='container'>
-                        <div class='header'>
-                            <h1>Order Pickup Confirmation</h1>
-                        </div>
-                        <div class='content'>
-                            <p>Your order #{order.Id} has been successfully picked up.</p>
-                            <p>Order details:</p>
-                            <p>Order Date: {order.CreatedAt:yyyy-MM-dd HH:mm:ss}</p>
-                            <p>Pickup Date: {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}</p>
-                            
-                            <p>Thank you for shopping with us!</p>
-                        </div>
-                        <div class='footer'>
-                            <p>© " + DateTime.Now.Year + @" InkSpire Book Store. All rights reserved.</p>
-                        </div>
-                    </div>
-                </body>
-                </html>";
-
-                await _emailService.SendEmailAsync(userEmail, subject, body, true);
+                Console.WriteLine($"Sending order pickup confirmation email to {userEmail} for order {order.Id}");
+                await SendOrderPickupConfirmationEmailToAddressAsync(userEmail, order);
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error sending order pickup confirmation email: {ex.Message}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                if (ex.InnerException != null)
+                {
+                    Console.WriteLine($"Inner exception: {ex.InnerException.Message}");
+                }
             }
         }
 
-        private async Task SendDiscountNotificationEmailAsync(string userId, UserDiscount discount)
+        private async Task SendOrderPickupConfirmationEmailToAddressAsync(string email, Order order)
         {
+            string subject = $"Order Pickup Confirmation - Order #{order.Id}";
+
+            string body = $@"
+    <html>
+    <head>
+        <style>
+            body {{ font-family: Arial, sans-serif; }}
+            .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+            .header {{ background-color: #f8f9fa; padding: 10px; text-align: center; }}
+            .content {{ padding: 20px; }}
+            .footer {{ background-color: #f8f9fa; padding: 10px; text-align: center; font-size: 12px; }}
+        </style>
+    </head>
+    <body>
+        <div class='container'>
+            <div class='header'>
+                <h1>Order Pickup Confirmation</h1>
+            </div>
+            <div class='content'>
+                <p>Your order #{order.Id} has been successfully picked up.</p>
+                <p>Order details:</p>
+                <p>Order Date: {order.CreatedAt:yyyy-MM-dd HH:mm:ss}</p>
+                <p>Pickup Date: {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}</p>
+                
+                <p>Thank you for shopping with us!</p>
+            </div>
+            <div class='footer'>
+                <p>© {DateTime.Now.Year} InkSpire Book Store. All rights reserved.</p>
+            </div>
+        </div>
+    </body>
+    </html>";
+
             try
             {
-                //get user using the repository method
-                var user = await _userDiscountRepository.GetUserByIdAsync(userId);
-                if (user == null || string.IsNullOrEmpty(user.Email))
-                {
-                    return;
-                }
-
-                string subject = "You've Earned a Discount!";
-
-                string body = $@"
-        <html>
-        <head>
-            <style>
-                body {{ font-family: Arial, sans-serif; }}
-                .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
-                .header {{ background-color: #f8f9fa; padding: 10px; text-align: center; }}
-                .content {{ padding: 20px; }}
-                .footer {{ background-color: #f8f9fa; padding: 10px; text-align: center; font-size: 12px; }}
-                .discount {{ font-size: 24px; font-weight: bold; color: #007bff; text-align: center; margin: 20px 0; }}
-            </style>
-        </head>
-        <body>
-            <div class='container'>
-                <div class='header'>
-                    <h1>Congratulations!</h1>
-                </div>
-                <div class='content'>
-                    <p>Thank you for your continued support!</p>
-                    <p>As a valued customer, you've earned a special discount for your next purchase:</p>
-                    
-                    <div class='discount'>{discount.DiscountPercentage}% OFF your next order</div>
-                    
-                    <p>This discount will be automatically applied to your next purchase.</p>
-                    
-                    <p>Thank you for shopping with us!</p>
-                </div>
-                <div class='footer'>
-                    <p>© " + DateTime.Now.Year + @" InkSpire Book Store. All rights reserved.</p>
-                </div>
-            </div>
-        </body>
-        </html>";
-
-                await _emailService.SendEmailAsync(user.Email, subject, body, true);
+                Console.WriteLine($"About to call SendEmailAsync for picked up order {order.Id}");
+                await _emailService.SendEmailAsync(email, subject, body, true);
+                Console.WriteLine($"Successfully sent pickup confirmation email for order {order.Id}");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error sending discount notification email: {ex.Message}");
+                Console.WriteLine($"Exception in SendEmailAsync for picked up order {order.Id}: {ex.Message}");
+                throw;
             }
         }
-    }
+
+ }
 }
