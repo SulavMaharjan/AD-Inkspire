@@ -18,6 +18,10 @@ const Navbar = () => {
   
   const isHome = location.pathname === '/';
   
+  
+  // Check if user is a member (add this logic)
+  const isMember = currentUser?.role || localStorage.getItem("role");
+  
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 50);
@@ -55,7 +59,8 @@ const Navbar = () => {
         <div className="navbar-actions">
           {currentUser ? (
             <>
-              <NotificationIcon />
+              {/* Only show notification icon for members */}
+              {isMember && <NotificationIcon />}
               <div className="user-menu-container">
                 <button className="user-menu-button" onClick={toggleUserMenu}>
                   <FaUserCircle />
