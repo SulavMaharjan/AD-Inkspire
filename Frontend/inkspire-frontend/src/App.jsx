@@ -26,7 +26,7 @@ import AnnouncementManagement from "./components/admin/AnnouncementManagement";
 function App() {
   return (
     <AuthProvider>
-      
+      <NotificationProvider>
       <Router>
         <Routes>
           
@@ -103,7 +103,7 @@ function App() {
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </Router>
-      <NotificationProvider>
+      
         <Router>
           <NotificationToast />
           <Routes>
