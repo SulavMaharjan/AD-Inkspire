@@ -490,3 +490,113 @@
     width: 100%;
   }
 }
+
+/* Loading indicator */
+.loading {
+  text-align: center;
+  padding: 2rem;
+  font-size: 1.2rem;
+  color: var(--light-text);
+  background-color: var(--light-color);
+  border-radius: 8px;
+}
+
+/* Error message */
+.error-message {
+  text-align: center;
+  padding: 2rem;
+  font-size: 1.1rem;
+  color: var(--danger-color);
+  background-color: var(--light-color);
+  border-radius: 8px;
+  border-left: 4px solid var(--danger-color);
+}
+
+/* Pagination controls */
+.pagination-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 2rem;
+  padding: 1rem;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+}
+
+.pagination-button {
+  padding: 0.5rem 1rem;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.3s;
+}
+
+.pagination-button:hover:not(.disabled) {
+  background-color: var(--secondary-color);
+}
+
+.pagination-button.disabled {
+  background-color: var(--border-color);
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.pagination-info {
+  margin: 0 1.5rem;
+  color: var(--text-color);
+  font-weight: bold;
+}
+
+/* Responsive design for pagination */
+@media (max-width: 768px) {
+  .pagination-controls {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .pagination-button {
+    width: 100%;
+  }
+}
+
+.modal-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.modal-footer .view-details-btn {
+  align-self: flex-end;
+  padding: 0.6rem 1.2rem;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  margin-top: 1rem;
+}
+
+.modal-footer .view-details-btn:hover {
+  background-color: var(--secondary-color);
+}
+
+/* Adjust these styles when you have both cancel and close buttons */
+.modal-footer {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.pickup-instructions {
+  flex-basis: 100%;
+  margin-top: 1rem;
+}

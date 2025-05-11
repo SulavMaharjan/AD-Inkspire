@@ -2,88 +2,72 @@ import React, { useState, useEffect } from "react";
 import "../styles/PurchasedBooks.css";
 import Navbar from "../components/Navigation/Navbar";
 import Footer from "../components/Landing/Footer";
+import {
+  getUserOrders,
+  getOrderById,
+  cancelOrder,
+} from "../context/orderService";
+
+const getStatusName = (statusCode) => {
+  const statusMap = {
+    0: "Pending",
+    1: "Confirmed",
+    2: "Ready for Pickup",
+    3: "Completed",
+    4: "Cancelled",
+  };
+  return statusMap[statusCode] || statusCode.toString();
+};
 
 const PurchasedBooks = () => {
-  // Sample data for purchased books - would come from API in real app
-  const [purchases, setPurchases] = useState([
-    {
-      id: 101,
-      orderDate: "2025-04-01",
-      claimCode: "BCK789456",
-      orderStatus: "Picked Up",
-      pickupDate: "2025-04-03",
-      total: 67.95,
-      discount: 3.58,
-      items: [
-        {
-          id: 1,
-          title: "The Midnight Library",
-          author: "Matt Haig",
-          coverImage: "/api/placeholder/120/180",
-          price: 24.99,
-          quantity: 1,
-        },
-        {
-          id: 2,
-          title: "Project Hail Mary",
-          author: "Andy Weir",
-          coverImage: "/api/placeholder/120/180",
-          price: 22.99,
-          quantity: 1,
-        },
-      ],
-    },
-    {
-      id: 102,
-      orderDate: "2025-03-15",
-      claimCode: "BCK543210",
-      orderStatus: "Ready for Pickup",
-      pickupDate: null,
-      total: 45.98,
-      discount: 0,
-      items: [
-        {
-          id: 3,
-          title: "Dune",
-          author: "Frank Herbert",
-          coverImage: "/api/placeholder/120/180",
-          price: 19.99,
-          quantity: 1,
-        },
-        {
-          id: 4,
-          title: "The Way of Kings",
-          author: "Brandon Sanderson",
-          coverImage: "/api/placeholder/120/180",
-          price: 25.99,
-          quantity: 1,
-        },
-      ],
-    },
-    {
-      id: 103,
-      orderDate: "2025-02-23",
-      claimCode: "BCK123789",
-      orderStatus: "Cancelled",
-      pickupDate: null,
-      total: 18.99,
-      discount: 0,
-      items: [
-        {
-          id: 5,
-          title: "Klara and the Sun",
-          author: "Kazuo Ishiguro",
-          coverImage: "/api/placeholder/120/180",
-          price: 18.99,
-          quantity: 1,
-        },
-      ],
-    },
-  ]);
-
+  const [purchases, setPurchases] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [expandedOrders, setExpandedOrders] = useState({});
   const [filterStatus, setFilterStatus] = useState("All");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const pageSize = 5;
+
+  useEffect(() => {
+    fetchOrders();
+  }, [filterStatus, currentPage]);
+
+  const fetchOrders = async () => {
+    try {
+      setLoading(true);
+      const statusFilter = filterStatus === "All" ? null : filterStatus;
+
+      const response = await getUserOrders(currentPage, pageSize, statusFilter);
+
+      if (response && response.items) {
+        const processedOrders = response.items.map((order) => ({
+          ...order,
+          //numerical status to string
+          status: getStatusName(order.status),
+          orderItems: order.orderItems || order.items || [],
+          total:
+            typeof order.totalAmount === "number"
+              ? order.totalAmount
+              : typeof order.total === "number"
+              ? order.total
+              : 0,
+        }));
+
+        setPurchases(processedOrders);
+        setTotalPages(response.totalPages || 1);
+      } else {
+        console.error("Invalid response format:", response);
+        setError("Received invalid data from server. Please try again.");
+      }
+      setLoading(false);
+    } catch (err) {
+      console.error("Failed to fetch orders:", err);
+      setError("Failed to load your orders. Please try again later.");
+      setLoading(false);
+    }
+  };
 
   const toggleOrderDetails = (orderId) => {
     setExpandedOrders((prev) => ({
@@ -92,51 +76,138 @@ const PurchasedBooks = () => {
     }));
   };
 
-  const handleViewDetails = (order) => {
-    setSelectedOrder(order);
+  const handleViewDetails = async (orderId) => {
+    try {
+      const orderDetails = await getOrderById(orderId);
+      if (orderDetails) {
+        setSelectedOrder({
+          ...orderDetails,
+          //numerical status to string
+          status: getStatusName(orderDetails.status),
+          orderItems: orderDetails.orderItems || orderDetails.items || [],
+          //total amount
+          total:
+            typeof orderDetails.totalAmount === "number"
+              ? orderDetails.totalAmount
+              : typeof orderDetails.total === "number"
+              ? orderDetails.total
+              : 0,
+          //subtotal amount
+          subTotal:
+            typeof orderDetails.subTotal === "number"
+              ? orderDetails.subTotal
+              : 0,
+          //discount amount
+          discountAmount:
+            typeof orderDetails.discountAmount === "number"
+              ? orderDetails.discountAmount
+              : 0,
+        });
+      }
+    } catch (err) {
+      console.error("Failed to fetch order details:", err);
+      alert("Could not load order details. Please try again.");
+    }
   };
 
   const handleCloseDetails = () => {
     setSelectedOrder(null);
   };
 
-  const handleCancelOrder = (orderId) => {
+  const handleCancelOrder = async (orderId) => {
     const confirmed = window.confirm(
       "Are you sure you want to cancel this order?"
     );
+
     if (confirmed) {
-      setPurchases(
-        purchases.map((order) =>
-          order.id === orderId ? { ...order, orderStatus: "Cancelled" } : order
-        )
-      );
+      try {
+        await cancelOrder(orderId);
 
-      // If the cancelled order is currently selected in the modal
-      if (selectedOrder && selectedOrder.id === orderId) {
-        setSelectedOrder({ ...selectedOrder, orderStatus: "Cancelled" });
+        setPurchases(
+          purchases.map((order) =>
+            order.id === orderId ? { ...order, status: "Cancelled" } : order
+          )
+        );
+
+        if (selectedOrder && selectedOrder.id === orderId) {
+          setSelectedOrder({ ...selectedOrder, status: "Cancelled" });
+        }
+
+        alert("Order successfully cancelled");
+      } catch (err) {
+        console.error("Failed to cancel order:", err);
+        alert(`Failed to cancel order: ${err.message}`);
       }
-
-      alert("Order successfully cancelled");
     }
   };
 
   const filteredPurchases =
     filterStatus === "All"
       ? purchases
-      : purchases.filter((order) => order.orderStatus === filterStatus);
+      : purchases.filter((order) => order.status === filterStatus);
 
   const getStatusClass = (status) => {
     switch (status) {
+      case "Completed":
       case "Picked Up":
         return "status-completed";
       case "Ready for Pickup":
+      case "Processing":
+      case "Confirmed":
         return "status-ready";
       case "Cancelled":
         return "status-cancelled";
+      case "Pending":
+        return "status-pending";
       default:
         return "";
     }
   };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return "N/A";
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  };
+
+  //get item count
+  const getItemCount = (order) => {
+    if (!order) return 0;
+    if (order.orderItems && order.orderItems.length)
+      return order.orderItems.length;
+    if (order.items && order.items.length) return order.items.length;
+    return 0;
+  };
+
+  if (loading) {
+    return (
+      <div>
+        <Navbar />
+        <div className="purchased-books-container">
+          <h1 className="page-title">My Purchased Books</h1>
+          <div className="loading">Loading your orders...</div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div>
+        <Navbar />
+        <div className="purchased-books-container">
+          <h1 className="page-title">My Purchased Books</h1>
+          <div className="error-message">{error}</div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -149,11 +220,16 @@ const PurchasedBooks = () => {
           <select
             id="statusFilter"
             value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value)}
+            onChange={(e) => {
+              setFilterStatus(e.target.value);
+              setCurrentPage(1);
+            }}
           >
             <option value="All">All Orders</option>
+            <option value="Pending">Pending</option>
+            <option value="Confirmed">Confirmed</option>
             <option value="Ready for Pickup">Ready for Pickup</option>
-            <option value="Picked Up">Picked Up</option>
+            <option value="Completed">Completed</option>
             <option value="Cancelled">Cancelled</option>
           </select>
         </div>
@@ -166,16 +242,14 @@ const PurchasedBooks = () => {
                   <div>
                     <div className="order-id">Order #{order.id}</div>
                     <div className="order-date">
-                      Placed on {order.orderDate}
+                      Placed on {formatDate(order.createdAt || order.orderDate)}
                     </div>
                   </div>
                   <div className="order-status-section">
                     <span
-                      className={`order-status ${getStatusClass(
-                        order.orderStatus
-                      )}`}
+                      className={`order-status ${getStatusClass(order.status)}`}
                     >
-                      {order.orderStatus}
+                      {order.status}
                     </span>
                   </div>
                 </div>
@@ -184,17 +258,24 @@ const PurchasedBooks = () => {
                   <div className="order-info">
                     <div className="info-item">
                       <span className="label">Items:</span>
-                      <span className="value">{order.items.length}</span>
+                      <span className="value">{getItemCount(order)}</span>
                     </div>
                     <div className="info-item">
                       <span className="label">Total:</span>
-                      <span className="value">${order.total.toFixed(2)}</span>
+                      <span className="value">
+                        $
+                        {order.total
+                          ? order.total.toFixed(2)
+                          : order.totalAmount
+                          ? order.totalAmount.toFixed(2)
+                          : "0.00"}
+                      </span>
                     </div>
-                    {order.discount > 0 && (
+                    {order.discountAmount > 0 && (
                       <div className="info-item">
                         <span className="label">Discount:</span>
                         <span className="value savings">
-                          ${order.discount.toFixed(2)}
+                          ${order.discountAmount.toFixed(2)}
                         </span>
                       </div>
                     )}
@@ -214,34 +295,58 @@ const PurchasedBooks = () => {
 
                 {expandedOrders[order.id] && (
                   <div className="order-items">
-                    {order.items.map((item) => (
-                      <div key={item.id} className="order-item">
-                        <img
-                          src={item.coverImage}
-                          alt={item.title}
-                          className="book-thumbnail"
-                        />
-                        <div className="item-details">
-                          <div className="item-title">{item.title}</div>
-                          <div className="item-author">by {item.author}</div>
-                          <div className="item-price">
-                            ${item.price.toFixed(2)} x {item.quantity}
+                    {order.orderItems && order.orderItems.length > 0 ? (
+                      order.orderItems.map((item, index) => (
+                        <div key={item.id || index} className="order-item">
+                          <img
+                            src={
+                              item.book && item.book.coverImage
+                                ? item.book.coverImage
+                                : "/api/placeholder/120/180"
+                            }
+                            alt={
+                              item.book && item.book.title
+                                ? item.book.title
+                                : item.bookTitle || "Book cover"
+                            }
+                            className="book-thumbnail"
+                          />
+                          <div className="item-details">
+                            <div className="item-title">
+                              {item.book && item.book.title
+                                ? item.book.title
+                                : item.bookTitle || "Unknown Book"}
+                            </div>
+                            <div className="item-author">
+                              by{" "}
+                              {item.book && item.book.author
+                                ? item.book.author
+                                : item.author || "Unknown Author"}
+                            </div>
+                            <div className="item-price">
+                              ${(item.price || item.unitPrice || 0).toFixed(2)}{" "}
+                              x {item.quantity || 1}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      ))
+                    ) : (
+                      <p>No items found in this order.</p>
+                    )}
                   </div>
                 )}
 
                 <div className="order-actions">
                   <button
                     className="view-details-btn"
-                    onClick={() => handleViewDetails(order)}
+                    onClick={() => handleViewDetails(order.id)}
                   >
                     View Full Details
                   </button>
 
-                  {order.orderStatus === "Ready for Pickup" && (
+                  {(order.status === "Ready for Pickup" ||
+                    order.status === "Confirmed" ||
+                    order.status === "Pending") && (
                     <button
                       className="cancel-order-btn"
                       onClick={() => handleCancelOrder(order.id)}
@@ -262,6 +367,41 @@ const PurchasedBooks = () => {
           )}
         </div>
 
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <div className="pagination-controls">
+            <button
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+              className={
+                currentPage === 1
+                  ? "pagination-button disabled"
+                  : "pagination-button"
+              }
+            >
+              Previous
+            </button>
+
+            <span className="pagination-info">
+              Page {currentPage} of {totalPages}
+            </span>
+
+            <button
+              disabled={currentPage === totalPages}
+              onClick={() =>
+                setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+              }
+              className={
+                currentPage === totalPages
+                  ? "pagination-button disabled"
+                  : "pagination-button"
+              }
+            >
+              Next
+            </button>
+          </div>
+        )}
+
         {/* Detailed Order Modal */}
         {selectedOrder && (
           <div className="modal-overlay">
@@ -278,17 +418,19 @@ const PurchasedBooks = () => {
                   <div className="detail-row">
                     <span className="detail-label">Order Date:</span>
                     <span className="detail-value">
-                      {selectedOrder.orderDate}
+                      {formatDate(
+                        selectedOrder.createdAt || selectedOrder.orderDate
+                      )}
                     </span>
                   </div>
                   <div className="detail-row">
                     <span className="detail-label">Status:</span>
                     <span
                       className={`detail-value ${getStatusClass(
-                        selectedOrder.orderStatus
+                        selectedOrder.status
                       )}`}
                     >
-                      {selectedOrder.orderStatus}
+                      {selectedOrder.status}
                     </span>
                   </div>
                   <div className="detail-row">
@@ -301,7 +443,7 @@ const PurchasedBooks = () => {
                     <div className="detail-row">
                       <span className="detail-label">Picked Up:</span>
                       <span className="detail-value">
-                        {selectedOrder.pickupDate}
+                        {formatDate(selectedOrder.pickupDate)}
                       </span>
                     </div>
                   )}
@@ -309,32 +451,57 @@ const PurchasedBooks = () => {
               </div>
 
               <div className="modal-section">
-                <h3>Items ({selectedOrder.items.length})</h3>
+                <h3>Items ({getItemCount(selectedOrder)})</h3>
                 <div className="modal-items">
-                  {selectedOrder.items.map((item) => (
-                    <div key={item.id} className="modal-item">
-                      <img
-                        src={item.coverImage}
-                        alt={item.title}
-                        className="modal-book-image"
-                      />
-                      <div className="modal-item-details">
-                        <div className="modal-item-title">{item.title}</div>
-                        <div className="modal-item-author">
-                          by {item.author}
-                        </div>
-                        <div className="modal-item-quantity">
-                          Quantity: {item.quantity}
-                        </div>
-                        <div className="modal-item-price">
-                          ${item.price.toFixed(2)} each
-                        </div>
-                        <div className="modal-item-subtotal">
-                          Subtotal: ${(item.price * item.quantity).toFixed(2)}
+                  {selectedOrder.orderItems &&
+                  selectedOrder.orderItems.length > 0 ? (
+                    selectedOrder.orderItems.map((item, index) => (
+                      <div key={item.id || index} className="modal-item">
+                        <img
+                          src={
+                            item.book && item.book.coverImage
+                              ? item.book.coverImage
+                              : "/api/placeholder/120/180"
+                          }
+                          alt={
+                            item.book && item.book.title
+                              ? item.book.title
+                              : item.bookTitle || "Book cover"
+                          }
+                          className="modal-book-image"
+                        />
+                        <div className="modal-item-details">
+                          <div className="modal-item-title">
+                            {item.book && item.book.title
+                              ? item.book.title
+                              : item.bookTitle || "Unknown Book"}
+                          </div>
+                          <div className="modal-item-author">
+                            by{" "}
+                            {item.book && item.book.author
+                              ? item.book.author
+                              : item.author || "Unknown Author"}
+                          </div>
+                          <div className="modal-item-quantity">
+                            Quantity: {item.quantity || 1}
+                          </div>
+                          <div className="modal-item-price">
+                            ${(item.price || item.unitPrice || 0).toFixed(2)}{" "}
+                            each
+                          </div>
+                          <div className="modal-item-subtotal">
+                            Subtotal: $
+                            {(
+                              (item.price || item.unitPrice || 0) *
+                              (item.quantity || 1)
+                            ).toFixed(2)}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    ))
+                  ) : (
+                    <p>No items found in this order.</p>
+                  )}
                 </div>
               </div>
 
@@ -345,26 +512,35 @@ const PurchasedBooks = () => {
                     <span>Subtotal:</span>
                     <span>
                       $
-                      {(selectedOrder.total + selectedOrder.discount).toFixed(
-                        2
-                      )}
+                      {selectedOrder.subTotal !== undefined
+                        ? selectedOrder.subTotal.toFixed(2)
+                        : "0.00"}
                     </span>
                   </div>
-                  {selectedOrder.discount > 0 && (
+                  {selectedOrder.discountAmount > 0 && (
                     <div className="summary-row discount">
                       <span>Discount:</span>
-                      <span>-${selectedOrder.discount.toFixed(2)}</span>
+                      <span>-${selectedOrder.discountAmount.toFixed(2)}</span>
                     </div>
                   )}
                   <div className="summary-row total">
                     <span>Total:</span>
-                    <span>${selectedOrder.total.toFixed(2)}</span>
+                    <span>
+                      $
+                      {selectedOrder.total !== undefined
+                        ? selectedOrder.total.toFixed(2)
+                        : selectedOrder.totalAmount !== undefined
+                        ? selectedOrder.totalAmount.toFixed(2)
+                        : "0.00"}
+                    </span>
                   </div>
                 </div>
               </div>
 
               <div className="modal-footer">
-                {selectedOrder.orderStatus === "Ready for Pickup" && (
+                {(selectedOrder.status === "Ready for Pickup" ||
+                  selectedOrder.status === "Confirmed" ||
+                  selectedOrder.status === "Pending") && (
                   <button
                     className="modal-cancel-btn"
                     onClick={() => {
@@ -375,6 +551,12 @@ const PurchasedBooks = () => {
                     Cancel Order
                   </button>
                 )}
+                <button
+                  className="view-details-btn"
+                  onClick={handleCloseDetails}
+                >
+                  Close
+                </button>
                 <div className="pickup-instructions">
                   <h4>In-Store Pickup Instructions</h4>
                   <p>

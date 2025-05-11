@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import { NotificationProvider } from "./context/NotificationContext";
+import { CartProvider } from "./context/CartContext"; // Import CartProvider
 import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
@@ -22,157 +23,105 @@ import "./styles/App.css";
 import StaffPage from "./pages/StaffPage";
 import BookmarkedList from "./pages/BookmarkedList";
 import AnnouncementManagement from "./components/admin/AnnouncementManagement";
+import CartPage from "./pages/CartPage";
 
 function App() {
   return (
     <AuthProvider>
       <NotificationProvider>
-      <Router>
-        <Routes>
-          
-          {/* Public routes */}
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/books" element={<BookListing />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/signup" element={<SignupPage />} />
-          <Route path="/unauthorized" element={<UnauthorizedPage />} />
-          <Route path="/bookDetail/:id" element={<BookDetails />} />
-          <Route path="/purchasedBook" element={<PurchasedBooks />} />
-          <Route path="/bookmarkedlist" element={<BookmarkedList />} />
-          <Route path="/staffclaimcode" element={<StaffPage />} />
+        <CartProvider>
+          {" "}
+          <Router>
+            <NotificationToast />
 
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute>
-                <DashboardPage />
-              </ProtectedRoute>
-            }
-          />
+            <Routes>
+              {/* Public routes */}
+              <Route path="/" element={<LandingPage />} />
+              <Route path="/books" element={<BookListing />} />
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/signup" element={<SignupPage />} />
+              <Route path="/unauthorized" element={<UnauthorizedPage />} />
+              <Route path="/bookDetail/:id" element={<BookDetails />} />
+              <Route path="/purchasedBook" element={<PurchasedBooks />} />
+              <Route path="/bookmarkedlist" element={<BookmarkedList />} />
+              <Route path="/staffclaimcode" element={<StaffPage />} />
 
-          {/* Admin protected routes */}
-          <Route
-            path="/admin/*"
-            element={
-              <AdminProtectedRoute>
-                <Routes>
-                  <Route
-                    path="dashboard"
-                    element={<div>Admin Dashboard</div>}
-                  />
-                  <Route path="add-book" element={<AddBookPage />} />
+              <Route
+                path="/dashboard"
+                element={
+                  <ProtectedRoute>
+                    <DashboardPage />
+                  </ProtectedRoute>
+                }
+              />
 
-                  <Route path="users" element={<div>User Management</div>} />
-                  <Route path="settings" element={<div>Admin Settings</div>} />
-                </Routes>
-              </AdminProtectedRoute>
-            }
-          />
+              {/* Admin protected routes */}
+              <Route
+                path="/admin/*"
+                element={
+                  <AdminProtectedRoute>
+                    <Routes>
+                      <Route
+                        path="dashboard"
+                        element={<div>Admin Dashboard</div>}
+                      />
+                      <Route path="add-book" element={<AddBookPage />} />
+                      <Route
+                        path="users"
+                        element={<div>User Management</div>}
+                      />
+                      <Route
+                        path="settings"
+                        element={<div>Admin Settings</div>}
+                      />
+                      <Route
+                        path="announcements"
+                        element={<AnnouncementManagement />}
+                      />
+                    </Routes>
+                  </AdminProtectedRoute>
+                }
+              />
 
-          {/* Member protected routes */}
-          <Route
-            path="/member/*"
-            element={
-              <MemberProtectedRoute>
-                <Routes>
-                  <Route path="profile" element={<div>Member Profile</div>} />
-                  <Route
-                    path="wishlist"
-                    element={<div>My Favorite Books</div>}
-                  />
-                </Routes>
-              </MemberProtectedRoute>
-            }
-          />
+              {/* Member protected routes */}
+              <Route
+                path="/member/*"
+                element={
+                  <MemberProtectedRoute>
+                    <Routes>
+                      <Route
+                        path="profile"
+                        element={<div>Member Profile</div>}
+                      />
+                      <Route
+                        path="wishlist"
+                        element={<div>My Favorite Books</div>}
+                      />
+                      <Route path="cart" element={<CartPage />} />
+                    </Routes>
+                  </MemberProtectedRoute>
+                }
+              />
 
-          {/* Staff protected routes */}
-          <Route
-            path="/staff/*"
-            element={
-              <StaffProtectedRoute>
-                <Routes>
-                  <Route
-                    path="manage-orders"
-                    element={<div>Manage Orders</div>}
-                  />
-                </Routes>
-              </StaffProtectedRoute>
-            }
-          />
+              {/* Staff protected routes */}
+              <Route
+                path="/staff/*"
+                element={
+                  <StaffProtectedRoute>
+                    <Routes>
+                      <Route
+                        path="manage-orders"
+                        element={<div>Manage Orders</div>}
+                      />
+                    </Routes>
+                  </StaffProtectedRoute>
+                }
+              />
 
-          <Route path="*" element={<NotFoundPage />} />
-        </Routes>
-      </Router>
-      
-        <Router>
-          <NotificationToast />
-          <Routes>
-            {/* Public routes */}
-            <Route path="/" element={<LandingPage />} />
-            <Route path="/books" element={<BookListing />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/signup" element={<SignupPage />} />
-            <Route path="/unauthorized" element={<UnauthorizedPage />} />
-            <Route path="/bookDetail/:id" element={<BookDetails />} />
-            <Route path="/purchasedBook" element={<PurchasedBooks />} />
-       
-            <Route
-              path="/dashboard"
-              element={
-                <ProtectedRoute>
-                  <DashboardPage />
-                </ProtectedRoute>
-              }
-            />
-            {/* Admin protected routes */}
-            <Route
-              path="/admin/*"
-              element={
-                <AdminProtectedRoute>
-                  <Routes>
-                    <Route
-                      path="dashboard"
-                      element={<div>Admin Dashboard</div>}
-                    />
-                    <Route path="add-book" element={<AddBookPage />} />
-                    <Route path="users" element={<div>User Management</div>} />
-                    <Route path="announcements" element={<AnnouncementManagement />} />
-                  </Routes>
-                </AdminProtectedRoute>
-              }
-            />
-            {/* Member protected routes */}
-            <Route
-              path="/member/*"
-              element={
-                <MemberProtectedRoute>
-                  <Routes>
-                    <Route path="profile" element={<div>Member Profile</div>} />
-                    <Route
-                      path="wishlist"
-                      element={<div>My Favorite Books</div>}
-                    />
-                  </Routes>
-                </MemberProtectedRoute>
-              }
-            />
-            {/* Staff protected routes */}
-            <Route
-              path="/staff/*"
-              element={
-                <StaffProtectedRoute>
-                  <Routes>
-                    <Route
-                      path="manage-orders"
-                      element={<div>Manage Orders</div>}
-                    />
-                  </Routes>
-                </StaffProtectedRoute>
-              }
-            />
-            <Route path="*" element={<NotFoundPage />} />
-          </Routes>
-        </Router>
+              <Route path="*" element={<NotFoundPage />} />
+            </Routes>
+          </Router>
+        </CartProvider>
       </NotificationProvider>
     </AuthProvider>
   );
