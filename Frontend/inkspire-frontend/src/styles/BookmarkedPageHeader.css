@@ -1,0 +1,125 @@
+/* BookmarkPageHeader.css */
+.bookmark-page-header {
+  margin-bottom: 2rem;
+}
+
+.header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.bookmark-page-header h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1a365d;
+  margin: 0;
+}
+
+.header-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.btn-add-to-cart,
+.btn-remove-selected {
+  padding: 0.625rem 1.25rem;
+  border-radius: 4px;
+  font-weight: 500;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-add-to-cart {
+  background-color: #2c5282;
+  color: white;
+  border: none;
+}
+
+.btn-add-to-cart:hover:not(:disabled) {
+  background-color: #2d3748;
+}
+
+.btn-remove-selected {
+  background-color: white;
+  color: #2c5282;
+  border: 1px solid #2c5282;
+}
+
+.btn-remove-selected:hover:not(:disabled) {
+  background-color: #ebf8ff;
+}
+
+.btn-add-to-cart:disabled,
+.btn-remove-selected:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.header-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #4a5568;
+  font-size: 0.875rem;
+}
+
+.book-count {
+  display: flex;
+  gap: 1rem;
+}
+
+.selected-count {
+  color: #2c5282;
+  font-weight: 500;
+}
+
+.btn-select-all {
+  background: none;
+  border: none;
+  color: #2c5282;
+  font-size: 0.875rem;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0;
+}
+
+.btn-select-all:hover {
+  color: #2d3748;
+}
+
+@media (max-width: 768px) {
+  .bookmark-page-header h1 {
+    font-size: 1.75rem;
+  }
+  
+  .header-top {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .header-actions {
+    width: 100%;
+  }
+  
+  .btn-add-to-cart,
+  .btn-remove-selected {
+    flex: 1;
+  }
+}
+
+@media (max-width: 480px) {
+  .bookmark-page-header h1 {
+    font-size: 1.5rem;
+  }
+  
+  .header-info {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+}
