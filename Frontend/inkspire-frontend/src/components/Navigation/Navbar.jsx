@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaBook, FaBars, FaTimes, FaUserCircle } from 'react-icons/fa';
 import { useAuth } from '../../context/AuthContext';
+import NotificationIcon from '../Notification';
 import Button from '../UI/Button';
 import '../../styles/Navigation.css';
 
@@ -53,30 +54,33 @@ const Navbar = () => {
         
         <div className="navbar-actions">
           {currentUser ? (
-            <div className="user-menu-container">
-              <button className="user-menu-button" onClick={toggleUserMenu}>
-                <FaUserCircle />
-                <span className="user-name">{currentUser.name}</span>
-              </button>
-              
-              <AnimatePresence>
-                {userMenuOpen && (
-                  <motion.div
-                    className="user-dropdown"
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <Link to="/dashboard" className="dropdown-item">Dashboard</Link>
-                    <Link to="/profile" className="dropdown-item">Profile</Link>
-                    <button className="dropdown-item logout" onClick={handleLogout}>
-                      Log out
-                    </button>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
+            <>
+              <NotificationIcon />
+              <div className="user-menu-container">
+                <button className="user-menu-button" onClick={toggleUserMenu}>
+                  <FaUserCircle />
+                  <span className="user-name">{currentUser.name}</span>
+                </button>
+                
+                <AnimatePresence>
+                  {userMenuOpen && (
+                    <motion.div
+                      className="user-dropdown"
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <Link to="/dashboard" className="dropdown-item">Dashboard</Link>
+                      <Link to="/profile" className="dropdown-item">Profile</Link>
+                      <button className="dropdown-item logout" onClick={handleLogout}>
+                        Log out
+                      </button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            </>
           ) : (
             <div className="auth-buttons">
               <Link to="/login" className="nav-link">Log In</Link>
