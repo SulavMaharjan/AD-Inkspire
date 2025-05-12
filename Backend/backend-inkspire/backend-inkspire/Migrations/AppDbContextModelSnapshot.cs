@@ -514,21 +514,21 @@ namespace backend_inkspire.Migrations
                         new
                         {
                             Id = 1L,
-                            ConcurrencyStamp = "06563505-815e-4ba6-a818-6d39552c1a70",
+                            ConcurrencyStamp = "d9c8bfe7-3335-4da8-bb55-d554cfaa24d3",
                             Name = "SuperAdmin",
                             NormalizedName = "SUPERADMIN"
                         },
                         new
                         {
                             Id = 2L,
-                            ConcurrencyStamp = "1eb54e68-8616-43b9-b384-9bf1f1cf2553",
+                            ConcurrencyStamp = "1a924c5c-ab32-49e3-ac19-0ae0183308d0",
                             Name = "Staff",
                             NormalizedName = "STAFF"
                         },
                         new
                         {
                             Id = 3L,
-                            ConcurrencyStamp = "e48d8031-70d5-4ccc-986a-b9bfc4c1f7d7",
+                            ConcurrencyStamp = "7b52131f-d292-4041-b83b-e3110ceade94",
                             Name = "Member",
                             NormalizedName = "MEMBER"
                         });
@@ -609,16 +609,16 @@ namespace backend_inkspire.Migrations
                         {
                             Id = 1L,
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "5403b4d3-f0b5-4d6d-975d-8c2f5286ba9d",
+                            ConcurrencyStamp = "9090ca21-030c-4648-a1fe-5b52e3f05afb",
                             Email = "anjan@gmail.com",
                             EmailConfirmed = true,
                             LockoutEnabled = false,
                             Name = "Anjan",
                             NormalizedEmail = "ANJAN@GMAIL.COM",
                             NormalizedUserName = "ANJAN",
-                            PasswordHash = "AQAAAAIAAYagAAAAEK9ci/tnDSSe/syO/Np8mhjseRsot8jRDJ4zIGawwnfvJp3PnGSy0M8huRSpl8jO3Q==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEJ/yiRvuEfW3MtLaDl3h8OZz4R25JRkHozZ9993fRx1FeZnojRAjMDO5YR90x7XAog==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "96ab6225-934b-4a36-bcf6-b24841773fea",
+                            SecurityStamp = "667fa231-f4bb-43db-9e64-de9a5ecb08f4",
                             TwoFactorEnabled = false,
                             UserName = "anjan"
                         });
