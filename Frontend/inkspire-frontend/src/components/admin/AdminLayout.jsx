@@ -63,19 +63,11 @@ const AdminLayout = ({ children }) => {
 
       <main className="admin-content">
         <header className="admin-header">
-          <div className="admin-header-search">
-            <input
-              type="text"
-              placeholder="Search..."
-              className="search-input"
-            />
-          </div>
           <div className="admin-header-profile">
             <span className="admin-name">Admin User</span>
             <div className="admin-avatar">AU</div>
           </div>
         </header>
-
         <div className="admin-content-wrapper">{children}</div>
       </main>
     </div>
