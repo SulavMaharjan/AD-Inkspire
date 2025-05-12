@@ -452,3 +452,97 @@ export const fetchFormats = async () => {
     throw error;
   }
 };
+
+
+// Bookmark related functions
+export const getBookmarkedBooks = async (pageNumber = 1, pageSize = 10) => {
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/bookmarks?pageNumber=${pageNumber}&pageSize=${pageSize}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status} ${response.statusText}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching bookmarked books:", error);
+    throw error;
+  }
+};
+
+// Add bookmark
+export const addBookmark = async (bookId) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/bookmarks`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+      body: JSON.stringify({ bookId }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status} ${response.statusText}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error adding bookmark:", error);
+    throw error;
+  }
+};
+
+// Remove bookmark
+export const removeBookmark = async (bookId) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/bookmarks/${bookId}`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status} ${response.statusText}`);
+    }
+
+    return true;
+  } catch (error) {
+    console.error("Error removing bookmark:", error);
+    throw error;
+  }
+};
+
+// Check if book is bookmarked
+export const checkBookmark = async (bookId) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/bookmarks/check/${bookId}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status} ${response.statusText}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error checking bookmark:", error);
+    throw error;
+  }
+};
+

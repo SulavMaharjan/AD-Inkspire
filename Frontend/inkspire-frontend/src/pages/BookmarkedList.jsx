@@ -1,101 +1,74 @@
 import React, { useState, useEffect } from "react";
-import { BookList } from "../components/BookmarkedList/BookList";
 import { EmptyBookmarkState } from "../components/BookmarkedList/EmptyBookmarkState";
 import { SortDropdown } from "../components/BookmarkedList/SortDropdown";
 import { BookmarkPageHeader } from "../components/BookmarkedList/BookmarkPageHeader";
-import { getBookmarkedBooks } from "../data/bookApi";
+import { getBookmarkedBooks, removeBookmark } from "../context/bookApiService";
 import "../styles/BookmarkedList.css";
 import Footer from "../components/Landing/Footer";
 import Navbar from "../components/Navigation/Navbar";
+import { BookmarkCard } from "../components/BookmarkedList/BookmarkCard";
 
 const BookmarkedList = () => {
   const [bookmarkedBooks, setBookmarkedBooks] = useState([]);
   const [sortOption, setSortOption] = useState("title-asc");
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedBooks, setSelectedBooks] = useState([]);
+  const [pagination, setPagination] = useState({
+    pageNumber: 1,
+    pageSize: 10,
+    totalCount: 0,
+    totalPages: 1,
+  });
 
   // Fetch bookmarked books
-  useEffect(() => {
-    const fetchBooks = async () => {
-      try {
-        setIsLoading(true);
-        const books = await getBookmarkedBooks();
-        setBookmarkedBooks(books);
-      } catch (error) {
-        console.error("Error fetching bookmarked books:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchBooks();
-  }, []);
-
-  // Handle removing a book from bookmarks
-  const handleRemoveBookmark = (bookId) => {
-    if (
-      window.confirm(
-        "Are you sure you want to remove this book from your bookmarks?"
-      )
-    ) {
-      setBookmarkedBooks(bookmarkedBooks.filter((book) => book.id !== bookId));
-    }
-  };
-
-  // Handle removing multiple books
-  const handleRemoveSelected = () => {
-    if (selectedBooks.length === 0) return;
-
-    if (
-      window.confirm(
-        `Are you sure you want to remove ${selectedBooks.length} books from your bookmarks?`
-      )
-    ) {
-      setBookmarkedBooks(
-        bookmarkedBooks.filter((book) => !selectedBooks.includes(book.id))
+  const fetchBooks = async () => {
+    try {
+      setIsLoading(true);
+      const response = await getBookmarkedBooks(
+        pagination.pageNumber,
+        pagination.pageSize
       );
-      setSelectedBooks([]);
+      setBookmarkedBooks(response.items);
+      setPagination({
+        pageNumber: response.pageNumber,
+        pageSize: response.pageSize,
+        totalCount: response.totalCount,
+        totalPages: response.totalPages,
+      });
+    } catch (error) {
+      console.error("Error fetching bookmarked books:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  // Handle selecting a book
-  const handleSelectBook = (bookId) => {
-    if (selectedBooks.includes(bookId)) {
-      setSelectedBooks(selectedBooks.filter((id) => id !== bookId));
-    } else {
-      setSelectedBooks([...selectedBooks, bookId]);
-    }
-  };
-
-  // Handle select all books
-  const handleSelectAll = () => {
-    if (selectedBooks.length === bookmarkedBooks.length) {
-      setSelectedBooks([]);
-    } else {
-      setSelectedBooks(bookmarkedBooks.map((book) => book.id));
-    }
-  };
+  useEffect(() => {
+    fetchBooks();
+  }, [pagination.pageNumber, pagination.pageSize]);
 
   // Sort books based on current sort option
   const getSortedBooks = () => {
     return [...bookmarkedBooks].sort((a, b) => {
       switch (sortOption) {
         case "title-asc":
-          return a.title.localeCompare(b.title);
+          return a.bookTitle.localeCompare(b.bookTitle);
         case "title-desc":
-          return b.title.localeCompare(a.title);
+          return b.bookTitle.localeCompare(a.bookTitle);
         case "author-asc":
           return a.author.localeCompare(b.author);
         case "author-desc":
           return b.author.localeCompare(a.author);
         case "date-added-desc":
-          return new Date(b.dateAdded) - new Date(a.dateAdded);
+          return new Date(b.createdAt) - new Date(a.createdAt);
         case "date-added-asc":
-          return new Date(a.dateAdded) - new Date(b.dateAdded);
+          return new Date(a.createdAt) - new Date(b.createdAt);
         case "price-asc":
-          return a.price - b.price;
+          return (
+            (a.discountedPrice || a.price) - (b.discountedPrice || b.price)
+          );
         case "price-desc":
-          return b.price - a.price;
+          return (
+            (b.discountedPrice || b.price) - (a.discountedPrice || a.price)
+          );
         default:
           return 0;
       }
@@ -108,16 +81,7 @@ const BookmarkedList = () => {
     <div>
       <Navbar />
       <div className="bookmarked-page">
-        <BookmarkPageHeader
-          bookCount={bookmarkedBooks.length}
-          selectedCount={selectedBooks.length}
-          onRemoveSelected={handleRemoveSelected}
-          onSelectAll={handleSelectAll}
-          allSelected={
-            selectedBooks.length === bookmarkedBooks.length &&
-            bookmarkedBooks.length > 0
-          }
-        />
+        <BookmarkPageHeader bookCount={pagination.totalCount} />
 
         {bookmarkedBooks.length > 0 ? (
           <>
@@ -138,12 +102,11 @@ const BookmarkedList = () => {
                     <p>Loading your bookmarked books...</p>
                   </div>
                 ) : sortedBooks.length > 0 ? (
-                  <BookList
-                    books={sortedBooks}
-                    onRemoveBookmark={handleRemoveBookmark}
-                    selectedBooks={selectedBooks}
-                    onSelectBook={handleSelectBook}
-                  />
+                  <div className="book-list">
+                    {sortedBooks.map((book) => (
+                      <BookmarkCard key={book.bookId} book={book} />
+                    ))}
+                  </div>
                 ) : (
                   <div className="no-results">
                     <h3>No books found</h3>

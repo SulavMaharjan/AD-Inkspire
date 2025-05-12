@@ -27,11 +27,12 @@ import CartPage from "./pages/CartPage";
 import MemberManagement from "./components/admin/MemberManagement";
 import AdminLayout from "./components/admin/AdminLayout";
 import BookManagement from "./components/admin/BookManagement";
+import AdminDashboard from "./pages/AdminDashboard";
 
 // Admin wrapper components
 const AdminDashboardWrapper = () => (
   <AdminLayout>
-    <div>Admin Dashboard</div>
+    <AdminDashboard/>
   </AdminLayout>
 );
 
@@ -124,10 +125,7 @@ function App() {
                 element={
                   <MemberProtectedRoute>
                     <Routes>
-                      <Route
-                        path="profile"
-                        element={<div>Member Profile</div>}
-                      />
+                      <Route path="cart" element={<CartPage />} />
                       <Route
                         path="member"
                         element={<CartPage/>}
