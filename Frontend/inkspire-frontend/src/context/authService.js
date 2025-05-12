@@ -158,12 +158,10 @@ const authService = {
 };
 
 const reviewService = {
-  // Check if user can review a book
   checkReviewEligibility: async (bookId) => {
     return await api.get(`/api/reviews/eligibility/${bookId}`);
   },
 
-  // Create a new review
   createReview: async (bookId, rating, comment) => {
     return await api.post("/api/reviews", {
       bookId,
@@ -172,18 +170,16 @@ const reviewService = {
     });
   },
 
-  // Get reviews for a book
   getBookReviews: async (bookId) => {
     return await api.get(`/api/reviews/book/${bookId}`);
   },
 
-  // Get user's reviews
   getUserReviews: async () => {
     return await api.get("/api/reviews/user");
   },
 };
 
-// Add to your exports
+
 export { authService, reviewService };
 
 export default authService;
