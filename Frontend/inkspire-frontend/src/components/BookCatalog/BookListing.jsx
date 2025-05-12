@@ -353,10 +353,6 @@ const BookListing = () => {
     <div className="book-listing-container">
       <Navbar />
       <header className="book-listing-header">
-        <div className="logo-container">
-          <BookIcon size={32} />
-          <h1>Inkspire</h1>
-        </div>
         <SearchBar
           searchQuery={searchQuery}
           setSearchQuery={(query) => {

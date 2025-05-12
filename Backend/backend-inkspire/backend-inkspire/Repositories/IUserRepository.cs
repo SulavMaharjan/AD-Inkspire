@@ -10,5 +10,8 @@ namespace backend_inkspire.Repositories
         Task<bool> ValidateUserAsync(string emailOrUsername, string password);
         Task<User> GetUserByEmailOrUsernameAsync(string emailOrUsername);
         Task<IList<string>> GetUserRolesAsync(User user);
+
+        Task<IdentityResult> DeleteUserAsync(User user);
+        Task<List<User>> GetUsersByRoleAsync(string roleName);
     }
 }

@@ -85,7 +85,6 @@ const BookDetails = () => {
       setCanReview(canReview && !existingReview);
     } catch (error) {
       console.error("Error fetching reviews:", error);
-      showToast("Failed to load reviews", "error");
     } finally {
       setReviewsLoading(false);
     }
@@ -292,10 +291,8 @@ const BookDetails = () => {
       await reviewService.createReview(id, reviewRating, reviewComment);
       showToast("Review submitted successfully!", "success");
       
-      // Refresh reviews
       await fetchReviews();
       
-      // Reset form
       setReviewRating(0);
       setReviewComment("");
     } catch (error) {
@@ -306,10 +303,10 @@ const BookDetails = () => {
 
   if (loading) {
     return (
-      <div>
+      <div className="bdp-container">
         <Navbar />
-        <div className="book-details-container">
-          <div className="loading">Loading book details...</div>
+        <div className="bdp-book-container">
+          <div className="bdp-loading">Loading book details...</div>
         </div>
         <Footer />
       </div>
@@ -318,10 +315,10 @@ const BookDetails = () => {
 
   if (error) {
     return (
-      <div>
+      <div className="bdp-container">
         <Navbar />
-        <div className="book-details-container">
-          <div className="error">{error}</div>
+        <div className="bdp-book-container">
+          <div className="bdp-error">{error}</div>
         </div>
         <Footer />
       </div>
@@ -330,10 +327,10 @@ const BookDetails = () => {
 
   if (!book) {
     return (
-      <div>
+      <div className="bdp-container">
         <Navbar />
-        <div className="book-details-container">
-          <div className="error">Book not found</div>
+        <div className="bdp-book-container">
+          <div className="bdp-error">Book not found</div>
         </div>
         <Footer />
       </div>
@@ -347,34 +344,34 @@ const BookDetails = () => {
       : 0;
 
   return (
-    <div>
+    <div className="bdp-container">
       <Navbar />
-      <div className="book-details-container">
-        <div className="book-details-wrapper">
-          <div className="book-image-section">
-            <div className="book-image-container">
+      <div className="bdp-book-container">
+        <div className="bdp-wrapper">
+          <div className="bdp-image-section">
+            <div className="bdp-image-container">
               <img
                 src={getCoverImageUrl(book.coverImagePath)}
                 alt={book.title}
-                className="bookDetail-cover"
+                className="bdp-cover"
                 onError={(e) => {
                   console.error(`Failed to load image: ${book.coverImagePath}`);
                   e.target.src = "/placeholder-book-cover.jpg";
                 }}
               />
-              <div className="badges-container">
+              <div className="bdp-badges-container">
                 {book.isAwardWinner && (
-                  <span className="award-badge">AWARD WINNER</span>
+                  <span className="bdp-award-badge">AWARD WINNER</span>
                 )}
                 {book.isOnSale && discountPercentage > 0 && (
-                  <span className="sale-badge">{discountPercentage}% OFF</span>
+                  <span className="bdp-sale-badge">{discountPercentage}% OFF</span>
                 )}
               </div>
 
               <button
-                className={`bookmark-button ${
-                  isBookmarked ? "bookmarked" : ""
-                } ${bookmarkLoading ? "loading" : ""}`}
+                className={`bdp-bookmark-button ${
+                  isBookmarked ? "bdp-bookmarked" : ""
+                } ${bookmarkLoading ? "bdp-loading" : ""}`}
                 onClick={handleBookmark}
                 disabled={bookmarkLoading}
                 aria-label={
@@ -386,57 +383,57 @@ const BookDetails = () => {
             </div>
           </div>
 
-          <div className="book-info-section">
-            <h1 className="book-title">{book.title}</h1>
-            <h2 className="book-author">by {book.author}</h2>
+          <div className="bdp-info-section">
+            <h1 className="bdp-title">{book.title}</h1>
+            <h2 className="bdp-author">by {book.author}</h2>
 
-            <div className="book-rating">
-              <div className="stars">
+            <div className="bdp-rating">
+              <div className="bdp-stars">
                 {[...Array(5)].map((_, i) => (
                   <span
                     key={i}
                     className={
                       i < Math.floor(book.averageRating || 0)
-                        ? "star filled"
-                        : "star"
+                        ? "bdp-star bdp-filled"
+                        : "bdp-star"
                     }
                   >
                     ★
                   </span>
                 ))}
               </div>
-              <span className="rating-value">
+              <span className="bdp-rating-value">
                 {book.averageRating?.toFixed(1) || "N/A"}
               </span>
-              <span className="review-count">({reviews.length} reviews)</span>
+              <span className="bdp-review-count">({reviews.length} reviews)</span>
             </div>
 
-            <div className="book-price-section">
+            <div className="bdp-price-section">
               {book.discountedPrice ? (
                 <>
-                  <span className="original-price">
+                  <span className="bdp-original-price">
                     ${Number(book.price).toFixed(2)}
                   </span>
-                  <span className="sale-price">
+                  <span className="bdp-sale-price">
                     ${Number(book.discountedPrice).toFixed(2)}
                   </span>
                   {discountPercentage > 0 && (
-                    <span className="discount-percentage">
+                    <span className="bdp-discount-percentage">
                       Save {discountPercentage}%
                     </span>
                   )}
                 </>
               ) : (
-                <span className="price">
+                <span className="bdp-price">
                   ${Number(book.price || 0).toFixed(2)}
                 </span>
               )}
             </div>
 
-            <div className="book-availability">
+            <div className="bdp-availability">
               <span
-                className={`availability-status ${
-                  book.stockQuantity > 0 ? "in-stock" : "out-of-stock"
+                className={`bdp-availability-status ${
+                  book.stockQuantity > 0 ? "bdp-in-stock" : "bdp-out-of-stock"
                 }`}
               >
                 {book.stockQuantity > 0
@@ -445,13 +442,13 @@ const BookDetails = () => {
               </span>
             </div>
 
-            <div className="purchase-options">
-              <div className="quantity-selector">
-                <label htmlFor="quantity">Quantity:</label>
+            <div className="bdp-purchase-options">
+              <div className="bdp-quantity-selector">
+                <label htmlFor="bdp-quantity">Quantity:</label>
                 <input
                   type="number"
-                  id="quantity"
-                  name="quantity"
+                  id="bdp-quantity"
+                  name="bdp-quantity"
                   min="1"
                   max={book.stockQuantity}
                   value={quantity}
@@ -460,7 +457,7 @@ const BookDetails = () => {
                 />
               </div>
               <button
-                className="add-to-cart-button"
+                className="bdp-add-to-cart-button"
                 onClick={handleAddToCartClick}
                 disabled={book.stockQuantity <= 0}
               >
@@ -469,48 +466,48 @@ const BookDetails = () => {
               </button>
             </div>
 
-            <div className="book-details">
+            <div className="bdp-details">
               <h3>Book Details</h3>
-              <div className="details-grid">
-                <div className="detail-item">
-                  <span className="detail-label">Format:</span>
-                  <span className="detail-value">
+              <div className="bdp-details-grid">
+                <div className="bdp-detail-item">
+                  <span className="bdp-detail-label">Format:</span>
+                  <span className="bdp-detail-value">
                     {book.format || "Not specified"}
                   </span>
                 </div>
-                <div className="detail-item">
-                  <span className="detail-label">ISBN:</span>
-                  <span className="detail-value">
+                <div className="bdp-detail-item">
+                  <span className="bdp-detail-label">ISBN:</span>
+                  <span className="bdp-detail-value">
                     {book.isbn || "Not available"}
                   </span>
                 </div>
-                <div className="detail-item">
-                  <span className="detail-label">Publisher:</span>
-                  <span className="detail-value">
+                <div className="bdp-detail-item">
+                  <span className="bdp-detail-label">Publisher:</span>
+                  <span className="bdp-detail-value">
                     {book.publisher || "Not specified"}
                   </span>
                 </div>
-                <div className="detail-item">
-                  <span className="detail-label">Publication Date:</span>
-                  <span className="detail-value">
+                <div className="bdp-detail-item">
+                  <span className="bdp-detail-label">Publication Date:</span>
+                  <span className="bdp-detail-value">
                     {book.publicationDate || "Not specified"}
                   </span>
                 </div>
-                <div className="detail-item">
-                  <span className="detail-label">Language:</span>
-                  <span className="detail-value">
+                <div className="bdp-detail-item">
+                  <span className="bdp-detail-label">Language:</span>
+                  <span className="bdp-detail-value">
                     {book.language || "Not specified"}
                   </span>
                 </div>
-                <div className="detail-item">
-                  <span className="detail-label">Pages:</span>
-                  <span className="detail-value">
+                <div className="bdp-detail-item">
+                  <span className="bdp-detail-label">Pages:</span>
+                  <span className="bdp-detail-value">
                     {book.pages || "Not specified"}
                   </span>
                 </div>
-                <div className="detail-item">
-                  <span className="detail-label">Genre:</span>
-                  <span className="detail-value">
+                <div className="bdp-detail-item">
+                  <span className="bdp-detail-label">Genre:</span>
+                  <span className="bdp-detail-value">
                     {book.genres
                       ? Array.isArray(book.genres)
                         ? book.genres.join(", ")
@@ -521,37 +518,37 @@ const BookDetails = () => {
               </div>
             </div>
 
-            <div className="book-description">
+            <div className="bdp-description">
               <h3>Description</h3>
               <p>{book.description || "No description available."}</p>
             </div>
           </div>
         </div>
 
-        <div className="reviews-section">
+        <div className="bdp-reviews-section">
           <h2>Review Average</h2>
-          <div className="reviews-summary">
-            <div className="average-rating">
+          <div className="bdp-reviews-summary">
+            <div className="bdp-average-rating">
               {book.averageRating?.toFixed(1) || "0.0"} out of 5
             </div>
-            <div className="total-reviews">{reviews.length} reviews</div>
+            <div className="bdp-total-reviews">{reviews.length} reviews</div>
           </div>
 
           {reviewsLoading ? (
-            <div className="loading-reviews">Loading reviews...</div>
+            <div className="bdp-loading-reviews">Loading reviews...</div>
           ) : (
             <>
               {canReview && (
-                <div className="write-review">
+                <div className="bdp-write-review">
                   <h3>Write a Review</h3>
                   <form onSubmit={handleSubmitReview}>
-                    <div className="rating-input">
+                    <div className="bdp-rating-input">
                       <label>Your Rating:</label>
-                      <div className="star-selector">
+                      <div className="bdp-star-selector">
                         {[...Array(5)].map((_, i) => (
                           <span
                             key={i}
-                            className={i < reviewRating ? "star filled" : "star"}
+                            className={i < reviewRating ? "bdp-star bdp-filled" : "bdp-star"}
                             onClick={() => setReviewRating(i + 1)}
                           >
                             ★
@@ -559,16 +556,16 @@ const BookDetails = () => {
                         ))}
                       </div>
                     </div>
-                    <div className="comment-input">
-                      <label htmlFor="review-comment">Your Review:</label>
+                    <div className="bdp-comment-input">
+                      <label htmlFor="bdp-review-comment">Your Review:</label>
                       <textarea
-                        id="review-comment"
+                        id="bdp-review-comment"
                         value={reviewComment}
                         onChange={(e) => setReviewComment(e.target.value)}
                         rows="4"
                       ></textarea>
                     </div>
-                    <button type="submit" className="submit-review">
+                    <button type="submit" className="bdp-submit-review">
                       Submit Review
                     </button>
                   </form>
@@ -576,57 +573,57 @@ const BookDetails = () => {
               )}
 
               {userReview && (
-                <div className="user-review">
+                <div className="bdp-user-review">
                   <h3>Your Review</h3>
-                  <div className="review-item">
-                    <div className="review-rating">
+                  <div className="bdp-review-item">
+                    <div className="bdp-review-rating">
                       {[...Array(5)].map((_, i) => (
                         <span
                           key={i}
-                          className={i < userReview.rating ? "star filled" : "star"}
+                          className={i < userReview.rating ? "bdp-star bdp-filled" : "bdp-star"}
                         >
                           ★
                         </span>
                       ))}
                     </div>
-                    <div className="review-comment">
+                    <div className="bdp-review-comment">
                       <p>{userReview.comment}</p>
                     </div>
-                    <div className="review-date">
+                    <div className="bdp-review-date">
                       Reviewed on {new Date(userReview.createdDate).toLocaleDateString()}
                     </div>
                   </div>
                 </div>
               )}
 
-              <div className="reviews-list">
+              <div className="bdp-reviews-list">
                 <h3>Customer Reviews</h3>
                 {reviews.length > 0 ? (
                   reviews.map((review) => (
-                    <div key={review.id} className="review-item">
-                      <div className="review-header">
-                        <span className="reviewer-name">{review.userName}</span>
-                        <span className="review-date">
+                    <div key={review.id} className="bdp-review-item">
+                      <div className="bdp-review-header">
+                        <span className="bdp-reviewer-name">{review.userName}</span>
+                        <span className="bdp-review-date">
                           {new Date(review.createdDate).toLocaleDateString()}
                         </span>
                       </div>
-                      <div className="review-rating">
+                      <div className="bdp-review-rating">
                         {[...Array(5)].map((_, i) => (
                           <span
                             key={i}
-                            className={i < review.rating ? "star filled" : "star"}
+                            className={i < review.rating ? "bdp-star bdp-filled" : "bdp-star"}
                           >
                             ★
                           </span>
                         ))}
                       </div>
-                      <div className="review-comment">
+                      <div className="bdp-review-comment">
                         <p>{review.comment}</p>
                       </div>
                     </div>
                   ))
                 ) : (
-                  <div className="no-reviews">
+                  <div className="bdp-no-reviews">
                     <p>No reviews yet. Be the first to review this book!</p>
                   </div>
                 )}
@@ -638,12 +635,12 @@ const BookDetails = () => {
 
       {showQuantityModal && book && (
         <div
-          className="quantity-modal-overlay"
+          className="bdp-quantity-modal-overlay"
           onClick={() => setShowQuantityModal(false)}
         >
-          <div className="quantity-modal" onClick={(e) => e.stopPropagation()}>
+          <div className="bdp-quantity-modal" onClick={(e) => e.stopPropagation()}>
             <button
-              className="close-modal"
+              className="bdp-close-modal"
               onClick={() => setShowQuantityModal(false)}
             >
               <X size={20} />
@@ -651,7 +648,7 @@ const BookDetails = () => {
             <h3>Select Quantity</h3>
             <p>{book.title}</p>
 
-            <div className="quantity-selector">
+            <div className="bdp-quantity-selector">
               <button onClick={decrementQuantity} disabled={quantity <= 1}>
                 -
               </button>
@@ -670,10 +667,10 @@ const BookDetails = () => {
               </button>
             </div>
 
-            <p className="stock-info">{book.stockQuantity} available</p>
+            <p className="bdp-stock-info">{book.stockQuantity} available</p>
 
             <button
-              className="confirm-add-to-cart"
+              className="bdp-confirm-add-to-cart"
               onClick={handleAddToCartConfirm}
               disabled={isAddingToCart}
             >
@@ -685,7 +682,7 @@ const BookDetails = () => {
 
       {/* Toast Notification */}
       {toast && (
-        <div className={`toast-notification ${toast.type}`}>
+        <div className={`bdp-toast-notification bdp-${toast.type}`}>
           <p>{toast.message}</p>
         </div>
       )}
