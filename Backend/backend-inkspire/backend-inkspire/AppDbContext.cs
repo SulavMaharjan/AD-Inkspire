@@ -67,11 +67,18 @@ namespace backend_inkspire
 
             // Review entity configuration
             builder.Entity<Review>().ToTable("Reviews");
+
             builder.Entity<Review>()
                 .HasOne(r => r.Book)
                 .WithMany(b => b.Reviews)
                 .HasForeignKey(r => r.BookId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+
+            // Add index for user-book combination to enforce one review per book per user
+            builder.Entity<Review>()
+                .HasIndex(r => new { r.UserId, r.BookId })
+                .IsUnique();
 
 
 
