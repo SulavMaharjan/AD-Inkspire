@@ -1,9 +1,17 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { X } from "lucide-react";
+import {
+  fetchGenres,
+  fetchAuthors,
+  fetchPublishers,
+  fetchLanguages,
+  fetchFormats,
+} from "../../context/bookApiService";
 import "../../styles/FilterSidebar.css";
 
-const FilterSidebar = ({ setShowFilters }) => {
-  const [priceRange, setPriceRange] = useState([0, 100]);
+const FilterSidebar = ({ setShowFilters, initialFilters, onApplyFilters }) => {
+  const [minPrice, setMinPrice] = useState(0);
+  const [maxPrice, setMaxPrice] = useState(1000);
   const [selectedGenres, setSelectedGenres] = useState([]);
   const [selectedAuthors, setSelectedAuthors] = useState([]);
   const [selectedFormats, setSelectedFormats] = useState([]);
@@ -11,52 +19,71 @@ const FilterSidebar = ({ setShowFilters }) => {
   const [selectedPublishers, setSelectedPublishers] = useState([]);
   const [ratingFilter, setRatingFilter] = useState(0);
 
-  const genres = [
-    "Fiction",
-    "Non-Fiction",
-    "Mystery",
-    "Science Fiction",
-    "Romance",
-    "History",
-    "Biography",
-    "Fantasy",
-    "Horror",
-    "Poetry",
-  ];
-  const authors = [
-    "J.K. Rowling",
-    "Stephen King",
-    "Jane Austen",
-    "George Orwell",
-    "Agatha Christie",
-    "Ernest Hemingway",
-    "Leo Tolstoy",
-  ];
-  const formats = [
-    "Hardcover",
-    "Paperback",
-    "eBook",
-    "Audiobook",
-    "Limited Edition",
-    "Signed Copy",
-    "First Edition",
-  ];
-  const languages = [
-    "English",
-    "Spanish",
-    "French",
-    "German",
-    "Chinese",
-    "Japanese",
-    "Russian",
-  ];
-  const publishers = [
-    "Penguin Random House",
-    "HarperCollins",
-    "Simon & Schuster",
-    "Hachette Book Group",
-    "Macmillan Publishers",
-  ];
+  const MAX_PRICE = 1000;
+
+  //states of dynamic filter options
+  const [genres, setGenres] = useState([]);
+  const [authors, setAuthors] = useState([]);
+  const [formats, setFormats] = useState([]);
+  const [languages, setLanguages] = useState([]);
+  const [publishers, setPublishers] = useState([]);
+
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
+
+  //initialize with initial filters
+  useEffect(() => {
+    if (initialFilters) {
+      setMinPrice(initialFilters.minPrice || 0);
+      setMaxPrice(initialFilters.maxPrice || MAX_PRICE);
+
+      setSelectedGenres(initialFilters.selectedGenres || []);
+      setSelectedAuthors(initialFilters.selectedAuthors || []);
+      setSelectedFormats(initialFilters.selectedFormats || []);
+      setSelectedLanguages(initialFilters.selectedLanguages || []);
+      setSelectedPublishers(initialFilters.selectedPublishers || []);
+      setRatingFilter(initialFilters.ratingFilter || 0);
+
+      console.log("Initialized filters:", initialFilters);
+    }
+  }, [initialFilters]);
+
+  //filter options from API
+  useEffect(() => {
+    const loadFilterOptions = async () => {
+      setIsLoading(true);
+      setLoadError(null);
+
+      try {
+        const [
+          genresData,
+          authorsData,
+          formatsData,
+          languagesData,
+          publishersData,
+        ] = await Promise.all([
+          fetchGenres(),
+          fetchAuthors(),
+          fetchFormats(),
+          fetchLanguages(),
+          fetchPublishers(),
+        ]);
+
+        setGenres(genresData);
+        setAuthors(authorsData);
+        setFormats(formatsData);
+        setLanguages(languagesData);
+        setPublishers(publishersData);
+      } catch (error) {
+        console.error("Failed to load filter options:", error);
+        setLoadError("Failed to load filter options. Please try again later.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadFilterOptions();
+  }, []);
 
   const handleGenreChange = (genre) => {
     if (selectedGenres.includes(genre)) {
@@ -98,14 +125,28 @@ const FilterSidebar = ({ setShowFilters }) => {
     }
   };
 
-  const handlePriceChange = (e, index) => {
-    const newPriceRange = [...priceRange];
-    newPriceRange[index] = Number(e.target.value);
-    setPriceRange(newPriceRange);
+  const handleMinPriceChange = (e) => {
+    const value = Number(e.target.value);
+    setMinPrice(Math.min(value, maxPrice));
+  };
+
+  const handleMaxPriceChange = (e) => {
+    const value = Number(e.target.value);
+    setMaxPrice(Math.max(value, minPrice));
+  };
+
+  const handleMinSliderChange = (e) => {
+    const value = Number(e.target.value);
+    setMinPrice(Math.min(value, maxPrice));
+  };
+
+  const handleMaxSliderChange = (e) => {
+    const value = Number(e.target.value);
+    setMaxPrice(Math.max(value, minPrice));
   };
 
   const handleRatingChange = (rating) => {
-    setRatingFilter(rating);
+    setRatingFilter(rating === ratingFilter ? 0 : rating);
   };
 
   const handleClose = () => {
@@ -118,21 +159,30 @@ const FilterSidebar = ({ setShowFilters }) => {
     setSelectedFormats([]);
     setSelectedLanguages([]);
     setSelectedPublishers([]);
-    setPriceRange([0, 100]);
+    setMinPrice(0);
+    setMaxPrice(MAX_PRICE);
     setRatingFilter(0);
   };
 
   const applyFilters = () => {
-    console.log("Applying filters:", {
-      genres: selectedGenres,
-      authors: selectedAuthors,
-      formats: selectedFormats,
-      languages: selectedLanguages,
-      publishers: selectedPublishers,
-      priceRange,
-      minRating: ratingFilter,
-    });
-    setShowFilters(false);
+    const filterData = {
+      minPrice: minPrice > 0 ? minPrice : undefined,
+      maxPrice: maxPrice < MAX_PRICE ? maxPrice : undefined,
+      selectedGenres,
+      selectedAuthors,
+      selectedFormats,
+      selectedLanguages,
+      selectedPublishers,
+      ratingFilter: ratingFilter > 0 ? ratingFilter : undefined,
+    };
+
+    console.log("Applying filters from sidebar:", filterData);
+
+    if (onApplyFilters) {
+      onApplyFilters(filterData);
+    } else {
+      setShowFilters(false);
+    }
   };
 
   return (
@@ -145,126 +195,170 @@ const FilterSidebar = ({ setShowFilters }) => {
       </div>
 
       <div className="filter-content">
-        <div className="filter-section">
-          <h3>Price Range</h3>
-          <div className="price-range-inputs">
-            <div className="price-input">
-              <label>Min ($)</label>
-              <input
-                type="number"
-                min="0"
-                max="1000"
-                value={priceRange[0]}
-                onChange={(e) => handlePriceChange(e, 0)}
-              />
+        {isLoading ? (
+          <div className="filter-loading">
+            <div className="spinner"></div>
+            <p>Loading filter options...</p>
+          </div>
+        ) : loadError ? (
+          <div className="filter-error">
+            <p>{loadError}</p>
+            <button onClick={() => window.location.reload()}>Reload</button>
+          </div>
+        ) : (
+          <>
+            <div className="filter-section">
+              <h3>Price Range</h3>
+              <div className="price-range-inputs">
+                <div className="price-input">
+                  <label>Min ($)</label>
+                  <input
+                    type="number"
+                    min="0"
+                    max={MAX_PRICE}
+                    value={minPrice}
+                    onChange={handleMinPriceChange}
+                  />
+                </div>
+                <div className="price-input">
+                  <label>Max ($)</label>
+                  <input
+                    type="number"
+                    min="0"
+                    max={MAX_PRICE}
+                    value={maxPrice}
+                    onChange={handleMaxPriceChange}
+                  />
+                </div>
+              </div>
+              <div className="price-range-slider">
+                <input
+                  type="range"
+                  min="0"
+                  max={MAX_PRICE}
+                  step="5"
+                  value={minPrice}
+                  onChange={handleMinSliderChange}
+                  className="price-slider"
+                />
+                <input
+                  type="range"
+                  min="0"
+                  max={MAX_PRICE}
+                  step="5"
+                  value={maxPrice}
+                  onChange={handleMaxSliderChange}
+                  className="price-slider"
+                />
+              </div>
             </div>
-            <div className="price-input">
-              <label>Max ($)</label>
-              <input
-                type="number"
-                min="0"
-                max="1000"
-                value={priceRange[1]}
-                onChange={(e) => handlePriceChange(e, 1)}
-              />
+
+            <div className="filter-section">
+              <h3>Minimum Rating</h3>
+              <div className="rating-filter">
+                {[1, 2, 3, 4, 5].map((rating) => (
+                  <button
+                    key={rating}
+                    className={ratingFilter >= rating ? "active" : ""}
+                    onClick={() => handleRatingChange(rating)}
+                  >
+                    {rating}+
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
-        </div>
 
-        <div className="filter-section">
-          <h3>Minimum Rating</h3>
-          <div className="rating-filter">
-            {[1, 2, 3, 4, 5].map((rating) => (
-              <button
-                key={rating}
-                className={ratingFilter >= rating ? "active" : ""}
-                onClick={() => handleRatingChange(rating)}
-              >
-                {rating}+
-              </button>
-            ))}
-          </div>
-        </div>
+            {genres.length > 0 && (
+              <div className="filter-section">
+                <h3>Genre</h3>
+                <div className="checkbox-group">
+                  {genres.map((genre) => (
+                    <label key={genre} className="checkbox-label">
+                      <input
+                        type="checkbox"
+                        checked={selectedGenres.includes(genre)}
+                        onChange={() => handleGenreChange(genre)}
+                      />
+                      {genre}
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
 
-        <div className="filter-section">
-          <h3>Genre</h3>
-          <div className="checkbox-group">
-            {genres.map((genre) => (
-              <label key={genre} className="checkbox-label">
-                <input
-                  type="checkbox"
-                  checked={selectedGenres.includes(genre)}
-                  onChange={() => handleGenreChange(genre)}
-                />
-                {genre}
-              </label>
-            ))}
-          </div>
-        </div>
+            {authors.length > 0 && (
+              <div className="filter-section">
+                <h3>Author</h3>
+                <div className="checkbox-group">
+                  {authors.map((author) => (
+                    <label key={author} className="checkbox-label">
+                      <input
+                        type="checkbox"
+                        checked={selectedAuthors.includes(author)}
+                        onChange={() => handleAuthorChange(author)}
+                      />
+                      {author}
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
 
-        <div className="filter-section">
-          <h3>Author</h3>
-          <div className="checkbox-group">
-            {authors.map((author) => (
-              <label key={author} className="checkbox-label">
-                <input
-                  type="checkbox"
-                  checked={selectedAuthors.includes(author)}
-                  onChange={() => handleAuthorChange(author)}
-                />
-                {author}
-              </label>
-            ))}
-          </div>
-        </div>
+            {formats.length > 0 && (
+              <div className="filter-section">
+                <h3>Format</h3>
+                <div className="checkbox-group">
+                  {formats.map((format) => (
+                    <label key={format} className="checkbox-label">
+                      <input
+                        type="checkbox"
+                        checked={selectedFormats.includes(format)}
+                        onChange={() => handleFormatChange(format)}
+                      />
+                      {format}
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
 
-        <div className="filter-section">
-          <h3>Format</h3>
-          <div className="checkbox-group">
-            {formats.map((format) => (
-              <label key={format} className="checkbox-label">
-                <input
-                  type="checkbox"
-                  checked={selectedFormats.includes(format)}
-                  onChange={() => handleFormatChange(format)}
-                />
-                {format}
-              </label>
-            ))}
-          </div>
-        </div>
+            {languages.length > 0 && (
+              <div className="filter-section">
+                <h3>Language</h3>
+                <div className="checkbox-group">
+                  {languages.map((language) => (
+                    <label key={language} className="checkbox-label">
+                      <input
+                        type="checkbox"
+                        checked={selectedLanguages.includes(language)}
+                        onChange={() => handleLanguageChange(language)}
+                      />
+                      {language}
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
 
-        <div className="filter-section">
-          <h3>Language</h3>
-          <div className="checkbox-group">
-            {languages.map((language) => (
-              <label key={language} className="checkbox-label">
-                <input
-                  type="checkbox"
-                  checked={selectedLanguages.includes(language)}
-                  onChange={() => handleLanguageChange(language)}
-                />
-                {language}
-              </label>
-            ))}
-          </div>
-        </div>
-
-        <div className="filter-section">
-          <h3>Publisher</h3>
-          <div className="checkbox-group">
-            {publishers.map((publisher) => (
-              <label key={publisher} className="checkbox-label">
-                <input
-                  type="checkbox"
-                  checked={selectedPublishers.includes(publisher)}
-                  onChange={() => handlePublisherChange(publisher)}
-                />
-                {publisher}
-              </label>
-            ))}
-          </div>
-        </div>
+            {publishers.length > 0 && (
+              <div className="filter-section">
+                <h3>Publisher</h3>
+                <div className="checkbox-group">
+                  {publishers.map((publisher) => (
+                    <label key={publisher} className="checkbox-label">
+                      <input
+                        type="checkbox"
+                        checked={selectedPublishers.includes(publisher)}
+                        onChange={() => handlePublisherChange(publisher)}
+                      />
+                      {publisher}
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
+          </>
+        )}
       </div>
 
       <div className="filter-actions">

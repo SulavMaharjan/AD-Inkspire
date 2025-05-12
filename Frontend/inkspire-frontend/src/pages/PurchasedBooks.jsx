@@ -28,6 +28,7 @@ const PurchasedBooks = () => {
   const [filterStatus, setFilterStatus] = useState("All");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [imageErrors, setImageErrors] = useState({}); // Track image errors
   const pageSize = 5;
 
   useEffect(() => {
@@ -183,6 +184,38 @@ const PurchasedBooks = () => {
     return 0;
   };
 
+  const getCoverImageUrl = (coverImagePath, itemId) => {
+    if (imageErrors[itemId]) {
+      return "/placeholder-book-cover.jpg";
+    }
+
+    if (!coverImagePath) {
+      return "/placeholder-book-cover.jpg";
+    }
+
+    if (coverImagePath.startsWith("http")) {
+      return coverImagePath;
+    }
+
+    if (coverImagePath.includes("https://localhost:7039")) {
+      return coverImagePath;
+    }
+
+    const normalizedPath = coverImagePath.startsWith("/")
+      ? coverImagePath
+      : `/${coverImagePath}`;
+
+    return `https://localhost:7039${normalizedPath}`;
+  };
+
+  const handleImageError = (itemId) => {
+    console.error(`Failed to load image for item ID: ${itemId}`);
+    setImageErrors((prev) => ({
+      ...prev,
+      [itemId]: true,
+    }));
+  };
+
   if (loading) {
     return (
       <div>
@@ -296,40 +329,48 @@ const PurchasedBooks = () => {
                 {expandedOrders[order.id] && (
                   <div className="order-items">
                     {order.orderItems && order.orderItems.length > 0 ? (
-                      order.orderItems.map((item, index) => (
-                        <div key={item.id || index} className="order-item">
-                          <img
-                            src={
-                              item.book && item.book.coverImage
-                                ? item.book.coverImage
-                                : "/api/placeholder/120/180"
-                            }
-                            alt={
-                              item.book && item.book.title
-                                ? item.book.title
-                                : item.bookTitle || "Book cover"
-                            }
-                            className="book-thumbnail"
-                          />
-                          <div className="item-details">
-                            <div className="item-title">
-                              {item.book && item.book.title
-                                ? item.book.title
-                                : item.bookTitle || "Unknown Book"}
-                            </div>
-                            <div className="item-author">
-                              by{" "}
-                              {item.book && item.book.author
-                                ? item.book.author
-                                : item.author || "Unknown Author"}
-                            </div>
-                            <div className="item-price">
-                              ${(item.price || item.unitPrice || 0).toFixed(2)}{" "}
-                              x {item.quantity || 1}
+                      order.orderItems.map((item, index) => {
+                        const itemId = item.id || `${order.id}-${index}`;
+                        const coverImage =
+                          (item.book && item.book.coverImage) ||
+                          (item.book && item.book.coverImagePath) ||
+                          item.coverImage ||
+                          item.coverImagePath ||
+                          null;
+
+                        return (
+                          <div key={itemId} className="order-item">
+                            <img
+                              src={getCoverImageUrl(coverImage, itemId)}
+                              alt={
+                                (item.book && item.book.title) ||
+                                item.bookTitle ||
+                                "Book cover"
+                              }
+                              className="book-thumbnail"
+                              onError={() => handleImageError(itemId)}
+                            />
+                            <div className="item-details">
+                              <div className="item-title">
+                                {(item.book && item.book.title) ||
+                                  item.bookTitle ||
+                                  "Unknown Book"}
+                              </div>
+                              <div className="item-author">
+                                by{" "}
+                                {(item.book && item.book.author) ||
+                                  item.author ||
+                                  "Unknown Author"}
+                              </div>
+                              <div className="item-price">
+                                $
+                                {(item.price || item.unitPrice || 0).toFixed(2)}{" "}
+                                x {item.quantity || 1}
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      ))
+                        );
+                      })
                     ) : (
                       <p>No items found in this order.</p>
                     )}
@@ -455,50 +496,58 @@ const PurchasedBooks = () => {
                 <div className="modal-items">
                   {selectedOrder.orderItems &&
                   selectedOrder.orderItems.length > 0 ? (
-                    selectedOrder.orderItems.map((item, index) => (
-                      <div key={item.id || index} className="modal-item">
-                        <img
-                          src={
-                            item.book && item.book.coverImage
-                              ? item.book.coverImage
-                              : "/api/placeholder/120/180"
-                          }
-                          alt={
-                            item.book && item.book.title
-                              ? item.book.title
-                              : item.bookTitle || "Book cover"
-                          }
-                          className="modal-book-image"
-                        />
-                        <div className="modal-item-details">
-                          <div className="modal-item-title">
-                            {item.book && item.book.title
-                              ? item.book.title
-                              : item.bookTitle || "Unknown Book"}
-                          </div>
-                          <div className="modal-item-author">
-                            by{" "}
-                            {item.book && item.book.author
-                              ? item.book.author
-                              : item.author || "Unknown Author"}
-                          </div>
-                          <div className="modal-item-quantity">
-                            Quantity: {item.quantity || 1}
-                          </div>
-                          <div className="modal-item-price">
-                            ${(item.price || item.unitPrice || 0).toFixed(2)}{" "}
-                            each
-                          </div>
-                          <div className="modal-item-subtotal">
-                            Subtotal: $
-                            {(
-                              (item.price || item.unitPrice || 0) *
-                              (item.quantity || 1)
-                            ).toFixed(2)}
+                    selectedOrder.orderItems.map((item, index) => {
+                      const itemId =
+                        item.id || `modal-${selectedOrder.id}-${index}`;
+                      const coverImage =
+                        (item.book && item.book.coverImage) ||
+                        (item.book && item.book.coverImagePath) ||
+                        item.coverImage ||
+                        item.coverImagePath ||
+                        null;
+
+                      return (
+                        <div key={itemId} className="modal-item">
+                          <img
+                            src={getCoverImageUrl(coverImage, itemId)}
+                            alt={
+                              (item.book && item.book.title) ||
+                              item.bookTitle ||
+                              "Book cover"
+                            }
+                            className="book-thumbnail"
+                            onError={() => handleImageError(itemId)}
+                          />
+                          <div className="modal-item-details">
+                            <div className="modal-item-title">
+                              {(item.book && item.book.title) ||
+                                item.bookTitle ||
+                                "Unknown Book"}
+                            </div>
+                            <div className="modal-item-author">
+                              by{" "}
+                              {(item.book && item.book.author) ||
+                                item.author ||
+                                "Unknown Author"}
+                            </div>
+                            <div className="modal-item-quantity">
+                              Quantity: {item.quantity || 1}
+                            </div>
+                            <div className="modal-item-price">
+                              ${(item.price || item.unitPrice || 0).toFixed(2)}{" "}
+                              each
+                            </div>
+                            <div className="modal-item-subtotal">
+                              Subtotal: $
+                              {(
+                                (item.price || item.unitPrice || 0) *
+                                (item.quantity || 1)
+                              ).toFixed(2)}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ))
+                      );
+                    })
                   ) : (
                     <p>No items found in this order.</p>
                   )}

@@ -16,6 +16,9 @@ namespace backend_inkspire.Repositories
         Task<bool> BookExistsAsync(Expression<Func<Book, bool>> predicate);
 
         Task<bool> UpdateBookStockAsync(int bookId, int quantityChange);
+
+        Task<IEnumerable<string>> GetDistinctValuesAsync<TProperty>(Expression<Func<Book, TProperty>> selector);
+
         Task SaveChangesAsync();
     }
 }

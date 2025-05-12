@@ -287,5 +287,40 @@ namespace backend_inkspire.Controllers
             };
             return await GetBooks(filter);
         }
+
+        [HttpGet("genres")]
+        public async Task<ActionResult<IEnumerable<string>>> GetGenres()
+        {
+            var genres = await _bookService.GetDistinctGenresAsync();
+            return Ok(genres);
+        }
+
+        [HttpGet("authors")]
+        public async Task<ActionResult<IEnumerable<string>>> GetAuthors()
+        {
+            var authors = await _bookService.GetDistinctAuthorsAsync();
+            return Ok(authors);
+        }
+
+        [HttpGet("publishers")]
+        public async Task<ActionResult<IEnumerable<string>>> GetPublishers()
+        {
+            var publishers = await _bookService.GetDistinctPublishersAsync();
+            return Ok(publishers);
+        }
+
+        [HttpGet("languages")]
+        public async Task<ActionResult<IEnumerable<string>>> GetLanguages()
+        {
+            var languages = await _bookService.GetDistinctLanguagesAsync();
+            return Ok(languages);
+        }
+
+        [HttpGet("formats")]
+        public async Task<ActionResult<IEnumerable<string>>> GetFormats()
+        {
+            var formats = await _bookService.GetDistinctFormatsAsync();
+            return Ok(formats);
+        }
     }
 }

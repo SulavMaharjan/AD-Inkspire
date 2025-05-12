@@ -22,60 +22,108 @@ export const checkApiAvailability = async () => {
 
 //fetch books
 export const fetchBooks = async (filters = {}) => {
+  const mapSortByToApi = (sortOption) => {
+    switch (sortOption) {
+      case "title":
+        return "Title";
+      case "publication-date":
+        return "PublicationDate";
+      case "price-low":
+        return "Price";
+      case "price-high":
+        return "Price";
+      case "popularity":
+      default:
+        return "Popularity";
+    }
+  };
+
   try {
     const {
       pageNumber = 1,
       pageSize = 12,
       searchTerm = "",
-      sortBy = "Popularity",
+      sortBy = "popularity",
       sortAscending = false,
       genre = "",
       author = "",
       priceMin,
       priceMax,
+      minRating,
+      format,
+      language,
+      publisher,
       ...otherFilters
     } = filters;
+
+    //sort direction based on sortBy
+    let finalSortAscending = sortAscending;
+    if (sortBy === "price-low") {
+      finalSortAscending = true;
+    } else if (sortBy === "price-high") {
+      finalSortAscending = false;
+    }
 
     const queryParams = new URLSearchParams();
     queryParams.append("pageNumber", pageNumber);
     queryParams.append("pageSize", pageSize);
+    queryParams.append("sortBy", mapSortByToApi(sortBy));
+    queryParams.append("sortAscending", finalSortAscending);
 
     if (searchTerm) queryParams.append("searchTerm", searchTerm);
     if (sortBy) queryParams.append("sortBy", sortBy);
     queryParams.append("sortAscending", sortAscending);
+
+    //price filter parameters
+    if (priceMin !== undefined && priceMin > 0) {
+      queryParams.append("priceMin", priceMin);
+      console.log(`Adding priceMin filter: ${priceMin}`);
+    }
+
+    if (priceMax !== undefined && priceMax < 1000) {
+      queryParams.append("priceMax", priceMax);
+      console.log(`Adding priceMax filter: ${priceMax}`);
+    }
+
+    //other filter parameters
     if (genre) queryParams.append("genre", genre);
     if (author) queryParams.append("author", author);
-    if (priceMin !== undefined) queryParams.append("priceMin", priceMin);
-    if (priceMax !== undefined) queryParams.append("priceMax", priceMax);
+    if (minRating) queryParams.append("minRating", minRating);
+    if (format) queryParams.append("format", format);
+    if (language) queryParams.append("language", language);
+    if (publisher) queryParams.append("publisher", publisher);
 
+    //remaining filter parameters
     Object.entries(otherFilters).forEach(([key, value]) => {
-      if (value !== undefined) {
+      if (value !== undefined && value !== "") {
         queryParams.append(key, value);
       }
     });
 
-    const response = await fetch(
-      `${API_BASE_URL}/books/getbooks?${queryParams}`,
-      {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    const url = `${API_BASE_URL}/books/getbooks?${queryParams}`;
+    console.log("Fetching books with URL:", url);
+
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
 
     if (!response.ok) {
       throw new Error(`API error: ${response.status} ${response.statusText}`);
     }
 
-    return await response.json();
+    const data = await response.json();
+    console.log("Book API response:", data);
+    return data;
   } catch (error) {
     console.error("Error fetching books:", error);
     throw error;
   }
 };
 
-//fetch books on sale
+//books on sale
 export const fetchOnSale = async (pageNumber = 1, pageSize = 12) => {
   try {
     const response = await fetch(
@@ -99,7 +147,7 @@ export const fetchOnSale = async (pageNumber = 1, pageSize = 12) => {
   }
 };
 
-//fetch bestsellers
+//bestsellers
 export const fetchBestsellers = async (pageNumber = 1, pageSize = 12) => {
   try {
     const response = await fetch(
@@ -123,7 +171,7 @@ export const fetchBestsellers = async (pageNumber = 1, pageSize = 12) => {
   }
 };
 
-//fetch new releases
+//new releases
 export const fetchNewReleases = async (pageNumber = 1, pageSize = 12) => {
   try {
     const response = await fetch(
@@ -147,7 +195,7 @@ export const fetchNewReleases = async (pageNumber = 1, pageSize = 12) => {
   }
 };
 
-//fetch award winners
+//award winners
 export const fetchAwardWinners = async (pageNumber = 1, pageSize = 12) => {
   try {
     const response = await fetch(
@@ -171,7 +219,7 @@ export const fetchAwardWinners = async (pageNumber = 1, pageSize = 12) => {
   }
 };
 
-//fetch new arrivals
+//new arrivals
 export const fetchNewArrivals = async (pageNumber = 1, pageSize = 12) => {
   try {
     const response = await fetch(
@@ -195,7 +243,7 @@ export const fetchNewArrivals = async (pageNumber = 1, pageSize = 12) => {
   }
 };
 
-//fetch coming soon books
+//coming soon books
 export const fetchComingSoon = async (pageNumber = 1, pageSize = 12) => {
   try {
     const response = await fetch(
@@ -219,7 +267,7 @@ export const fetchComingSoon = async (pageNumber = 1, pageSize = 12) => {
   }
 };
 
-//fetch book by ID
+//book by ID
 export const fetchBookById = async (bookId) => {
   try {
     const response = await fetch(`${API_BASE_URL}/books/${bookId}`, {
@@ -240,7 +288,7 @@ export const fetchBookById = async (bookId) => {
   }
 };
 
-//fetch books by genre
+//books by genre
 export const fetchBooksByGenre = async (
   genre,
   pageNumber = 1,
@@ -270,7 +318,7 @@ export const fetchBooksByGenre = async (
   }
 };
 
-//fetch books by author
+//books by author
 export const fetchBooksByAuthor = async (
   author,
   pageNumber = 1,
@@ -296,6 +344,111 @@ export const fetchBooksByAuthor = async (
     return await response.json();
   } catch (error) {
     console.error(`Error fetching books by author ${author}:`, error);
+    throw error;
+  }
+};
+
+//distinct genres
+export const fetchGenres = async () => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/books/genres`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status} ${response.statusText}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching genres:", error);
+    throw error;
+  }
+};
+
+//distinct authors
+export const fetchAuthors = async () => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/books/authors`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status} ${response.statusText}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching authors:", error);
+    throw error;
+  }
+};
+
+//distinct publishers
+export const fetchPublishers = async () => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/books/publishers`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status} ${response.statusText}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching publishers:", error);
+    throw error;
+  }
+};
+
+//distinct languages
+export const fetchLanguages = async () => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/books/languages`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status} ${response.statusText}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching languages:", error);
+    throw error;
+  }
+};
+
+//distinct formats
+export const fetchFormats = async () => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/books/formats`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status} ${response.statusText}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching formats:", error);
     throw error;
   }
 };

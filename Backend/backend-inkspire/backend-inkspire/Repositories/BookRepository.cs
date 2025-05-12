@@ -172,12 +172,15 @@ namespace backend_inkspire.Repositories
                 "popularity" => filter.SortAscending
                     ? query.OrderBy(b => b.SoldCount)
                     : query.OrderByDescending(b => b.SoldCount),
-                "rating" => filter.SortAscending
-                    ? query.OrderBy(b => b.Reviews.Any() ? b.Reviews.Average(r => r.Rating) : 0)
-                    : query.OrderByDescending(b => b.Reviews.Any() ? b.Reviews.Average(r => r.Rating) : 0),
                 _ => filter.SortAscending
                     ? query.OrderBy(b => b.Title)
                     : query.OrderByDescending(b => b.Title),
+                //"rating" => filter.SortAscending
+                //    ? query.OrderBy(b => b.Reviews.Any() ? b.Reviews.Average(r => r.Rating) : 0)
+                //    : query.OrderByDescending(b => b.Reviews.Any() ? b.Reviews.Average(r => r.Rating) : 0),
+                //_ => filter.SortAscending
+                //    ? query.OrderBy(b => b.Title)
+                //    : query.OrderByDescending(b => b.Title),
             };
 
             var totalCount = await query.CountAsync();
@@ -321,8 +324,6 @@ namespace backend_inkspire.Repositories
         {
             return await _context.Books.AnyAsync(predicate);
         }
-
-        // Add to BookRepository class
         public async Task<bool> UpdateBookStockAsync(int bookId, int quantityChange)
         {
             var book = await _context.Books.FindAsync(bookId);
@@ -340,5 +341,17 @@ namespace backend_inkspire.Repositories
             await _context.SaveChangesAsync();
             return true;
         }
+
+        public async Task<IEnumerable<string>> GetDistinctValuesAsync<TProperty>(Expression<Func<Book, TProperty>> selector)
+        {
+            return await _context.Books
+                .Select(selector)
+                .Where(v => v != null)
+                .Distinct()
+                .OrderBy(v => v)
+                .Select(v => v.ToString())
+                .ToListAsync();
+        }
+
     }
 }

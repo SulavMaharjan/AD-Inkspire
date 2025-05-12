@@ -1,7 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import { NotificationProvider } from "./context/NotificationContext";
-import { CartProvider } from "./context/CartContext"; // Import CartProvider
+import { CartProvider } from "./context/CartContext";
 import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
@@ -44,7 +44,6 @@ function App() {
               <Route path="/bookDetail/:id" element={<BookDetails />} />
               <Route path="/purchasedBook" element={<PurchasedBooks />} />
               <Route path="/bookmarkedlist" element={<BookmarkedList />} />
-              <Route path="/staffclaimcode" element={<StaffPage />} />
 
               <Route
                 path="/dashboard"
@@ -109,10 +108,7 @@ function App() {
                 element={
                   <StaffProtectedRoute>
                     <Routes>
-                      <Route
-                        path="manage-orders"
-                        element={<div>Manage Orders</div>}
-                      />
+                      <Route path="/staffclaimcode" element={<StaffPage />} />
                     </Routes>
                   </StaffProtectedRoute>
                 }

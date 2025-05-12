@@ -199,11 +199,31 @@ namespace backend_inkspire.Services
             return MapToOrderResponseDTO(order);
         }
 
-        public async Task<OrderResponseDTO> GetOrderByClaimCodeAsync(string claimCode)
+        public async Task<OrderResponseDTO> GetOrderByClaimCodeAsync(string claimCode, string memberId = null)
+
         {
-            var order = await _orderRepository.GetOrderByClaimCodeAsync(claimCode);
+
+            long? userIdLong = null;
+            if (!string.IsNullOrWhiteSpace(memberId))
+            {
+                if (!long.TryParse(memberId, out long parsedUserId))
+                {
+                    throw new InvalidOperationException("Invalid member ID format");
+                }
+                userIdLong = parsedUserId;
+            }
+
+            //order with optional user ID verification
+            var order = await _orderRepository.GetOrderByClaimCodeAsync(claimCode, userIdLong);
+
             if (order == null)
             {
+
+                if (userIdLong.HasValue)
+                {
+                    throw new InvalidOperationException("Order not found or does not belong to the specified member");
+                }
+
                 return null;
             }
 

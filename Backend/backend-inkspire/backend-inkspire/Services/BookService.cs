@@ -224,5 +224,30 @@ namespace backend_inkspire.Services
                 IsBookmarked = false
             };
         }
+
+        public async Task<IEnumerable<string>> GetDistinctGenresAsync()
+        {
+            return await _bookRepository.GetDistinctValuesAsync(b => b.Genre);
+        }
+
+        public async Task<IEnumerable<string>> GetDistinctAuthorsAsync()
+        {
+            return await _bookRepository.GetDistinctValuesAsync(b => b.Author);
+        }
+
+        public async Task<IEnumerable<string>> GetDistinctPublishersAsync()
+        {
+            return await _bookRepository.GetDistinctValuesAsync(b => b.Publisher);
+        }
+
+        public async Task<IEnumerable<string>> GetDistinctLanguagesAsync()
+        {
+            return await _bookRepository.GetDistinctValuesAsync(b => b.Language);
+        }
+
+        public async Task<IEnumerable<string>> GetDistinctFormatsAsync()
+        {
+            return await _bookRepository.GetDistinctValuesAsync(b => b.Format);
+        }
     }
 }

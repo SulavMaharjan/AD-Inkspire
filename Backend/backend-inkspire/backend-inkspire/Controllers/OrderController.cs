@@ -62,15 +62,17 @@ namespace backend_inkspire.Controllers
         // GET: api/orders/claim/{claimCode}
         [HttpGet("claim/{claimCode}")]
         [Authorize(Roles = "Member,Staff,SuperAdmin")]
-        public async Task<ActionResult<OrderResponseDTO>> GetOrderByClaimCode(string claimCode)
+        public async Task<ActionResult<OrderResponseDTO>> GetOrderByClaimCode(string claimCode, [FromQuery] string memberId = null)
         {
-            var order = await _orderService.GetOrderByClaimCodeAsync(claimCode);
-            if (order == null)
+            try
             {
-                return NotFound();
+                var order = await _orderService.GetOrderByClaimCodeAsync(claimCode, memberId);
+                return Ok(order);
             }
-
-            return Ok(order);
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         // GET: api/orders/user
