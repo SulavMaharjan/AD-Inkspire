@@ -7,6 +7,7 @@ import {
   LogOut,
   Home,
 } from "lucide-react";
+import { Link } from "react-router-dom";
 import "../../styles/admin.css";
 
 const AdminLayout = ({ children }) => {
@@ -19,40 +20,33 @@ const AdminLayout = ({ children }) => {
         </div>
 
         <nav className="sidebar-nav">
-          <ul className="nav-list">
-            <li className="nav-item">
-              <a href="#" className="admin-nav-link">
-                <Home size={18} />
-                <span>Dashboard</span>
-              </a>
-            </li>
-            <li className="nav-item active">
-              <a href="#" className="admin-nav-link">
-                <BookOpen size={18} />
-                <span>Books</span>
-              </a>
-            </li>
-            <li className="nav-item">
-              <a href="#" className="admin-nav-link">
-                <Users size={18} />
-                <span>Members</span>
-              </a>
-            </li>
-            <li className="nav-item">
-              <a href="#" className="admin-nav-link">
-                <ShoppingCart size={18} />
-                <span>Orders</span>
-              </a>
-            </li>
-            <li className="nav-item">
-              <a href="#" className="admin-nav-link">
-                <Settings size={18} />
-                <span>Settings</span>
-              </a>
-            </li>
-          </ul>
-        </nav>
-
+        <ul className="nav-list">
+          <li className="nav-item">
+            <Link to="/admin/dashboard" className="admin-nav-link">
+              <Home size={18} />
+              <span>Dashboard</span>
+            </Link>
+          </li>
+          <li className="nav-item">
+            <Link to="/admin/add-book" className="admin-nav-link">
+              <BookOpen size={18} />
+              <span>Books</span>
+            </Link>
+          </li>
+          <li className="nav-item">
+            <Link to="/admin/members" className="admin-nav-link">
+              <Users size={18} />
+              <span>Members</span>
+            </Link>
+          </li>
+          <li className="nav-item">
+            <Link to="/admin/announcements" className="admin-nav-link">
+              <Settings size={18} />
+              <span>Announcements</span>
+            </Link>
+          </li>
+        </ul>
+      </nav>
         <div className="sidebar-footer">
           <a href="#" className="logout-link">
             <LogOut size={18} />

@@ -73,6 +73,8 @@ namespace backend_inkspire
                 .HasForeignKey(r => r.BookId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+
+
             // Announcement entity configuration
             builder.Entity<Announcement>().ToTable("Announcements");
 

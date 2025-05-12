@@ -154,7 +154,7 @@ namespace backend_inkspire.Repositories
             return order;
         }
 
-        public async Task<bool> UpdateOrderStatusAsync(long orderId, OrderStatus status)
+        public async Task<bool> UpdateOrderStatusAsync(int orderId, OrderStatus status)
         {
             var order = await _context.Orders.FindAsync(orderId);
             if (order == null)

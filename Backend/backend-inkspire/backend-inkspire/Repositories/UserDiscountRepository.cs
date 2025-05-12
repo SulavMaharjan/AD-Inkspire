@@ -1,34 +1,48 @@
 ﻿using backend_inkspire.Entities;
 using backend_inkspire.Services;
 using Microsoft.EntityFrameworkCore;
+
 namespace backend_inkspire.Repositories
 {
     public class UserDiscountRepository : IUserDiscountRepository
     {
         private readonly AppDbContext _context;
         private readonly IEmailService _emailService;
+
         public UserDiscountRepository(AppDbContext context, IEmailService emailService)
         {
             _context = context;
             _emailService = emailService;
         }
+
         public async Task<List<UserDiscount>> GetUserDiscountsAsync(long userId)
         {
             return await _context.UserDiscounts
                 .Where(ud => ud.UserId == userId && !ud.IsUsed)
+                .OrderBy(ud => ud.CreatedAt)
+                .ToListAsync();
+        }
+
+        public async Task<List<UserDiscount>> GetAllUserDiscountsAsync(long userId)
+        {
+            return await _context.UserDiscounts
+                .Where(ud => ud.UserId == userId)
                 .OrderByDescending(ud => ud.CreatedAt)
                 .ToListAsync();
         }
+
         public async Task<UserDiscount> GetUserDiscountByIdAsync(int discountId)
         {
             return await _context.UserDiscounts.FindAsync(discountId);
         }
+
         public async Task<UserDiscount> CreateUserDiscountAsync(UserDiscount discount)
         {
             _context.UserDiscounts.Add(discount);
             await _context.SaveChangesAsync();
             return discount;
         }
+
         public async Task<bool> UseDiscountAsync(int discountId, int orderId)
         {
             var discount = await _context.UserDiscounts.FindAsync(discountId);
@@ -42,6 +56,7 @@ namespace backend_inkspire.Repositories
             await _context.SaveChangesAsync();
             return true;
         }
+
         public async Task<bool> RestoreDiscountAsync(int discountId)
         {
             var discount = await _context.UserDiscounts.FindAsync(discountId);
@@ -55,10 +70,12 @@ namespace backend_inkspire.Repositories
             await _context.SaveChangesAsync();
             return true;
         }
+
         public async Task<User> GetUserByIdAsync(string userId)
         {
             return await _context.Users.FindAsync(userId);
         }
+
         public async Task SaveChangesAsync()
         {
             await _context.SaveChangesAsync();

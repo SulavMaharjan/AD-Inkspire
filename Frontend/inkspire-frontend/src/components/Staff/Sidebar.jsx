@@ -5,9 +5,9 @@ import '../../styles/Sidebar.css';
 const Sidebar = () => {
   return (
     <aside className="staff-sidebar">
-      <div className="logo">
+      <div className="logo-sidebar">
         <BookOpen size={24} />
-        <h2>Inkspire</h2>
+        <h2>Inkspir</h2>
       </div>
       
       <nav className="sidebar-nav">

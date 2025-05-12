@@ -60,4 +60,14 @@ namespace backend_inkspire.DTOs
         public string Role { get; set; }
         public UserDTO User { get; set; }
     }
+
+    public class UpdateMemberDTO
+    {
+        public string? Name { get; set; }
+
+        [EmailAddress(ErrorMessage = "Invalid email format")]
+        public string? Email { get; set; }
+
+        public string? UserName { get; set; }
+    }
 }

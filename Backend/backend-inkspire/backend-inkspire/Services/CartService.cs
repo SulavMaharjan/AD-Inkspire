@@ -148,14 +148,19 @@ namespace backend_inkspire.Services
                 CreatedAt = cart.CreatedAt,
                 UpdatedAt = cart.UpdatedAt,
                 Items = cart.Items?.Select(MapToCartItemResponseDTO).ToList() ?? new List<CartItemResponseDTO>(),
-                TotalAmount = cart.Items?.Sum(i => i.Quantity * (i.Book.IsCurrentlyDiscounted
-                    ? (i.Book.Price - (i.Book.Price * i.Book.DiscountPercentage.Value / 100))
-                    : i.Book.Price)) ?? 0
+                TotalAmount = cart.Items?.Sum(i => i.Quantity * (
+                    i.Book.IsOnSale &&
+                    i.Book.DiscountPercentage.HasValue &&
+                    i.Book.DiscountStartDate.HasValue &&
+                    i.Book.DiscountEndDate.HasValue &&
+                    DateTime.Now >= i.Book.DiscountStartDate &&
+                    DateTime.Now <= i.Book.DiscountEndDate
+                        ? (i.Book.Price - (i.Book.Price * i.Book.DiscountPercentage.Value / 100))
+                        : i.Book.Price)) ?? 0
             };
 
             return cartResponseDto;
         }
-
         private CartItemResponseDTO MapToCartItemResponseDTO(CartItem cartItem)
         {
             if (cartItem == null || cartItem.Book == null) return null;
