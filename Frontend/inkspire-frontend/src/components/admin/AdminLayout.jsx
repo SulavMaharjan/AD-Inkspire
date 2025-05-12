@@ -30,11 +30,17 @@ const AdminLayout = ({ children }) => {
           <li className="nav-item">
             <Link to="/admin/add-book" className="admin-nav-link">
               <BookOpen size={18} />
-              <span>Books</span>
+              <span>Add Books</span>
             </Link>
           </li>
           <li className="nav-item">
-            <Link to="/admin/users" className="admin-nav-link">
+            <Link to="/admin/books" className="admin-nav-link">
+              <BookOpen size={18} />
+              <span>Books Management</span>
+            </Link>
+          </li>
+          <li className="nav-item">
+            <Link to="/admin/members" className="admin-nav-link">
               <Users size={18} />
               <span>Members</span>
             </Link>
@@ -57,19 +63,11 @@ const AdminLayout = ({ children }) => {
 
       <main className="admin-content">
         <header className="admin-header">
-          <div className="admin-header-search">
-            <input
-              type="text"
-              placeholder="Search..."
-              className="search-input"
-            />
-          </div>
           <div className="admin-header-profile">
             <span className="admin-name">Admin User</span>
             <div className="admin-avatar">AU</div>
           </div>
         </header>
-
         <div className="admin-content-wrapper">{children}</div>
       </main>
     </div>

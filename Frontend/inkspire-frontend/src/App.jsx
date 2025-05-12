@@ -1,6 +1,8 @@
+import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import { NotificationProvider } from "./context/NotificationContext";
+import { CartProvider } from "./context/CartContext";
 import { CartProvider } from "./context/CartContext";
 import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
@@ -18,22 +20,52 @@ import BookListing from "./components/BookCatalog/BookListing";
 import AddBookPage from "./pages/AddBookPage";
 import BookDetails from "./pages/BookDetails";
 import PurchasedBooks from "./pages/PurchasedBooks";
-import NotificationToast from "./components/Notification";
 import "./styles/App.css";
 import StaffPage from "./pages/StaffPage";
 import BookmarkedList from "./pages/BookmarkedList";
 import AnnouncementManagement from "./components/admin/AnnouncementManagement";
 import CartPage from "./pages/CartPage";
+import MemberManagement from "./components/admin/MemberManagement";
+import AdminLayout from "./components/admin/AdminLayout";
+import BookManagement from "./components/admin/BookManagement";
+
+// Admin wrapper components
+const AdminDashboardWrapper = () => (
+  <AdminLayout>
+    <div>Admin Dashboard</div>
+  </AdminLayout>
+);
+
+const AdminAddBookWrapper = () => (
+  <AdminLayout>
+    <AddBookPage />
+  </AdminLayout>
+);
+
+const AdminManageBookWrapper = () => (
+  <AdminLayout>
+    <BookManagement />
+  </AdminLayout>
+);
+
+const AdminAnnouncementsWrapper = () => (
+  <AdminLayout>
+    <AnnouncementManagement />
+  </AdminLayout>
+);
+
+const AdminMembersWrapper = () => (
+  <AdminLayout>
+    <MemberManagement />
+  </AdminLayout>
+);
 
 function App() {
   return (
     <AuthProvider>
       <NotificationProvider>
         <CartProvider>
-          {" "}
           <Router>
-            <NotificationToast />
-
             <Routes>
               {/* Public routes */}
               <Route path="/" element={<LandingPage />} />
@@ -45,6 +77,7 @@ function App() {
               <Route path="/purchasedBook" element={<PurchasedBooks />} />
               <Route path="/bookmarkedlist" element={<BookmarkedList />} />
 
+              {/* Protected routes */}
               <Route
                 path="/dashboard"
                 element={
@@ -62,20 +95,24 @@ function App() {
                     <Routes>
                       <Route
                         path="dashboard"
-                        element={<div>Admin Dashboard</div>}
-                      />
-                      <Route path="add-book" element={<AddBookPage />} />
-                      <Route
-                        path="users"
-                        element={<div>User Management</div>}
+                        element={<AdminDashboardWrapper />}
                       />
                       <Route
-                        path="settings"
-                        element={<div>Admin Settings</div>}
+                        path="add-book"
+                        element={<AdminAddBookWrapper />}
+                      />
+                      <Route
+                        path="books"
+                        element={<AdminManageBookWrapper />}
                       />
                       <Route
                         path="announcements"
-                        element={<AnnouncementManagement />}
+                        element={<AdminAnnouncementsWrapper />}
+                      />
+                      <Route path="members" element={<AdminMembersWrapper />} />
+                      <Route
+                        path="settings"
+                        element={<div>Admin Settings</div>}
                       />
                     </Routes>
                   </AdminProtectedRoute>
@@ -96,7 +133,6 @@ function App() {
                         path="wishlist"
                         element={<div>My Favorite Books</div>}
                       />
-                      <Route path="cart" element={<CartPage />} />
                     </Routes>
                   </MemberProtectedRoute>
                 }
@@ -113,7 +149,6 @@ function App() {
                   </StaffProtectedRoute>
                 }
               />
-
               <Route path="*" element={<NotFoundPage />} />
             </Routes>
           </Router>

@@ -19,10 +19,7 @@
   box-shadow: var(--shadow-md);
 }
 
-.search-icon {
-  color: var(--text-medium);
-  margin-right: 0.5rem;
-}
+
 
 .search-bar input {
   flex: 1;
