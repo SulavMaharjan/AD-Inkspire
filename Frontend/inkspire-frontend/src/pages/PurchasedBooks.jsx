@@ -273,9 +273,6 @@ const PurchasedBooks = () => {
   };
 
   const getCoverImageUrl = (coverImagePath, itemId) => {
-    if (imageErrors[itemId]) {
-      return "/placeholder-book-cover.jpg";
-    }
 
     if (!coverImagePath) {
       return "/placeholder-book-cover.jpg";

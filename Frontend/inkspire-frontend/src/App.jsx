@@ -126,8 +126,8 @@ function App() {
                     <Routes>
                       <Route path="cart" element={<CartPage />} />
                       <Route
-                        path="wishlist"
-                        element={<div>My Favorite Books</div>}
+                        path="member"
+                        element={<CartPage/>}
                       />
                     </Routes>
                   </MemberProtectedRoute>

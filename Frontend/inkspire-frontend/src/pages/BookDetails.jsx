@@ -529,7 +529,7 @@ const BookDetails = () => {
         </div>
 
         <div className="reviews-section">
-          <h2>Customer Reviews</h2>
+          <h2>Review Average</h2>
           <div className="reviews-summary">
             <div className="average-rating">
               {book.averageRating?.toFixed(1) || "0.0"} out of 5
