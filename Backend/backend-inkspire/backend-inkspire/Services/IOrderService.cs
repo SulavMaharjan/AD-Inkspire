@@ -8,7 +8,7 @@ namespace backend_inkspire.Services
     {
         Task<OrderResponseDTO> CreateOrderAsync(string userId, CreateOrderDTO createOrderDto);
         Task<OrderResponseDTO> GetOrderByIdAsync(int orderId, long userId);
-        Task<OrderResponseDTO> GetOrderByClaimCodeAsync(string claimCode);
+        Task<OrderResponseDTO> GetOrderByClaimCodeAsync(string claimCode, string memberId = null);
         Task<PaginatedOrdersResponseDTO> GetUserOrdersAsync(long userId, OrderFilterDTO filter);
         Task<PaginatedOrdersResponseDTO> GetAllOrdersAsync(OrderFilterDTO filter);
         Task<bool> CancelOrderAsync(int orderId, long userId);

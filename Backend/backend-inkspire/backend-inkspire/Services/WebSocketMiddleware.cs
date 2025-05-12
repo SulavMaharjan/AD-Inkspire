@@ -22,19 +22,16 @@ namespace backend_inkspire.Middleware
 
         public async Task InvokeAsync(HttpContext context)
         {
-            // Log all WebSocket related requests for debugging
             _logger.LogInformation($"Request path: {context.Request.Path}, WebSocket request: {context.WebSockets.IsWebSocketRequest}");
 
             if (context.WebSockets.IsWebSocketRequest)
             {
-                // Log headers for debugging
                 _logger.LogInformation($"Headers: {string.Join(", ", context.Request.Headers.Select(h => $"{h.Key}={h.Value}"))}");
                 
-                // Get user ID from query string
                 if (!context.Request.Query.TryGetValue("userId", out var userIdValues))
                 {
                     _logger.LogWarning("No userId provided in query string");
-                    context.Response.StatusCode = 400; // Bad Request
+                    context.Response.StatusCode = 400; 
                     await context.Response.WriteAsync("User ID is required");
                     return;
                 }
@@ -43,24 +40,21 @@ namespace backend_inkspire.Middleware
                 if (string.IsNullOrEmpty(userId))
                 {
                     _logger.LogWarning("Empty userId provided");
-                    context.Response.StatusCode = 400; // Bad Request
+                    context.Response.StatusCode = 400;
                     await context.Response.WriteAsync("Invalid User ID");
                     return;
                 }
 
                 try
                 {
-                    // Accept the WebSocket connection
                     _logger.LogInformation($"Accepting WebSocket connection for user {userId}");
                     WebSocket webSocket = await context.WebSockets.AcceptWebSocketAsync();
                     _logger.LogInformation($"WebSocket connection established for user {userId}");
 
-                    // Add the connection to our manager
                     _connectionManager.AddConnection(userId, webSocket);
 
                     try
                     {
-                        // Keep the connection open and handle incoming messages
                         await HandleWebSocket(webSocket, userId);
                     }
                     catch (Exception ex)
@@ -69,7 +63,6 @@ namespace backend_inkspire.Middleware
                     }
                     finally
                     {
-                        // Clean up the connection when it's closed
                         _connectionManager.RemoveConnection(userId);
 
                         if (webSocket.State != WebSocketState.Closed &&
@@ -101,7 +94,6 @@ namespace backend_inkspire.Middleware
         {
             var buffer = new byte[1024 * 4];
             
-            // Send a welcome message to client
             try
             {
                 string welcomeMessage = JsonSerializer.Serialize(new {
@@ -122,7 +114,6 @@ namespace backend_inkspire.Middleware
                 _logger.LogError(ex, $"Error sending welcome message to user {userId}");
             }
 
-            // Handle incoming messages
             WebSocketReceiveResult result = await webSocket.ReceiveAsync(
                 new ArraySegment<byte>(buffer), CancellationToken.None);
 
@@ -130,11 +121,9 @@ namespace backend_inkspire.Middleware
             {
                 try
                 {
-                    // Log incoming message
                     string receivedMessage = Encoding.UTF8.GetString(buffer, 0, result.Count);
                     _logger.LogInformation($"Received message from user {userId}: {receivedMessage}");
 
-                    // Echo back received messages (optional, mainly for connection testing)
                     await webSocket.SendAsync(
                         new ArraySegment<byte>(buffer, 0, result.Count),
                         result.MessageType,
@@ -151,7 +140,6 @@ namespace backend_inkspire.Middleware
                 }
             }
 
-            // Process normal closing of connection
             if (result.CloseStatus.HasValue)
             {
                 _logger.LogInformation($"Closing WebSocket connection for user {userId}. Status: {result.CloseStatus.Value}, Description: {result.CloseStatusDescription}");
@@ -171,7 +159,6 @@ namespace backend_inkspire.Middleware
         }
     }
 
-    // Extension method used to add the middleware to the HTTP request pipeline
     public static class WebSocketMiddlewareExtensions
     {
         public static IApplicationBuilder UseWebSocketNotifications(this IApplicationBuilder builder)

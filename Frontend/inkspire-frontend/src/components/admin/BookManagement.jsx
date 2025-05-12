@@ -20,6 +20,7 @@ const BookManagement = () => {
   });
 
   const [formData, setFormData] = useState({
+    id:'',
     title: '',
     isbn: '',
     author: '',
@@ -276,10 +277,6 @@ const BookManagement = () => {
     }
   };
 
-  const handleAddDiscount = async (id) => {
-    navigate(`/admin/books/${id}/discount`);
-  };
-
   const handleRemoveDiscount = async (id) => {
     if (!window.confirm('Are you sure you want to remove this discount?')) {
       return;
@@ -314,10 +311,6 @@ const BookManagement = () => {
     }
   };
 
-  const addNewBook = () => {
-    navigate('/admin/books/add');
-  };
-
   const formatPrice = (price) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -347,9 +340,6 @@ const BookManagement = () => {
 
       <div className="bm-header">
         <h1>Book Management</h1>
-        <button className="bm-btn-primary" onClick={addNewBook}>
-          Add New Book
-        </button>
       </div>
       
       <div className="bm-search-container">
@@ -626,13 +616,7 @@ const BookManagement = () => {
         ) : books.items && books.items.length === 0 ? (
           <div className="bm-empty-state">
             <div className="bm-empty-icon">📚</div>
-            <p>No books found. Try adjusting your search or adding new books.</p>
-            <button 
-              className="bm-btn-primary"
-              onClick={addNewBook}
-            >
-              Add a new book
-            </button>
+            <p>No books found. Try adjusting your search.</p>
           </div>
         ) : (
           <>
@@ -696,44 +680,34 @@ const BookManagement = () => {
                         </div>
                       </td>
                       <td className="bm-actions-cell">
-                        <button 
-                          className="bm-btn-secondary"
-                          onClick={() => navigate(`/books/${book.id}`)}
-                          title="View Book Details"
-                        >
-                          View
-                        </button>
-                        <button 
-                          className="bm-btn-secondary"
-                          onClick={() => handleEditBook(book)}
-                          title="Edit Book"
-                        >
-                          Edit
-                        </button>
-                        <button 
-                          className="bm-btn-danger"
-                          onClick={() => handleDeleteBook(book.id)}
-                          title="Delete Book"
-                        >
-                          Delete
-                        </button>
-                        {book.isOnSale ? (
+                        <div className="bm-actions-wrapper">
                           <button 
-                            className="bm-btn-secondary"
-                            onClick={() => handleRemoveDiscount(book.id)}
-                            title="Remove Discount"
+                            className="bm-action-btn"
+                            onClick={() => navigate(`/bookDetail/${book.id}`)}
                           >
-                            Remove Sale
+                            View
                           </button>
-                        ) : (
                           <button 
-                            className="bm-btn-secondary"
-                            onClick={() => handleAddDiscount(book.id)}
-                            title="Add Discount"
+                            className="bm-action-btn"
+                            onClick={() => handleEditBook(book)}
                           >
-                            Add Sale
+                            Edit
                           </button>
-                        )}
+                          <button 
+                            className="bm-action-btn bm-btn-danger"
+                            onClick={() => handleDeleteBook(book.id)}
+                          >
+                            Delete
+                          </button>
+                          {book.isOnSale && (
+                            <button 
+                              className="bm-action-btn"
+                              onClick={() => handleRemoveDiscount(book.id)}
+                            >
+                              Remove Sale
+                            </button>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))}

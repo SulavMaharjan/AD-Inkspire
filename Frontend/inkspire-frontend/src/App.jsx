@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import { NotificationProvider } from "./context/NotificationContext";
 import { CartProvider } from "./context/CartContext";
+import { CartProvider } from "./context/CartContext";
 import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
@@ -28,7 +29,6 @@ import MemberManagement from "./components/admin/MemberManagement";
 import AdminLayout from "./components/admin/AdminLayout";
 import BookManagement from "./components/admin/BookManagement";
 import AdminDashboard from "./pages/AdminDashboard";
-
 
 // Admin wrapper components
 const AdminDashboardWrapper = () => (
@@ -77,8 +77,6 @@ function App() {
               <Route path="/bookDetail/:id" element={<BookDetails />} />
               <Route path="/purchasedBook" element={<PurchasedBooks />} />
               <Route path="/bookmarkedlist" element={<BookmarkedList />} />
-              <Route path="/staffclaimcode" element={<StaffPage />} />
-              <Route path="/cart" element={<CartPage />} />
 
               {/* Protected routes */}
               <Route
@@ -96,12 +94,27 @@ function App() {
                 element={
                   <AdminProtectedRoute>
                     <Routes>
-                      <Route path="dashboard" element={<AdminDashboardWrapper />} />
-                      <Route path="add-book" element={<AdminAddBookWrapper />} />
-                      <Route path="books" element={<AdminManageBookWrapper />} />
-                      <Route path="announcements" element={<AdminAnnouncementsWrapper />} />
+                      <Route
+                        path="dashboard"
+                        element={<AdminDashboardWrapper />}
+                      />
+                      <Route
+                        path="add-book"
+                        element={<AdminAddBookWrapper />}
+                      />
+                      <Route
+                        path="books"
+                        element={<AdminManageBookWrapper />}
+                      />
+                      <Route
+                        path="announcements"
+                        element={<AdminAnnouncementsWrapper />}
+                      />
                       <Route path="members" element={<AdminMembersWrapper />} />
-                      <Route path="settings" element={<div>Admin Settings</div>} />
+                      <Route
+                        path="settings"
+                        element={<div>Admin Settings</div>}
+                      />
                     </Routes>
                   </AdminProtectedRoute>
                 }
@@ -113,8 +126,14 @@ function App() {
                 element={
                   <MemberProtectedRoute>
                     <Routes>
-                      <Route path="profile" element={<div>Member Profile</div>} />
-                      <Route path="wishlist" element={<div>My Favorite Books</div>} />
+                      <Route
+                        path="profile"
+                        element={<div>Member Profile</div>}
+                      />
+                      <Route
+                        path="wishlist"
+                        element={<div>My Favorite Books</div>}
+                      />
                     </Routes>
                   </MemberProtectedRoute>
                 }
@@ -126,7 +145,7 @@ function App() {
                 element={
                   <StaffProtectedRoute>
                     <Routes>
-                      <Route path="manage-orders" element={<div>Manage Orders</div>} />
+                      <Route path="/staffclaimcode" element={<StaffPage />} />
                     </Routes>
                   </StaffProtectedRoute>
                 }

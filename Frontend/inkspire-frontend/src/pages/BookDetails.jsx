@@ -7,6 +7,7 @@ import Footer from "../components/Landing/Footer";
 import { fetchBookById } from "../context/bookApiService";
 import { CartContext } from "../context/CartContext";
 import { addToCart } from "../context/cartService";
+import { reviewService } from "../context/authService";
 
 const BookDetails = () => {
   const { id } = useParams();
@@ -19,22 +20,10 @@ const BookDetails = () => {
   const [bookmarkLoading, setBookmarkLoading] = useState(false);
   const [reviewRating, setReviewRating] = useState(0);
   const [reviewComment, setReviewComment] = useState("");
-  const [reviews, setReviews] = useState([
-    {
-      id: 1,
-      username: "BookLover42",
-      rating: 5,
-      comment: "This book changed my perspective on life!",
-      date: "2024-03-15",
-    },
-    {
-      id: 2,
-      username: "LiteraryExplorer",
-      rating: 4,
-      comment: "Beautiful story with deep meaning. Highly recommended.",
-      date: "2024-02-20",
-    },
-  ]);
+  const [reviews, setReviews] = useState([]);
+  const [canReview, setCanReview] = useState(false);
+  const [userReview, setUserReview] = useState(null);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
 
   // Quantity modal state
   const [showQuantityModal, setShowQuantityModal] = useState(false);
@@ -77,6 +66,31 @@ const BookDetails = () => {
     }
   };
 
+  // Fetch book reviews
+  const fetchReviews = async () => {
+    try {
+      setReviewsLoading(true);
+      const bookReviews = await reviewService.getBookReviews(id);
+      setReviews(bookReviews);
+      
+      // Check if user has already reviewed this book
+      const userReviews = await reviewService.getUserReviews();
+      const existingReview = userReviews.find(review => review.bookId === id);
+      if (existingReview) {
+        setUserReview(existingReview);
+      }
+      
+      // Check if user can review this book
+      const canReview = await reviewService.checkReviewEligibility(id);
+      setCanReview(canReview && !existingReview);
+    } catch (error) {
+      console.error("Error fetching reviews:", error);
+      showToast("Failed to load reviews", "error");
+    } finally {
+      setReviewsLoading(false);
+    }
+  };
+
   useEffect(() => {
     const getBookDetails = async () => {
       try {
@@ -87,6 +101,9 @@ const BookDetails = () => {
 
         // Check bookmark status after book data is loaded
         checkBookmarkStatus();
+        
+        // Fetch reviews
+        await fetchReviews();
       } catch (err) {
         console.error("Error fetching book details:", err);
         setError("Failed to load book details. Please try again later.");
@@ -258,25 +275,33 @@ const BookDetails = () => {
     }
   };
 
-  const handleSubmitReview = (e) => {
+  const handleSubmitReview = async (e) => {
     e.preventDefault();
     if (reviewRating === 0) {
       showToast("Please select a rating", "error");
       return;
     }
 
-    const newReview = {
-      id: reviews.length + 1,
-      username: "CurrentUser",
-      rating: reviewRating,
-      comment: reviewComment,
-      date: new Date().toISOString().split("T")[0],
-    };
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        navigate(`/login?returnUrl=${encodeURIComponent(window.location.pathname)}`);
+        return;
+      }
 
-    setReviews([newReview, ...reviews]);
-    setReviewRating(0);
-    setReviewComment("");
-    showToast("Review submitted successfully!", "success");
+      await reviewService.createReview(id, reviewRating, reviewComment);
+      showToast("Review submitted successfully!", "success");
+      
+      // Refresh reviews
+      await fetchReviews();
+      
+      // Reset form
+      setReviewRating(0);
+      setReviewComment("");
+    } catch (error) {
+      console.error("Error submitting review:", error);
+      showToast(`Failed to submit review: ${error.message}`, "error");
+    }
   };
 
   if (loading) {
@@ -505,65 +530,112 @@ const BookDetails = () => {
 
         <div className="reviews-section">
           <h2>Customer Reviews</h2>
-
-          <div className="write-review">
-            <h3>Write a Review</h3>
-            <form onSubmit={handleSubmitReview}>
-              <div className="rating-input">
-                <label>Your Rating:</label>
-                <div className="star-selector">
-                  {[...Array(5)].map((_, i) => (
-                    <span
-                      key={i}
-                      className={i < reviewRating ? "star filled" : "star"}
-                      onClick={() => setReviewRating(i + 1)}
-                    >
-                      ★
-                    </span>
-                  ))}
-                </div>
-              </div>
-              <div className="comment-input">
-                <label htmlFor="review-comment">Your Review:</label>
-                <textarea
-                  id="review-comment"
-                  value={reviewComment}
-                  onChange={(e) => setReviewComment(e.target.value)}
-                  required
-                  rows="4"
-                ></textarea>
-              </div>
-              <button type="submit" className="submit-review">
-                Submit Review
-              </button>
-            </form>
+          <div className="reviews-summary">
+            <div className="average-rating">
+              {book.averageRating?.toFixed(1) || "0.0"} out of 5
+            </div>
+            <div className="total-reviews">{reviews.length} reviews</div>
           </div>
 
-          <div className="reviews-list">
-            {reviews.map((review) => (
-              <div key={review.id} className="review-item">
-                <div className="review-header">
-                  <span className="reviewer-name">{review.username}</span>
-                  <span className="review-date">{review.date}</span>
+          {reviewsLoading ? (
+            <div className="loading-reviews">Loading reviews...</div>
+          ) : (
+            <>
+              {canReview && (
+                <div className="write-review">
+                  <h3>Write a Review</h3>
+                  <form onSubmit={handleSubmitReview}>
+                    <div className="rating-input">
+                      <label>Your Rating:</label>
+                      <div className="star-selector">
+                        {[...Array(5)].map((_, i) => (
+                          <span
+                            key={i}
+                            className={i < reviewRating ? "star filled" : "star"}
+                            onClick={() => setReviewRating(i + 1)}
+                          >
+                            ★
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="comment-input">
+                      <label htmlFor="review-comment">Your Review:</label>
+                      <textarea
+                        id="review-comment"
+                        value={reviewComment}
+                        onChange={(e) => setReviewComment(e.target.value)}
+                        rows="4"
+                      ></textarea>
+                    </div>
+                    <button type="submit" className="submit-review">
+                      Submit Review
+                    </button>
+                  </form>
                 </div>
-                <div className="review-rating">
-                  {[...Array(5)].map((_, i) => (
-                    <span
-                      key={i}
-                      className={i < review.rating ? "star filled" : "star"}
-                    >
-                      ★
-                    </span>
-                  ))}
+              )}
+
+              {userReview && (
+                <div className="user-review">
+                  <h3>Your Review</h3>
+                  <div className="review-item">
+                    <div className="review-rating">
+                      {[...Array(5)].map((_, i) => (
+                        <span
+                          key={i}
+                          className={i < userReview.rating ? "star filled" : "star"}
+                        >
+                          ★
+                        </span>
+                      ))}
+                    </div>
+                    <div className="review-comment">
+                      <p>{userReview.comment}</p>
+                    </div>
+                    <div className="review-date">
+                      Reviewed on {new Date(userReview.createdDate).toLocaleDateString()}
+                    </div>
+                  </div>
                 </div>
-                <div className="review-comment">
-                  <p>{review.comment}</p>
-                </div>
+              )}
+
+              <div className="reviews-list">
+                <h3>Customer Reviews</h3>
+                {reviews.length > 0 ? (
+                  reviews.map((review) => (
+                    <div key={review.id} className="review-item">
+                      <div className="review-header">
+                        <span className="reviewer-name">{review.userName}</span>
+                        <span className="review-date">
+                          {new Date(review.createdDate).toLocaleDateString()}
+                        </span>
+                      </div>
+                      <div className="review-rating">
+                        {[...Array(5)].map((_, i) => (
+                          <span
+                            key={i}
+                            className={i < review.rating ? "star filled" : "star"}
+                          >
+                            ★
+                          </span>
+                        ))}
+                      </div>
+                      <div className="review-comment">
+                        <p>{review.comment}</p>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="no-reviews">
+                    <p>No reviews yet. Be the first to review this book!</p>
+                  </div>
+                )}
               </div>
-            ))}
-          </div>
+            </>
+          )}
         </div>
       </div>
+
       {showQuantityModal && book && (
         <div
           className="quantity-modal-overlay"
