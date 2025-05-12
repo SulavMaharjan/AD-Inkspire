@@ -396,7 +396,6 @@
   color: var(--primary-color);
 }
 
-/* Summary Calculations */
 .summary-calculations {
   background-color: var(--light-color);
   border-radius: 8px;
@@ -423,7 +422,6 @@
   margin-top: 0.5rem;
 }
 
-/* Modal Footer */
 .modal-footer {
   display: flex;
   flex-direction: column;
@@ -552,7 +550,6 @@
   font-weight: bold;
 }
 
-/* Responsive design for pagination */
 @media (max-width: 768px) {
   .pagination-controls {
     flex-direction: column;
@@ -587,7 +584,6 @@
   background-color: var(--secondary-color);
 }
 
-/* Adjust these styles when you have both cancel and close buttons */
 .modal-footer {
   display: flex;
   flex-direction: row;
