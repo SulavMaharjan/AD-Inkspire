@@ -353,5 +353,17 @@ namespace backend_inkspire.Repositories
                 .ToListAsync();
         }
 
+        public async Task<bool> IncrementBookSoldCountAsync(int bookId, int quantity)
+        {
+            var book = await _context.Books.FindAsync(bookId);
+            if (book == null)
+            {
+                return false;
+            }
+
+            book.SoldCount += quantity;
+            await _context.SaveChangesAsync();
+            return true;
+        }
     }
 }

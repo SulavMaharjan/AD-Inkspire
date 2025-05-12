@@ -3,7 +3,6 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import { NotificationProvider } from "./context/NotificationContext";
 import { CartProvider } from "./context/CartContext";
-import { CartProvider } from "./context/CartContext";
 import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
@@ -125,10 +124,7 @@ function App() {
                 element={
                   <MemberProtectedRoute>
                     <Routes>
-                      <Route
-                        path="profile"
-                        element={<div>Member Profile</div>}
-                      />
+                      <Route path="cart" element={<CartPage />} />
                       <Route
                         path="wishlist"
                         element={<div>My Favorite Books</div>}

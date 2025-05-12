@@ -18,6 +18,7 @@ namespace backend_inkspire.Repositories
         Task<bool> UpdateBookStockAsync(int bookId, int quantityChange);
 
         Task<IEnumerable<string>> GetDistinctValuesAsync<TProperty>(Expression<Func<Book, TProperty>> selector);
+        Task<bool> IncrementBookSoldCountAsync(int bookId, int quantity);
 
         Task SaveChangesAsync();
     }
