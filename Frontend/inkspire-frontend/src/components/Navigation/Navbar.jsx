@@ -76,7 +76,6 @@ const Navbar = () => {
                       exit={{ opacity: 0, y: -10 }}
                       transition={{ duration: 0.2 }}
                     >
-                      <Link to="/dashboard" className="dropdown-item">Dashboard</Link>
                       <Link to="/profile" className="dropdown-item">Profile</Link>
                       <button className="dropdown-item logout" onClick={handleLogout}>
                         Log out

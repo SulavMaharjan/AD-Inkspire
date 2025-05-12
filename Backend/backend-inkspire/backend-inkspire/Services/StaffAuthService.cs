@@ -157,5 +157,109 @@ namespace backend_inkspire.Services
                 }
             };
         }
+
+
+        public async Task<GetStaffsResponseDTO> GetAllStaffsAsync(string requesterEmail)
+        {
+            var response = new GetStaffsResponseDTO
+            {
+                IsSuccess = false,
+                Staffs = new List<StaffDTO>()
+            };
+
+            // Check if the requester is authorized (Admin or Staff)
+            var requester = await _userRepository.GetUserByEmailOrUsernameAsync(requesterEmail);
+            if (requester == null)
+            {
+                response.Message = "Requester not found";
+                return response;
+            }
+
+            var requesterRoles = await _userRepository.GetUserRolesAsync(requester);
+            if (!requesterRoles.Contains("SuperAdmin") && !requesterRoles.Contains("Staff"))
+            {
+                response.Message = "Not authorized to view staff members";
+                return response;
+            }
+
+            // Get only staff users (excluding SuperAdmins)
+            var staffUsers = await _userRepository.GetUsersByRoleAsync("Staff");
+
+            // Convert to DTOs
+            response.Staffs = staffUsers.Select(u => new StaffDTO
+            {
+                Id = (int)u.Id,
+                Name = u.Name,
+                Email = u.Email,
+                UserName = u.UserName
+            }).ToList();
+
+            response.IsSuccess = true;
+            response.Message = "Staff members retrieved successfully";
+            return response;
+        }
+
+
+        public async Task<DeleteStaffResponseDTO> DeleteStaffAsync(int staffId, string deleterEmail)
+        {
+            var response = new DeleteStaffResponseDTO();
+
+            // Check if the deleter is a SuperAdmin
+            var deleter = await _userRepository.GetUserByEmailOrUsernameAsync(deleterEmail);
+            if (deleter == null)
+            {
+                response.IsSuccess = false;
+                response.Message = "Deleter not found";
+                return response;
+            }
+
+            var deleterRoles = await _userRepository.GetUserRolesAsync(deleter);
+            if (!deleterRoles.Contains("SuperAdmin"))
+            {
+                response.IsSuccess = false;
+                response.Message = "Only SuperAdmin can delete staff accounts";
+                return response;
+            }
+
+            // Find the staff user to delete
+            var userToDelete = await _userManager.FindByIdAsync(staffId.ToString());
+            if (userToDelete == null)
+            {
+                response.IsSuccess = false;
+                response.Message = "Staff account not found";
+                return response;
+            }
+
+            // Check if the user is a staff or SuperAdmin
+            var userRoles = await _userRepository.GetUserRolesAsync(userToDelete);
+            if (!userRoles.Contains("Staff") && !userRoles.Contains("SuperAdmin"))
+            {
+                response.IsSuccess = false;
+                response.Message = "Cannot delete non-staff account";
+                return response;
+            }
+
+            // Prevent deleting a SuperAdmin
+            if (userRoles.Contains("SuperAdmin"))
+            {
+                response.IsSuccess = false;
+                response.Message = "Cannot delete a SuperAdmin account";
+                return response;
+            }
+
+            // Delete the user
+            var deleteResult = await _userRepository.DeleteUserAsync(userToDelete);
+
+            if (!deleteResult.Succeeded)
+            {
+                response.IsSuccess = false;
+                response.Message = string.Join(", ", deleteResult.Errors.Select(e => e.Description));
+                return response;
+            }
+
+            response.IsSuccess = true;
+            response.Message = "Staff account deleted successfully";
+            return response;
+        }
     }
 }

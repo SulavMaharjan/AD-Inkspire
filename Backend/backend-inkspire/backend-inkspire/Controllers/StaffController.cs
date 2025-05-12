@@ -3,6 +3,7 @@ using backend_inkspire.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using System.Threading.Tasks;
 
 namespace backend_inkspire.Controllers
 {
@@ -54,6 +55,38 @@ namespace backend_inkspire.Controllers
         public IActionResult StaffLogout()
         {
             return Ok(new { IsSuccess = true, Message = "Staff logout successful." });
+        }
+
+        [HttpDelete("delete/{staffId}")]
+        [Authorize(Roles = "SuperAdmin")]
+        public async Task<IActionResult> DeleteStaff(int staffId)
+        {
+            // Get admin deleting the staff account
+            var deleterEmail = User.FindFirstValue(ClaimTypes.Email);
+            if (string.IsNullOrEmpty(deleterEmail))
+                return Unauthorized(new { IsSuccess = false, Message = "Admin authentication required" });
+
+            var result = await _staffAuthService.DeleteStaffAsync(staffId, deleterEmail);
+            if (!result.IsSuccess)
+                return BadRequest(result);
+
+            return Ok(result);
+        }
+
+        [HttpGet("all")]
+        [Authorize(Roles = "Staff,SuperAdmin")]
+        public async Task<IActionResult> GetAllStaffs()
+        {
+            // Get the email of the requester
+            var requesterEmail = User.FindFirstValue(ClaimTypes.Email);
+            if (string.IsNullOrEmpty(requesterEmail))
+                return Unauthorized(new { IsSuccess = false, Message = "Authentication required" });
+
+            var result = await _staffAuthService.GetAllStaffsAsync(requesterEmail);
+            if (!result.IsSuccess)
+                return BadRequest(result);
+
+            return Ok(result);
         }
     }
 }

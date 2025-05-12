@@ -416,16 +416,13 @@ const PurchasedBooks = () => {
                       order.orderItems.map((item, index) => {
                         const itemId = item.id || `${order.id}-${index}`;
                         const coverImage =
-                          (item.book && item.book.coverImage) ||
-                          (item.book && item.book.coverImagePath) ||
-                          item.coverImage ||
-                          item.coverImagePath ||
+                   `https://localhost:7039${item.coverImagePath}` || `https://localhost:7039${item.coverImage}`
                           null;
 
                         return (
                           <div key={itemId} className="order-item">
                             <img
-                              src={getCoverImageUrl(coverImage, itemId)}
+                              src= {`https://localhost:7039${item.coverImagePath}`}
                               alt={
                                 (item.book && item.book.title) ||
                                 item.bookTitle ||

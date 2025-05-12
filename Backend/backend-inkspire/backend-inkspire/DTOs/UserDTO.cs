@@ -70,4 +70,6 @@ namespace backend_inkspire.DTOs
 
         public string? UserName { get; set; }
     }
+
+
 }
