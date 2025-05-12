@@ -188,10 +188,9 @@
   border-radius: 4px;
 }
 
-.item-details {
+.item-detaills {
   display: flex;
-  flex-direction: column;
-  justify-content: center;
+  gap: 25px;
 }
 
 .item-title {
@@ -598,7 +597,6 @@
   margin-top: 1rem;
 }
 
-
 /* Review Modal Styles */
 .review-modal {
   max-width: 500px;
@@ -681,7 +679,7 @@
 }
 
 .submit-review-btn {
-  background-color: #4CAF50;
+  background-color: #4caf50;
   color: white;
   border: none;
   padding: 10px 20px;
@@ -724,7 +722,6 @@
   text-align: center;
 }
 
-
 /* Review section styles */
 .review-section {
   margin-top: 20px;
@@ -743,11 +740,13 @@
   margin-bottom: 10px;
 }
 
-.rating-input, .comment-input {
+.rating-input,
+.comment-input {
   margin-bottom: 10px;
 }
 
-.rating-input label, .comment-input label {
+.rating-input label,
+.comment-input label {
   display: block;
   margin-bottom: 5px;
   font-weight: 500;
@@ -761,7 +760,7 @@
 }
 
 .submit-review-btn {
-  background-color: #4CAF50;
+  background-color: #4caf50;
   color: white;
   padding: 8px 15px;
   border: none;

@@ -218,10 +218,6 @@ const AddBookForm = () => {
       setCoverImagePath(null);
       setPreviewImage(null);
 
-      //redirect based on role
-      if (currentRole === "SuperAdmin") {
-        navigate("/admin-dashboard/books");
-      }
     } catch (error) {
       console.error("Error adding book:", error);
 

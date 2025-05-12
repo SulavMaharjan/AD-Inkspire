@@ -25,6 +25,7 @@ import {
   fetchComingSoon,
 } from "../../context/bookApiService";
 import "../../styles/BookListing.css";
+import Navbar from "../Navigation/Navbar";
 
 const BookListing = () => {
   const { fetchCart } = useContext(CartContext);
@@ -388,11 +389,8 @@ const BookListing = () => {
 
   return (
     <div className="book-listing-container">
+      <Navbar />
       <header className="book-listing-header">
-        <div className="logo-container">
-          <BookIcon size={32} />
-          <h1>Inkspire</h1>
-        </div>
         <SearchBar searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
         <button className="filter-button" onClick={toggleFilters}>
           <SlidersHorizontal size={20} />

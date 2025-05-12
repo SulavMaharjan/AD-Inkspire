@@ -3,7 +3,6 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import { NotificationProvider } from "./context/NotificationContext";
 import { CartProvider } from "./context/CartContext";
-import { CartProvider } from "./context/CartContext";
 import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
@@ -33,7 +32,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 // Admin wrapper components
 const AdminDashboardWrapper = () => (
   <AdminLayout>
-    <AdminDashboard/>
+    <AdminDashboard />
   </AdminLayout>
 );
 
@@ -75,7 +74,7 @@ function App() {
               <Route path="/signup" element={<SignupPage />} />
               <Route path="/unauthorized" element={<UnauthorizedPage />} />
               <Route path="/bookDetail/:id" element={<BookDetails />} />
-              <Route path="/purchasedBook" element={<PurchasedBooks />} />
+              <Route path="/orderedBook" element={<PurchasedBooks />} />
               <Route path="/bookmarkedlist" element={<BookmarkedList />} />
 
               {/* Protected routes */}
@@ -130,10 +129,7 @@ function App() {
                         path="profile"
                         element={<div>Member Profile</div>}
                       />
-                      <Route
-                        path="wishlist"
-                        element={<div>My Favorite Books</div>}
-                      />
+                      <Route path="cart" element={<CartPage />} />
                     </Routes>
                   </MemberProtectedRoute>
                 }

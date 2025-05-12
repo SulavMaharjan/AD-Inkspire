@@ -142,6 +142,13 @@
   background-color: rgba(229, 62, 62, 0.1);
 }
 
+.navitemms {
+  display: flex;
+  gap: 25px;
+  font-size: large;
+  font-weight: 600;
+}
+
 /* Mobile menu */
 .mobile-menu {
   display: none;
@@ -186,19 +193,19 @@
   .navbar-container {
     padding: var(--space-md);
   }
-  
+
   .auth-buttons {
     display: none;
   }
-  
+
   .user-menu-container {
     display: none;
   }
-  
+
   .mobile-menu-toggle {
     display: flex;
   }
-  
+
   .mobile-menu {
     display: block;
     position: absolute;
@@ -208,7 +215,7 @@
     z-index: var(--z-dropdown);
     box-shadow: var(--shadow-md);
   }
-  
+
   .navbar.mobile-open {
     background-color: white;
     box-shadow: var(--shadow-md);

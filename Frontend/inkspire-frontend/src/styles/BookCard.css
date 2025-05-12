@@ -214,7 +214,7 @@
 }
 
 .view-details-button {
-  background-color: var(--secondary-color);
+  background-color: var(--accent-color);
   color: white;
   border: none;
   border-radius: var(--border-radius-sm);
