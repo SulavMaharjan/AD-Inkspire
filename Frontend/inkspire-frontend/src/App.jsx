@@ -32,6 +32,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 const AdminDashboardWrapper = () => (
   <AdminLayout>
     <AdminDashboard />
+    <AdminDashboard />
   </AdminLayout>
 );
 
@@ -73,7 +74,7 @@ function App() {
               <Route path="/signup" element={<SignupPage />} />
               <Route path="/unauthorized" element={<UnauthorizedPage />} />
               <Route path="/bookDetail/:id" element={<BookDetails />} />
-              <Route path="/purchasedBook" element={<PurchasedBooks />} />
+              <Route path="/orderedBook" element={<PurchasedBooks />} />
               <Route path="/bookmarkedlist" element={<BookmarkedList />} />
 
               {/* Protected routes */}
@@ -126,9 +127,10 @@ function App() {
                     <Routes>
                       <Route path="cart" element={<CartPage />} />
                       <Route
-                        path="member"
-                        element={<CartPage/>}
+                        path="profile"
+                        element={<div>Member Profile</div>}
                       />
+                      <Route path="cart" element={<CartPage />} />
                     </Routes>
                   </MemberProtectedRoute>
                 }

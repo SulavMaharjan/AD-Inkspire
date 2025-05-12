@@ -13,7 +13,7 @@ const LoginPage = () => {
   }, []);
 
   return (
-    <div className="auth-page">
+    <div className="auth-log-page">
       <div className="auth-background">
         <div className="auth-overlay"></div>
       </div>
