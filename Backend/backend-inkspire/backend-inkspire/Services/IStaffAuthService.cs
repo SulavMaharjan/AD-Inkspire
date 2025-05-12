@@ -6,5 +6,7 @@ namespace backend_inkspire.Services
     {
         Task<AuthResponseDTO> RegisterStaffAsync(StaffRegisterDTO registerDto, string createdByEmail);
         Task<AuthResponseDTO> StaffLoginAsync(LoginDTO loginDto);
+        Task<DeleteStaffResponseDTO> DeleteStaffAsync(int staffId, string deleterEmail);
+        Task<GetStaffsResponseDTO> GetAllStaffsAsync(string requesterEmail);
     }
 }

@@ -37,6 +37,12 @@ export const fetchBooks = async (filters = {}) => {
       format,
       language,
       publisher,
+      bestseller,
+      newRelease,
+      awardWinner,
+      newArrival,
+      comingSoon,
+      onSale,
       ...otherFilters
     } = filters;
 
@@ -44,7 +50,6 @@ export const fetchBooks = async (filters = {}) => {
     queryParams.append("pageNumber", pageNumber);
     queryParams.append("pageSize", pageSize);
 
-    // Normalize sortBy to match API expectations
     const apiSortMapping = {
       title: "Title",
       "publication-date-newest": "PublicationDateNewest",
@@ -56,22 +61,12 @@ export const fetchBooks = async (filters = {}) => {
     };
 
     const apiSortBy = apiSortMapping[sortBy] || "Popularity";
-
-    // Determine sort ascending based on sort option
-    let finalSortAscending = sortAscending;
-    if (sortBy === "title") finalSortAscending = true;
-    if (sortBy === "price-low") finalSortAscending = true;
-    if (sortBy === "price-high") finalSortAscending = false;
-
     queryParams.append("sortBy", apiSortBy);
-    queryParams.append("sortAscending", finalSortAscending);
+    queryParams.append("sortAscending", sortAscending.toString());
 
-    // Add optional filters
     if (searchTerm) queryParams.append("searchTerm", searchTerm);
-    if (priceMin !== undefined && priceMin > 0)
-      queryParams.append("priceMin", priceMin);
-    if (priceMax !== undefined && priceMax < 1000)
-      queryParams.append("priceMax", priceMax);
+    if (priceMin !== undefined) queryParams.append("priceMin", priceMin);
+    if (priceMax !== undefined) queryParams.append("priceMax", priceMax);
     if (genre) queryParams.append("genre", genre);
     if (author) queryParams.append("author", author);
     if (minRating) queryParams.append("minRating", minRating);
@@ -79,7 +74,14 @@ export const fetchBooks = async (filters = {}) => {
     if (language) queryParams.append("language", language);
     if (publisher) queryParams.append("publisher", publisher);
 
-    // Add any additional filters
+    //category-specific filters
+    if (bestseller) queryParams.append("bestseller", "true");
+    if (newRelease) queryParams.append("newRelease", "true");
+    if (awardWinner) queryParams.append("awardWinner", "true");
+    if (newArrival) queryParams.append("newArrival", "true");
+    if (comingSoon) queryParams.append("comingSoon", "true");
+    if (onSale) queryParams.append("onSale", "true");
+
     Object.entries(otherFilters).forEach(([key, value]) => {
       if (value !== undefined && value !== "") {
         queryParams.append(key, value);
@@ -439,7 +441,7 @@ export const fetchFormats = async () => {
   }
 };
 
-// Bookmark related functions
+//bookmark related functions
 export const getBookmarkedBooks = async (pageNumber = 1, pageSize = 10) => {
   try {
     const response = await fetch(
@@ -464,7 +466,7 @@ export const getBookmarkedBooks = async (pageNumber = 1, pageSize = 10) => {
   }
 };
 
-// Add bookmark
+//add bookmark
 export const addBookmark = async (bookId) => {
   try {
     const response = await fetch(`${API_BASE_URL}/bookmarks`, {
@@ -487,7 +489,7 @@ export const addBookmark = async (bookId) => {
   }
 };
 
-// Remove bookmark
+//remove bookmark
 export const removeBookmark = async (bookId) => {
   try {
     const response = await fetch(`${API_BASE_URL}/bookmarks/${bookId}`, {
@@ -509,7 +511,7 @@ export const removeBookmark = async (bookId) => {
   }
 };
 
-// Check if book is bookmarked
+//check if book is bookmarked
 export const checkBookmark = async (bookId) => {
   try {
     const response = await fetch(`${API_BASE_URL}/bookmarks/check/${bookId}`, {
@@ -656,24 +658,51 @@ export const searchBooks = async (
   additionalFilters = {}
 ) => {
   try {
+    //filter properties
+    const {
+      priceMin,
+      priceMax,
+      genre,
+      author,
+      minRating,
+      format,
+      language,
+      publisher,
+      ...otherFilters
+    } = additionalFilters;
+
     const queryParams = new URLSearchParams({
-      pageNumber,
-      pageSize,
-      searchTerm,
-      ...Object.fromEntries(
-        Object.entries(additionalFilters).filter(([_, v]) => v != null)
-      ),
+      pageNumber: pageNumber.toString(),
+      pageSize: pageSize.toString(),
+      searchTerm: searchTerm,
     });
 
-    const response = await fetch(
-      `${API_BASE_URL}/books/getbooks?${queryParams}`,
-      {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
+    //filter parameters
+    if (priceMin !== undefined) queryParams.append("priceMin", priceMin);
+    if (priceMax !== undefined) queryParams.append("priceMax", priceMax);
+    if (genre) queryParams.append("genre", genre);
+    if (author) queryParams.append("author", author);
+    if (minRating) queryParams.append("minRating", minRating);
+    if (format) queryParams.append("format", format);
+    if (language) queryParams.append("language", language);
+    if (publisher) queryParams.append("publisher", publisher);
+
+    //additional filters
+    Object.entries(otherFilters).forEach(([key, value]) => {
+      if (value !== undefined && value !== "") {
+        queryParams.append(key, value);
       }
-    );
+    });
+
+    const url = `${API_BASE_URL}/books/getbooks?${queryParams}`;
+    console.log("Searching books with URL:", url);
+
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
 
     if (!response.ok) {
       throw new Error(`API error: ${response.status} ${response.statusText}`);

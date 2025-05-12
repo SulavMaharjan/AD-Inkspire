@@ -36,13 +36,19 @@ const AdminLayout = ({ children }) => {
           <li className="nav-item">
             <Link to="/admin/books" className="admin-nav-link">
               <BookOpen size={18} />
-              <span>Books Management</span>
+              <span>Books</span>
             </Link>
           </li>
           <li className="nav-item">
             <Link to="/admin/members" className="admin-nav-link">
               <Users size={18} />
               <span>Members</span>
+            </Link>
+          </li>
+          <li className="nav-item">
+            <Link to="/admin/staffs" className="admin-nav-link">
+              <Users size={18} />
+              <span>Staffs</span>
             </Link>
           </li>
           <li className="nav-item">

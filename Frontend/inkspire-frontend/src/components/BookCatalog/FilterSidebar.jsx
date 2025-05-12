@@ -162,27 +162,29 @@ const FilterSidebar = ({ setShowFilters, initialFilters, onApplyFilters }) => {
     setMinPrice(0);
     setMaxPrice(MAX_PRICE);
     setRatingFilter(0);
+
+    console.log("All filters cleared");
   };
 
   const applyFilters = () => {
     const filterData = {
-      minPrice: minPrice > 0 ? minPrice : undefined,
-      maxPrice: maxPrice < MAX_PRICE ? maxPrice : undefined,
+      minPrice,
+      maxPrice,
       selectedGenres,
       selectedAuthors,
       selectedFormats,
       selectedLanguages,
       selectedPublishers,
-      ratingFilter: ratingFilter > 0 ? ratingFilter : undefined,
+      ratingFilter,
     };
 
     console.log("Applying filters from sidebar:", filterData);
 
     if (onApplyFilters) {
       onApplyFilters(filterData);
-    } else {
-      setShowFilters(false);
     }
+
+    setShowFilters(false);
   };
 
   return (

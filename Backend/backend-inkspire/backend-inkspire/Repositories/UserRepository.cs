@@ -52,5 +52,16 @@ namespace backend_inkspire.Repositories
         {
             return await _userManager.GetRolesAsync(user);
         }
+
+        public async Task<IdentityResult> DeleteUserAsync(User user)
+        {
+            return await _userManager.DeleteAsync(user);
+        }
+
+        public async Task<List<User>> GetUsersByRoleAsync(string roleName)
+        {
+            var usersInRole = await _userManager.GetUsersInRoleAsync(roleName);
+            return usersInRole.ToList();
+        }
     }
 }

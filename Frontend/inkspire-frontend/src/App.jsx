@@ -12,7 +12,7 @@ import {
   MemberProtectedRoute,
   StaffProtectedRoute,
 } from "./components/Auth/ProtectedRoute";
-import DashboardPage from "./pages/DashboardPage";
+
 import NotFoundPage from "./pages/NotFoundPage";
 import UnauthorizedPage from "./components/UnauthorizedPage";
 import BookListing from "./components/BookCatalog/BookListing";
@@ -28,6 +28,7 @@ import MemberManagement from "./components/admin/MemberManagement";
 import AdminLayout from "./components/admin/AdminLayout";
 import BookManagement from "./components/admin/BookManagement";
 import AdminDashboard from "./pages/AdminDashboard";
+import StaffManagement from "./components/Staff/StaffManagement";
 
 const AdminDashboardWrapper = () => (
   <AdminLayout>
@@ -59,6 +60,11 @@ const AdminMembersWrapper = () => (
     <MemberManagement />
   </AdminLayout>
 );
+const AdminStaffWrapper = () => (
+  <AdminLayout>
+    <StaffManagement />
+  </AdminLayout>
+);
 
 function App() {
   return (
@@ -77,15 +83,6 @@ function App() {
               <Route path="/orderedBook" element={<PurchasedBooks />} />
               <Route path="/bookmarkedlist" element={<BookmarkedList />} />
 
-              {/* Protected routes */}
-              <Route
-                path="/dashboard"
-                element={
-                  <ProtectedRoute>
-                    <DashboardPage />
-                  </ProtectedRoute>
-                }
-              />
 
               {/* Admin protected routes */}
               <Route
@@ -111,8 +108,8 @@ function App() {
                       />
                       <Route path="members" element={<AdminMembersWrapper />} />
                       <Route
-                        path="settings"
-                        element={<div>Admin Settings</div>}
+                        path="staffs"
+                        element={<AdminStaffWrapper/>}
                       />
                     </Routes>
                   </AdminProtectedRoute>
