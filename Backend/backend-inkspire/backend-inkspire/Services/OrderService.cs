@@ -171,10 +171,12 @@ namespace backend_inkspire.Services
                 Console.WriteLine($"Stack trace: {ex.StackTrace}");
             }
 
-            //update book stock
+            //update book stock and sold count
             foreach (var item in order.Items)
             {
                 await _bookRepository.UpdateBookStockAsync(item.BookId, -item.Quantity);
+
+                await _bookRepository.IncrementBookSoldCountAsync(item.BookId, item.Quantity);
             }
 
             if (appliedDiscount != null)
@@ -830,5 +832,5 @@ namespace backend_inkspire.Services
             }
         }
 
- }
+    }
 }

@@ -1,4 +1,5 @@
 ﻿using backend_inkspire.DTOs;
+using backend_inkspire.Repositories;
 using backend_inkspire.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -124,7 +125,7 @@ namespace backend_inkspire.Controllers
         {
             var filter = new BookFilterDTO
             {
-                SortBy = "Popularity",
+                SortBy = SortOption.Popularity,
                 SortAscending = false,
                 PageNumber = pageNumber,
                 PageSize = pageSize
@@ -156,8 +157,7 @@ namespace backend_inkspire.Controllers
             var filter = new BookFilterDTO
             {
                 NewRelease = true,
-                SortBy = "PublicationDate",
-                SortAscending = false,
+                SortBy = SortOption.PublicationDateNewest,
                 PageNumber = pageNumber,
                 PageSize = pageSize
             };
@@ -264,7 +264,7 @@ namespace backend_inkspire.Controllers
         {
             var filter = new BookFilterDTO
             {
-                SortBy = "Rating",
+                SortBy = SortOption.Rating,
                 SortAscending = false,
                 PageNumber = pageNumber,
                 PageSize = pageSize
@@ -280,7 +280,7 @@ namespace backend_inkspire.Controllers
         {
             var filter = new BookFilterDTO
             {
-                SortBy = "Popularity",
+                SortBy = SortOption.Popularity,
                 SortAscending = false,
                 PageNumber = pageNumber,
                 PageSize = pageSize
@@ -321,6 +321,44 @@ namespace backend_inkspire.Controllers
         {
             var formats = await _bookService.GetDistinctFormatsAsync();
             return Ok(formats);
+        }
+
+        [HttpGet("price-low-to-high")]
+        public async Task<ActionResult<PaginatedResponseDTO<BookResponseDTO>>> GetBooksSortedByPriceLowToHigh(
+            [FromQuery] BookFilterDTO filter)
+        {
+            try
+            {
+                filter ??= new BookFilterDTO();
+                filter.SortBy = SortOption.PriceLow;
+                filter.SortAscending = true;
+
+                var books = await _bookService.GetBooksAsync(filter);
+                return Ok(books);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"An error occurred while retrieving books: {ex.Message}");
+            }
+        }
+
+        [HttpGet("price-high-to-low")]
+        public async Task<ActionResult<PaginatedResponseDTO<BookResponseDTO>>> GetBooksSortedByPriceHighToLow(
+            [FromQuery] BookFilterDTO filter)
+        {
+            try
+            {
+                filter ??= new BookFilterDTO();
+                filter.SortBy = SortOption.PriceHigh;
+                filter.SortAscending = false;
+
+                var books = await _bookService.GetBooksAsync(filter);
+                return Ok(books);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"An error occurred while retrieving books: {ex.Message}");
+            }
         }
     }
 }

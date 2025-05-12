@@ -17,7 +17,6 @@ namespace backend_inkspire.Controllers
             _reviewService = reviewService;
         }
 
-        // POST: api/reviews
         [HttpPost]
         [Authorize(Roles = "Member")]
         public async Task<ActionResult<ReviewResponseDTO>> CreateReview([FromBody] ReviewDTO reviewDto)
@@ -38,7 +37,6 @@ namespace backend_inkspire.Controllers
             }
         }
 
-        // GET: api/reviews/5
         [HttpGet("{id}")]
         public async Task<ActionResult<ReviewResponseDTO>> GetReviewById(int id)
         {
@@ -51,7 +49,6 @@ namespace backend_inkspire.Controllers
             return Ok(review);
         }
 
-        // GET: api/reviews/book/5
         [HttpGet("book/{bookId}")]
         public async Task<ActionResult<IEnumerable<ReviewResponseDTO>>> GetReviewsByBookId(int bookId)
         {
@@ -59,7 +56,6 @@ namespace backend_inkspire.Controllers
             return Ok(reviews);
         }
 
-        // GET: api/reviews/user
         [HttpGet("user")]
         [Authorize(Roles = "Member")]
         public async Task<ActionResult<IEnumerable<ReviewResponseDTO>>> GetUserReviews()
@@ -69,7 +65,6 @@ namespace backend_inkspire.Controllers
             return Ok(reviews);
         }
 
-        // PUT: api/reviews/5
         [HttpPut("{id}")]
         [Authorize(Roles = "Member")]
         public async Task<IActionResult> UpdateReview(int id, [FromBody] ReviewDTO reviewDto)
@@ -95,7 +90,6 @@ namespace backend_inkspire.Controllers
             }
         }
 
-        // DELETE: api/reviews/5
         [HttpDelete("{id}")]
         [Authorize(Roles = "Member,SuperAdmin")]
         public async Task<IActionResult> DeleteReview(int id)
@@ -128,7 +122,6 @@ namespace backend_inkspire.Controllers
             }
         }
 
-        // GET: api/reviews/eligibility/5
         [HttpGet("eligibility/{bookId}")]
         [Authorize(Roles = "Member")]
         public async Task<ActionResult<bool>> CheckReviewEligibility(int bookId)

@@ -33,6 +33,7 @@ const PurchasedBooks = () => {
   const [reviewInputs, setReviewInputs] = useState({});
   const [bookReviews, setBookReviews] = useState({});
   const [userReviews, setUserReviews] = useState([]);
+  const [imageErrors, setImageErrors] = useState({});
 
   const pageSize = 5;
 

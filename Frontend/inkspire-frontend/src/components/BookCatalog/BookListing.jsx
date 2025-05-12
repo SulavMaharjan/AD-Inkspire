@@ -23,6 +23,11 @@ import {
   fetchAwardWinners,
   fetchNewArrivals,
   fetchComingSoon,
+  fetchTopRated,
+  fetchMostPopular,
+  fetchBooksLowToHigh,
+  fetchBooksHighToLow,
+  searchBooks,
 } from "../../context/bookApiService";
 import "../../styles/BookListing.css";
 import Navbar from "../Navigation/Navbar";
@@ -100,6 +105,10 @@ const BookListing = () => {
     setPagination((prev) => ({ ...prev, currentPage: 1 }));
   }, [activeCategory, searchQuery, activeFilters]);
 
+  const mapSortByToApi = (sortOption) => {
+    return sortOption;
+  };
+
   //books based on active category and filters
   useEffect(() => {
     if (!apiAvailable) return;
@@ -114,84 +123,124 @@ const BookListing = () => {
           pageNumber: pagination.currentPage,
           pageSize: pagination.pageSize,
           searchTerm: searchQuery,
-          sortBy: mapSortByToApi(sortBy),
-          sortAscending: sortBy === "title" || sortBy === "price-low",
-          //filter parameters
-          priceMin: activeFilters.minPrice,
-          priceMax: activeFilters.maxPrice,
-          genre:
-            activeFilters.selectedGenres.length > 0
-              ? activeFilters.selectedGenres.join(",")
-              : undefined,
-          author:
-            activeFilters.selectedAuthors.length > 0
-              ? activeFilters.selectedAuthors.join(",")
-              : undefined,
-          format:
-            activeFilters.selectedFormats.length > 0
-              ? activeFilters.selectedFormats.join(",")
-              : undefined,
-          language:
-            activeFilters.selectedLanguages.length > 0
-              ? activeFilters.selectedLanguages.join(",")
-              : undefined,
-          publisher:
-            activeFilters.selectedPublishers.length > 0
-              ? activeFilters.selectedPublishers.join(",")
-              : undefined,
-          minRating:
-            activeFilters.ratingFilter > 0
-              ? activeFilters.ratingFilter
-              : undefined,
+          ...(activeFilters.minPrice > 0 && {
+            priceMin: activeFilters.minPrice,
+          }),
+          ...(activeFilters.maxPrice < MAX_PRICE && {
+            priceMax: activeFilters.maxPrice,
+          }),
+          ...(activeFilters.selectedGenres.length > 0 && {
+            genre: activeFilters.selectedGenres.join(","),
+          }),
+          ...(activeFilters.selectedAuthors.length > 0 && {
+            author: activeFilters.selectedAuthors.join(","),
+          }),
+          ...(activeFilters.selectedFormats.length > 0 && {
+            format: activeFilters.selectedFormats.join(","),
+          }),
+          ...(activeFilters.selectedLanguages.length > 0 && {
+            language: activeFilters.selectedLanguages.join(","),
+          }),
+          ...(activeFilters.selectedPublishers.length > 0 && {
+            publisher: activeFilters.selectedPublishers.join(","),
+          }),
+          ...(activeFilters.ratingFilter > 0 && {
+            minRating: activeFilters.ratingFilter,
+          }),
         };
 
         console.log("Sending API request with filters:", filters);
 
-        //books based on active category
-        if (activeCategory === "all" || searchQuery) {
-          response = await fetchBooks(filters);
-        } else {
-          switch (activeCategory) {
-            case "bestsellers":
-              response = await fetchBestsellers(
-                pagination.currentPage,
-                pagination.pageSize
-              );
-              break;
-            case "award-winners":
-              response = await fetchAwardWinners(
-                pagination.currentPage,
-                pagination.pageSize
-              );
-              break;
-            case "new-releases":
-              response = await fetchNewReleases(
-                pagination.currentPage,
-                pagination.pageSize
-              );
-              break;
-            case "new-arrivals":
-              response = await fetchNewArrivals(
-                pagination.currentPage,
-                pagination.pageSize
-              );
-              break;
-            case "coming-soon":
-              response = await fetchComingSoon(
-                pagination.currentPage,
-                pagination.pageSize
-              );
-              break;
-            case "deals":
-              response = await fetchOnSale(
-                pagination.currentPage,
-                pagination.pageSize
-              );
-              break;
-            default:
-              response = await fetchBooks(filters);
-              break;
+        if (searchQuery) {
+          response = await searchBooks(
+            searchQuery,
+            pagination.currentPage,
+            pagination.pageSize,
+            {
+              ...(activeFilters.minPrice > 0 && {
+                priceMin: activeFilters.minPrice,
+              }),
+              ...(activeFilters.maxPrice < MAX_PRICE && {
+                priceMax: activeFilters.maxPrice,
+              }),
+              ...(activeFilters.selectedGenres.length > 0 && {
+                genre: activeFilters.selectedGenres.join(","),
+              }),
+              ...(activeFilters.selectedAuthors.length > 0 && {
+                author: activeFilters.selectedAuthors.join(","),
+              }),
+              ...(activeFilters.selectedFormats.length > 0 && {
+                format: activeFilters.selectedFormats.join(","),
+              }),
+              ...(activeFilters.selectedLanguages.length > 0 && {
+                language: activeFilters.selectedLanguages.join(","),
+              }),
+              ...(activeFilters.selectedPublishers.length > 0 && {
+                publisher: activeFilters.selectedPublishers.join(","),
+              }),
+              ...(activeFilters.ratingFilter > 0 && {
+                minRating: activeFilters.ratingFilter,
+              }),
+            }
+          );
+        } else if (activeCategory === "all") {
+          if (sortBy === "rating") {
+            response = await fetchTopRated(
+              pagination.currentPage,
+              pagination.pageSize
+            );
+          } else if (sortBy === "popularity") {
+            response = await fetchMostPopular(
+              pagination.currentPage,
+              pagination.pageSize
+            );
+          } else if (sortBy === "price-low") {
+            response = await fetchBooksLowToHigh(
+              pagination.currentPage,
+              pagination.pageSize,
+              filters
+            );
+          } else if (sortBy === "price-high") {
+            response = await fetchBooksHighToLow(
+              pagination.currentPage,
+              pagination.pageSize,
+              filters
+            );
+          } else {
+            filters.sortBy = mapSortByToApi(sortBy);
+            filters.sortAscending = sortBy === "title";
+            response = await fetchBooks(filters);
           }
+        } else if (activeCategory === "bestsellers") {
+          response = await fetchBestsellers(
+            pagination.currentPage,
+            pagination.pageSize
+          );
+        } else if (activeCategory === "new-releases") {
+          response = await fetchNewReleases(
+            pagination.currentPage,
+            pagination.pageSize
+          );
+        } else if (activeCategory === "award-winners") {
+          response = await fetchAwardWinners(
+            pagination.currentPage,
+            pagination.pageSize
+          );
+        } else if (activeCategory === "new-arrivals") {
+          response = await fetchNewArrivals(
+            pagination.currentPage,
+            pagination.pageSize
+          );
+        } else if (activeCategory === "coming-soon") {
+          response = await fetchComingSoon(
+            pagination.currentPage,
+            pagination.pageSize
+          );
+        } else if (activeCategory === "deals") {
+          response = await fetchOnSale(
+            pagination.currentPage,
+            pagination.pageSize
+          );
         }
 
         setBooks(response.items || []);
@@ -241,22 +290,6 @@ const BookListing = () => {
     activeFilters,
   ]);
 
-  const mapSortByToApi = (sortOption) => {
-    switch (sortOption) {
-      case "title":
-        return "Title";
-      case "publication-date":
-        return "PublicationDate";
-      case "price-low":
-        return "Price";
-      case "price-high":
-        return "Price";
-      case "popularity":
-      default:
-        return "Popularity";
-    }
-  };
-
   const handlePageChange = (newPage) => {
     if (newPage >= 1 && newPage <= pagination.totalPages) {
       setPagination((prev) => ({ ...prev, currentPage: newPage }));
@@ -284,7 +317,7 @@ const BookListing = () => {
   const handleApplyFilters = (filterData) => {
     console.log("Applying filters with data:", filterData);
 
-    setActiveFilters({
+    const newFilters = {
       minPrice: filterData.minPrice !== undefined ? filterData.minPrice : 0,
       maxPrice:
         filterData.maxPrice !== undefined ? filterData.maxPrice : MAX_PRICE,
@@ -294,9 +327,18 @@ const BookListing = () => {
       selectedLanguages: filterData.selectedLanguages || [],
       selectedPublishers: filterData.selectedPublishers || [],
       ratingFilter: filterData.ratingFilter || 0,
-    });
+    };
 
-    setPagination((prev) => ({ ...prev, currentPage: 1 }));
+    const isFilterChanged = Object.keys(newFilters).some(
+      (key) =>
+        JSON.stringify(newFilters[key]) !== JSON.stringify(activeFilters[key])
+    );
+
+    if (isFilterChanged) {
+      setActiveFilters(newFilters);
+      setPagination((prev) => ({ ...prev, currentPage: 1 }));
+    }
+
     setShowFilters(false);
   };
 
@@ -391,7 +433,20 @@ const BookListing = () => {
     <div className="book-listing-container">
       <Navbar />
       <header className="book-listing-header">
-        <SearchBar searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
+        <div className="logo-container">
+          <BookIcon size={32} />
+          <h1>Inkspire</h1>
+        </div>
+        {/* Replace the existing SearchBar with this: */}
+        <SearchBar
+          searchQuery={searchQuery}
+          setSearchQuery={(query) => {
+            console.log("Search query changed:", query);
+            setSearchQuery(query);
+            // Reset to page 1 when searching
+            setPagination((prev) => ({ ...prev, currentPage: 1 }));
+          }}
+        />
         <button className="filter-button" onClick={toggleFilters}>
           <SlidersHorizontal size={20} />
           <span>Filters</span>
