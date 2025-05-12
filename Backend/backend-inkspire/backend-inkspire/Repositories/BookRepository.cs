@@ -157,30 +157,25 @@ namespace backend_inkspire.Repositories
             }
 
             //sorting
-            query = filter.SortBy.ToLower() switch
+            query = filter.SortBy switch
             {
-                "publicationdate" => filter.SortAscending
-                    ? query.OrderBy(b => b.PublicationDate)
-                    : query.OrderByDescending(b => b.PublicationDate),
-                "price" => filter.SortAscending
-                    ? query.OrderBy(b => b.IsCurrentlyDiscounted
-                        ? (b.Price - (b.Price * b.DiscountPercentage.Value / 100))
-                        : b.Price)
-                    : query.OrderByDescending(b => b.IsCurrentlyDiscounted
-                        ? (b.Price - (b.Price * b.DiscountPercentage.Value / 100))
-                        : b.Price),
-                "popularity" => filter.SortAscending
-                    ? query.OrderBy(b => b.SoldCount)
-                    : query.OrderByDescending(b => b.SoldCount),
-                _ => filter.SortAscending
+                SortOption.Title => filter.SortAscending
                     ? query.OrderBy(b => b.Title)
                     : query.OrderByDescending(b => b.Title),
-                //"rating" => filter.SortAscending
-                //    ? query.OrderBy(b => b.Reviews.Any() ? b.Reviews.Average(r => r.Rating) : 0)
-                //    : query.OrderByDescending(b => b.Reviews.Any() ? b.Reviews.Average(r => r.Rating) : 0),
-                //_ => filter.SortAscending
-                //    ? query.OrderBy(b => b.Title)
-                //    : query.OrderByDescending(b => b.Title),
+                SortOption.PublicationDateNewest => query.OrderByDescending(b => b.PublicationDate),
+                SortOption.PublicationDateOldest => query.OrderBy(b => b.PublicationDate),
+                SortOption.PriceLow => query.OrderBy(b => b.IsOnSale && b.DiscountPercentage.HasValue
+                    ? b.Price * (1 - (b.DiscountPercentage.Value / 100))
+                    : b.Price),
+
+                SortOption.PriceHigh => query.OrderByDescending(b => b.IsOnSale && b.DiscountPercentage.HasValue
+                    ? b.Price * (1 - (b.DiscountPercentage.Value / 100))
+                    : b.Price),
+                SortOption.Popularity => query.OrderByDescending(b => b.SoldCount),
+                SortOption.Rating => query.OrderByDescending(b => b.Reviews.Any()
+                    ? b.Reviews.Average(r => r.Rating)
+                    : 0),
+                _ => query.OrderBy(b => b.Title)
             };
 
             var totalCount = await query.CountAsync();
@@ -365,5 +360,20 @@ namespace backend_inkspire.Repositories
             await _context.SaveChangesAsync();
             return true;
         }
+
+        public async Task<PaginatedResponseDTO<Book>> GetBooksSortedByPriceLowToHighAsync(BookFilterDTO filter)
+        {
+            filter.SortBy = SortOption.PriceLow;
+            filter.SortAscending = true;
+            return await GetBooksAsync(filter);
+        }
+
+        public async Task<PaginatedResponseDTO<Book>> GetBooksSortedByPriceHighToLowAsync(BookFilterDTO filter)
+        {
+            filter.SortBy = SortOption.PriceHigh;
+            filter.SortAscending = false;
+            return await GetBooksAsync(filter);
+        }
+
     }
 }

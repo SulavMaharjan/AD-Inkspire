@@ -29,10 +29,9 @@ import AdminLayout from "./components/admin/AdminLayout";
 import BookManagement from "./components/admin/BookManagement";
 import AdminDashboard from "./pages/AdminDashboard";
 
-// Admin wrapper components
 const AdminDashboardWrapper = () => (
   <AdminLayout>
-    <AdminDashboard/>
+    <AdminDashboard />
   </AdminLayout>
 );
 

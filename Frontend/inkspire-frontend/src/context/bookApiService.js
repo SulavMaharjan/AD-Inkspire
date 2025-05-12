@@ -22,33 +22,17 @@ export const checkApiAvailability = async () => {
 
 //fetch books
 export const fetchBooks = async (filters = {}) => {
-  const mapSortByToApi = (sortOption) => {
-    switch (sortOption) {
-      case "title":
-        return "Title";
-      case "publication-date":
-        return "PublicationDate";
-      case "price-low":
-        return "Price";
-      case "price-high":
-        return "Price";
-      case "popularity":
-      default:
-        return "Popularity";
-    }
-  };
-
   try {
     const {
       pageNumber = 1,
       pageSize = 12,
       searchTerm = "",
-      sortBy = "popularity",
+      sortBy = "Popularity",
       sortAscending = false,
-      genre = "",
-      author = "",
       priceMin,
       priceMax,
+      genre,
+      author,
       minRating,
       format,
       language,
@@ -56,36 +40,38 @@ export const fetchBooks = async (filters = {}) => {
       ...otherFilters
     } = filters;
 
-    //sort direction based on sortBy
-    let finalSortAscending = sortAscending;
-    if (sortBy === "price-low") {
-      finalSortAscending = true;
-    } else if (sortBy === "price-high") {
-      finalSortAscending = false;
-    }
-
     const queryParams = new URLSearchParams();
     queryParams.append("pageNumber", pageNumber);
     queryParams.append("pageSize", pageSize);
-    queryParams.append("sortBy", mapSortByToApi(sortBy));
+
+    // Normalize sortBy to match API expectations
+    const apiSortMapping = {
+      title: "Title",
+      "publication-date-newest": "PublicationDateNewest",
+      "publication-date-oldest": "PublicationDateOldest",
+      "price-low": "PriceLow",
+      "price-high": "PriceHigh",
+      rating: "Rating",
+      popularity: "Popularity",
+    };
+
+    const apiSortBy = apiSortMapping[sortBy] || "Popularity";
+
+    // Determine sort ascending based on sort option
+    let finalSortAscending = sortAscending;
+    if (sortBy === "title") finalSortAscending = true;
+    if (sortBy === "price-low") finalSortAscending = true;
+    if (sortBy === "price-high") finalSortAscending = false;
+
+    queryParams.append("sortBy", apiSortBy);
     queryParams.append("sortAscending", finalSortAscending);
 
+    // Add optional filters
     if (searchTerm) queryParams.append("searchTerm", searchTerm);
-    if (sortBy) queryParams.append("sortBy", sortBy);
-    queryParams.append("sortAscending", sortAscending);
-
-    //price filter parameters
-    if (priceMin !== undefined && priceMin > 0) {
+    if (priceMin !== undefined && priceMin > 0)
       queryParams.append("priceMin", priceMin);
-      console.log(`Adding priceMin filter: ${priceMin}`);
-    }
-
-    if (priceMax !== undefined && priceMax < 1000) {
+    if (priceMax !== undefined && priceMax < 1000)
       queryParams.append("priceMax", priceMax);
-      console.log(`Adding priceMax filter: ${priceMax}`);
-    }
-
-    //other filter parameters
     if (genre) queryParams.append("genre", genre);
     if (author) queryParams.append("author", author);
     if (minRating) queryParams.append("minRating", minRating);
@@ -93,7 +79,7 @@ export const fetchBooks = async (filters = {}) => {
     if (language) queryParams.append("language", language);
     if (publisher) queryParams.append("publisher", publisher);
 
-    //remaining filter parameters
+    // Add any additional filters
     Object.entries(otherFilters).forEach(([key, value]) => {
       if (value !== undefined && value !== "") {
         queryParams.append(key, value);
@@ -453,7 +439,6 @@ export const fetchFormats = async () => {
   }
 };
 
-
 // Bookmark related functions
 export const getBookmarkedBooks = async (pageNumber = 1, pageSize = 10) => {
   try {
@@ -546,3 +531,120 @@ export const checkBookmark = async (bookId) => {
   }
 };
 
+export const fetchTopRated = async (pageNumber = 1, pageSize = 12) => {
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/books/toprated?pageNumber=${pageNumber}&pageSize=${pageSize}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status} ${response.statusText}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching top-rated books:", error);
+    throw error;
+  }
+};
+
+export const fetchMostPopular = async (pageNumber = 1, pageSize = 12) => {
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/books/mostpopular?pageNumber=${pageNumber}&pageSize=${pageSize}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status} ${response.statusText}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching most popular books:", error);
+    throw error;
+  }
+};
+
+//price low to high books
+export const fetchBooksLowToHigh = async (
+  pageNumber = 1,
+  pageSize = 12,
+  additionalFilters = {}
+) => {
+  try {
+    const queryParams = new URLSearchParams({
+      pageNumber: pageNumber,
+      pageSize: pageSize,
+      ...Object.fromEntries(
+        Object.entries(additionalFilters).filter(([_, v]) => v != null)
+      ),
+    });
+
+    const response = await fetch(
+      `${API_BASE_URL}/books/price-low-to-high?${queryParams}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status} ${response.statusText}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching books sorted by price (low to high):", error);
+    throw error;
+  }
+};
+
+//price high to low books
+export const fetchBooksHighToLow = async (
+  pageNumber = 1,
+  pageSize = 12,
+  additionalFilters = {}
+) => {
+  try {
+    const queryParams = new URLSearchParams({
+      pageNumber: pageNumber,
+      pageSize: pageSize,
+      ...Object.fromEntries(
+        Object.entries(additionalFilters).filter(([_, v]) => v != null)
+      ),
+    });
+
+    const response = await fetch(
+      `${API_BASE_URL}/books/price-high-to-low?${queryParams}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status} ${response.statusText}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching books sorted by price (high to low):", error);
+    throw error;
+  }
+};

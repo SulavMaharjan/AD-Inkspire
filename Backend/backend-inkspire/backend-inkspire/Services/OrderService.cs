@@ -832,5 +832,5 @@ namespace backend_inkspire.Services
             }
         }
 
- }
+    }
 }
