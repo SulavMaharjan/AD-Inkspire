@@ -5,7 +5,7 @@ namespace backend_inkspire.Repositories
     public interface IOrderRepository
     {
         Task<Order> GetOrderByIdAsync(long orderId, bool includeItems = true);
-        Task<Order> GetOrderByClaimCodeAsync(string claimCode, bool includeItems = true);
+        Task<Order> GetOrderByClaimCodeAsync(string claimCode, long? expectedUserId = null, bool includeItems = true);
         Task<List<Order>> GetOrdersByUserIdAsync(long userId, bool includeItems = true);
         Task<(List<Order> Orders, int TotalCount)> GetFilteredOrdersAsync(
             long userId,

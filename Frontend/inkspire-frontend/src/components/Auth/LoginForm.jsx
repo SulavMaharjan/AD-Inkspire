@@ -47,7 +47,7 @@ const LoginForm = () => {
           navigate("/");
           break;
         case "staff":
-          navigate("/");
+          navigate("/staff/staffclaimcode");
           break;
         case "superAdmin":
           navigate("/admin/add-book");

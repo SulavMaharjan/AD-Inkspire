@@ -2,7 +2,11 @@ import React, { useState, useEffect } from "react";
 import "../styles/PurchasedBooks.css";
 import Navbar from "../components/Navigation/Navbar";
 import Footer from "../components/Landing/Footer";
-import { getUserOrders, getOrderById, cancelOrder } from "../context/orderService";
+import {
+  getUserOrders,
+  getOrderById,
+  cancelOrder,
+} from "../context/orderService";
 import { reviewService } from "../context/authService";
 
 const getStatusName = (statusCode) => {
@@ -83,12 +87,14 @@ const PurchasedBooks = () => {
   const checkReviewEligibility = async (order) => {
     const eligibility = {};
     const reviews = {};
-    
+
     for (const item of order.orderItems) {
       try {
-        const canReview = await reviewService.checkReviewEligibility(item.bookId);
+        const canReview = await reviewService.checkReviewEligibility(
+          item.bookId
+        );
         eligibility[item.bookId] = canReview;
-        
+
         const bookReviews = await reviewService.getBookReviews(item.bookId);
         reviews[item.bookId] = bookReviews;
       } catch (error) {
@@ -97,18 +103,18 @@ const PurchasedBooks = () => {
         reviews[item.bookId] = [];
       }
     }
-    
+
     setReviewEligibility(eligibility);
     setBookReviews(reviews);
   };
 
   const handleReviewChange = (bookId, field, value) => {
-    setReviewInputs(prev => ({
+    setReviewInputs((prev) => ({
       ...prev,
       [bookId]: {
         ...prev[bookId],
-        [field]: value
-      }
+        [field]: value,
+      },
     }));
   };
 
@@ -120,25 +126,29 @@ const PurchasedBooks = () => {
         return;
       }
 
-      await reviewService.createReview(bookId, review.rating, review.comment || '');
-      
+      await reviewService.createReview(
+        bookId,
+        review.rating,
+        review.comment || ""
+      );
+
       const updatedReviews = await reviewService.getBookReviews(bookId);
-      setBookReviews(prev => ({
+      setBookReviews((prev) => ({
         ...prev,
-        [bookId]: updatedReviews
+        [bookId]: updatedReviews,
       }));
-      
-      setReviewEligibility(prev => ({
+
+      setReviewEligibility((prev) => ({
         ...prev,
-        [bookId]: false
+        [bookId]: false,
       }));
-      
-      setReviewInputs(prev => {
-        const newInputs = {...prev};
+
+      setReviewInputs((prev) => {
+        const newInputs = { ...prev };
         delete newInputs[bookId];
         return newInputs;
       });
-      
+
       alert("Review submitted successfully!");
     } catch (error) {
       console.error("Error submitting review:", error);
@@ -176,9 +186,9 @@ const PurchasedBooks = () => {
               ? orderDetails.discountAmount
               : 0,
         };
-        
+
         setSelectedOrder(processedOrder);
-        
+
         if (processedOrder.status === "Completed") {
           await checkReviewEligibility(processedOrder);
         }
@@ -255,9 +265,42 @@ const PurchasedBooks = () => {
 
   const getItemCount = (order) => {
     if (!order) return 0;
-    if (order.orderItems && order.orderItems.length) return order.orderItems.length;
+    if (order.orderItems && order.orderItems.length)
+      return order.orderItems.length;
     if (order.items && order.items.length) return order.items.length;
     return 0;
+  };
+
+  const getCoverImageUrl = (coverImagePath, itemId) => {
+    if (imageErrors[itemId]) {
+      return "/placeholder-book-cover.jpg";
+    }
+
+    if (!coverImagePath) {
+      return "/placeholder-book-cover.jpg";
+    }
+
+    if (coverImagePath.startsWith("http")) {
+      return coverImagePath;
+    }
+
+    if (coverImagePath.includes("https://localhost:7039")) {
+      return coverImagePath;
+    }
+
+    const normalizedPath = coverImagePath.startsWith("/")
+      ? coverImagePath
+      : `/${coverImagePath}`;
+
+    return `https://localhost:7039${normalizedPath}`;
+  };
+
+  const handleImageError = (itemId) => {
+    console.error(`Failed to load image for item ID: ${itemId}`);
+    setImageErrors((prev) => ({
+      ...prev,
+      [itemId]: true,
+    }));
   };
 
   if (loading) {
@@ -373,40 +416,48 @@ const PurchasedBooks = () => {
                 {expandedOrders[order.id] && (
                   <div className="order-items">
                     {order.orderItems && order.orderItems.length > 0 ? (
-                      order.orderItems.map((item, index) => (
-                        <div key={item.id || index} className="order-item">
-                          <img
-                            src={
-                              item.book && item.book.coverImage
-                                ? item.book.coverImage
-                                : "/api/placeholder/120/180"
-                            }
-                            alt={
-                              item.book && item.book.title
-                                ? item.book.title
-                                : item.bookTitle || "Book cover"
-                            }
-                            className="book-thumbnail"
-                          />
-                          <div className="item-details">
-                            <div className="item-title">
-                              {item.book && item.book.title
-                                ? item.book.title
-                                : item.bookTitle || "Unknown Book"}
-                            </div>
-                            <div className="item-author">
-                              by{" "}
-                              {item.book && item.book.author
-                                ? item.book.author
-                                : item.author || "Unknown Author"}
-                            </div>
-                            <div className="item-price">
-                              ${(item.price || item.unitPrice || 0).toFixed(2)}{" "}
-                              x {item.quantity || 1}
+                      order.orderItems.map((item, index) => {
+                        const itemId = item.id || `${order.id}-${index}`;
+                        const coverImage =
+                          (item.book && item.book.coverImage) ||
+                          (item.book && item.book.coverImagePath) ||
+                          item.coverImage ||
+                          item.coverImagePath ||
+                          null;
+
+                        return (
+                          <div key={itemId} className="order-item">
+                            <img
+                              src={getCoverImageUrl(coverImage, itemId)}
+                              alt={
+                                (item.book && item.book.title) ||
+                                item.bookTitle ||
+                                "Book cover"
+                              }
+                              className="book-thumbnail"
+                              onError={() => handleImageError(itemId)}
+                            />
+                            <div className="item-details">
+                              <div className="item-title">
+                                {(item.book && item.book.title) ||
+                                  item.bookTitle ||
+                                  "Unknown Book"}
+                              </div>
+                              <div className="item-author">
+                                by{" "}
+                                {(item.book && item.book.author) ||
+                                  item.author ||
+                                  "Unknown Author"}
+                              </div>
+                              <div className="item-price">
+                                $
+                                {(item.price || item.unitPrice || 0).toFixed(2)}{" "}
+                                x {item.quantity || 1}
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      ))
+                        );
+                      })
                     ) : (
                       <p>No items found in this order.</p>
                     )}
@@ -586,14 +637,26 @@ const PurchasedBooks = () => {
                                   <div key={idx} className="review-item">
                                     <div className="review-rating">
                                       {Array.from({ length: 5 }).map((_, i) => (
-                                        <span key={i} className={i < review.rating ? "star-filled" : "star-empty"}>
+                                        <span
+                                          key={i}
+                                          className={
+                                            i < review.rating
+                                              ? "star-filled"
+                                              : "star-empty"
+                                          }
+                                        >
                                           ★
                                         </span>
                                       ))}
                                     </div>
-                                    <p className="review-comment">{review.comment}</p>
+                                    <p className="review-comment">
+                                      {review.comment}
+                                    </p>
                                     <div className="review-meta">
-                                      By {review.userName} on {new Date(review.createdDate).toLocaleDateString()}
+                                      By {review.userName} on{" "}
+                                      {new Date(
+                                        review.createdDate
+                                      ).toLocaleDateString()}
                                     </div>
                                   </div>
                                 ))}
@@ -607,24 +670,42 @@ const PurchasedBooks = () => {
                                 <div className="rating-input">
                                   <label>Rating:</label>
                                   <select
-                                    value={reviewInputs[item.bookId]?.rating || ''}
-                                    onChange={(e) => handleReviewChange(item.bookId, 'rating', parseInt(e.target.value))}
+                                    value={
+                                      reviewInputs[item.bookId]?.rating || ""
+                                    }
+                                    onChange={(e) =>
+                                      handleReviewChange(
+                                        item.bookId,
+                                        "rating",
+                                        parseInt(e.target.value)
+                                      )
+                                    }
                                   >
                                     <option value="">Select rating</option>
-                                    {[1, 2, 3, 4, 5].map(num => (
-                                      <option key={num} value={num}>{num} star{num !== 1 ? 's' : ''}</option>
+                                    {[1, 2, 3, 4, 5].map((num) => (
+                                      <option key={num} value={num}>
+                                        {num} star{num !== 1 ? "s" : ""}
+                                      </option>
                                     ))}
                                   </select>
                                 </div>
                                 <div className="comment-input">
                                   <label>Comment (optional):</label>
                                   <textarea
-                                    value={reviewInputs[item.bookId]?.comment || ''}
-                                    onChange={(e) => handleReviewChange(item.bookId, 'comment', e.target.value)}
+                                    value={
+                                      reviewInputs[item.bookId]?.comment || ""
+                                    }
+                                    onChange={(e) =>
+                                      handleReviewChange(
+                                        item.bookId,
+                                        "comment",
+                                        e.target.value
+                                      )
+                                    }
                                     rows="3"
                                   />
                                 </div>
-                                <button 
+                                <button
                                   className="submit-review-btn"
                                   onClick={() => submitReview(item.bookId)}
                                 >
@@ -634,12 +715,14 @@ const PurchasedBooks = () => {
                             )}
 
                             {/* Message if already reviewed */}
-                            {!reviewEligibility[item.bookId] && 
-                             userReviews.some(r => r.bookId === item.bookId) && (
-                              <div className="already-reviewed">
-                                <p>You've already reviewed this book.</p>
-                              </div>
-                            )}
+                            {!reviewEligibility[item.bookId] &&
+                              userReviews.some(
+                                (r) => r.bookId === item.bookId
+                              ) && (
+                                <div className="already-reviewed">
+                                  <p>You've already reviewed this book.</p>
+                                </div>
+                              )}
                           </div>
                         )}
                       </React.Fragment>

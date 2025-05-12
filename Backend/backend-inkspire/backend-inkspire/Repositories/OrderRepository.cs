@@ -28,7 +28,7 @@ namespace backend_inkspire.Repositories
             return await query.FirstOrDefaultAsync(o => o.Id == orderId);
         }
 
-        public async Task<Order> GetOrderByClaimCodeAsync(string claimCode, bool includeItems = true)
+        public async Task<Order> GetOrderByClaimCodeAsync(string claimCode, long? expectedUserId = null, bool includeItems = true)
         {
             IQueryable<Order> query = _context.Orders;
 
@@ -41,7 +41,16 @@ namespace backend_inkspire.Repositories
                     .Include(o => o.AppliedUserDiscount);
             }
 
-            return await query.FirstOrDefaultAsync(o => o.ClaimCode == claimCode);
+            if (expectedUserId.HasValue)
+            {
+                query = query.Where(o => o.ClaimCode == claimCode && o.UserId == expectedUserId.Value);
+            }
+            else
+            {
+                query = query.Where(o => o.ClaimCode == claimCode);
+            }
+
+            return await query.FirstOrDefaultAsync();
         }
 
         public async Task<List<Order>> GetOrdersByUserIdAsync(long userId, bool includeItems = true)
