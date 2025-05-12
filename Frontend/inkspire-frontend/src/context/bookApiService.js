@@ -648,3 +648,40 @@ export const fetchBooksHighToLow = async (
     throw error;
   }
 };
+
+export const searchBooks = async (
+  searchTerm,
+  pageNumber = 1,
+  pageSize = 12,
+  additionalFilters = {}
+) => {
+  try {
+    const queryParams = new URLSearchParams({
+      pageNumber,
+      pageSize,
+      searchTerm,
+      ...Object.fromEntries(
+        Object.entries(additionalFilters).filter(([_, v]) => v != null)
+      ),
+    });
+
+    const response = await fetch(
+      `${API_BASE_URL}/books/getbooks?${queryParams}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status} ${response.statusText}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error(`Error searching books with term "${searchTerm}":`, error);
+    throw error;
+  }
+};

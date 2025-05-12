@@ -27,6 +27,7 @@ import {
   fetchMostPopular,
   fetchBooksLowToHigh,
   fetchBooksHighToLow,
+  searchBooks,
 } from "../../context/bookApiService";
 import "../../styles/BookListing.css";
 
@@ -149,7 +150,39 @@ const BookListing = () => {
 
         console.log("Sending API request with filters:", filters);
 
-        if (activeCategory === "all" || searchQuery) {
+        if (searchQuery) {
+          response = await searchBooks(
+            searchQuery,
+            pagination.currentPage,
+            pagination.pageSize,
+            {
+              ...(activeFilters.minPrice > 0 && {
+                priceMin: activeFilters.minPrice,
+              }),
+              ...(activeFilters.maxPrice < MAX_PRICE && {
+                priceMax: activeFilters.maxPrice,
+              }),
+              ...(activeFilters.selectedGenres.length > 0 && {
+                genre: activeFilters.selectedGenres.join(","),
+              }),
+              ...(activeFilters.selectedAuthors.length > 0 && {
+                author: activeFilters.selectedAuthors.join(","),
+              }),
+              ...(activeFilters.selectedFormats.length > 0 && {
+                format: activeFilters.selectedFormats.join(","),
+              }),
+              ...(activeFilters.selectedLanguages.length > 0 && {
+                language: activeFilters.selectedLanguages.join(","),
+              }),
+              ...(activeFilters.selectedPublishers.length > 0 && {
+                publisher: activeFilters.selectedPublishers.join(","),
+              }),
+              ...(activeFilters.ratingFilter > 0 && {
+                minRating: activeFilters.ratingFilter,
+              }),
+            }
+          );
+        } else if (activeCategory === "all") {
           if (sortBy === "rating") {
             response = await fetchTopRated(
               pagination.currentPage,
@@ -402,7 +435,16 @@ const BookListing = () => {
           <BookIcon size={32} />
           <h1>Inkspire</h1>
         </div>
-        <SearchBar searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
+        {/* Replace the existing SearchBar with this: */}
+        <SearchBar
+          searchQuery={searchQuery}
+          setSearchQuery={(query) => {
+            console.log("Search query changed:", query);
+            setSearchQuery(query);
+            // Reset to page 1 when searching
+            setPagination((prev) => ({ ...prev, currentPage: 1 }));
+          }}
+        />
         <button className="filter-button" onClick={toggleFilters}>
           <SlidersHorizontal size={20} />
           <span>Filters</span>
