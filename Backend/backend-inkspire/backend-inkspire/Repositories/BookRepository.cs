@@ -68,16 +68,18 @@ namespace backend_inkspire.Repositories
             //price range filters
             if (filter.MinPrice.HasValue)
             {
-                query = query.Where(b => b.IsCurrentlyDiscounted
-                    ? (b.Price - (b.Price * b.DiscountPercentage.Value / 100)) >= filter.MinPrice.Value
-                    : b.Price >= filter.MinPrice.Value);
+                query = query.Where(b =>
+                    b.IsOnSale && b.DiscountPercentage.HasValue
+                        ? (b.Price * (1 - (b.DiscountPercentage.Value / 100)) >= filter.MinPrice.Value)
+                        : b.Price >= filter.MinPrice.Value);
             }
 
             if (filter.MaxPrice.HasValue)
             {
-                query = query.Where(b => b.IsCurrentlyDiscounted
-                    ? (b.Price - (b.Price * b.DiscountPercentage.Value / 100)) <= filter.MaxPrice.Value
-                    : b.Price <= filter.MaxPrice.Value);
+                query = query.Where(b =>
+                    b.IsOnSale && b.DiscountPercentage.HasValue
+                        ? (b.Price * (1 - (b.DiscountPercentage.Value / 100)) <= filter.MaxPrice.Value)
+                        : b.Price <= filter.MaxPrice.Value);
             }
 
             //rating filter
