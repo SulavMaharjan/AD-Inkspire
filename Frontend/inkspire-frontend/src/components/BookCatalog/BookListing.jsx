@@ -433,17 +433,11 @@ const BookListing = () => {
     <div className="book-listing-container">
       <Navbar />
       <header className="book-listing-header">
-        <div className="logo-container">
-          <BookIcon size={32} />
-          <h1>Inkspire</h1>
-        </div>
-        {/* Replace the existing SearchBar with this: */}
         <SearchBar
           searchQuery={searchQuery}
           setSearchQuery={(query) => {
             console.log("Search query changed:", query);
             setSearchQuery(query);
-            // Reset to page 1 when searching
             setPagination((prev) => ({ ...prev, currentPage: 1 }));
           }}
         />
