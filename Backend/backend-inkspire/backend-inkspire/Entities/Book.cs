@@ -66,13 +66,26 @@ namespace backend_inkspire.Entities
         public decimal? DiscountPercentage { get; set; }
         public DateTime? DiscountStartDate { get; set; }
         public DateTime? DiscountEndDate { get; set; }
-        public bool IsCurrentlyDiscounted =>
-            IsOnSale &&
-            DiscountPercentage.HasValue &&
-            DiscountStartDate.HasValue &&
-            DiscountEndDate.HasValue &&
-            DateTime.Now >= DiscountStartDate &&
-            DateTime.Now <= DiscountEndDate;
+        //public bool IsCurrentlyDiscounted =>
+        //    IsOnSale &&
+        //    DiscountPercentage.HasValue &&
+        //    DiscountStartDate.HasValue &&
+        //    DiscountEndDate.HasValue &&
+        //    DateTime.Now >= DiscountStartDate &&
+        //    DateTime.Now <= DiscountEndDate;
+
+        public bool IsCurrentlyDiscounted
+        {
+            get
+            {
+                if (!IsOnSale || !DiscountPercentage.HasValue ||
+                    !DiscountStartDate.HasValue || !DiscountEndDate.HasValue)
+                    return false;
+
+                var now = DateTime.UtcNow;
+                return now >= DiscountStartDate.Value && now <= DiscountEndDate.Value;
+            }
+        }
 
         [NotMapped]
         public decimal CurrentPrice => IsCurrentlyDiscounted ?

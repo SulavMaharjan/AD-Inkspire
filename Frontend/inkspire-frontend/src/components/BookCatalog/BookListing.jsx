@@ -23,8 +23,14 @@ import {
   fetchAwardWinners,
   fetchNewArrivals,
   fetchComingSoon,
+  fetchTopRated,
+  fetchMostPopular,
+  fetchBooksLowToHigh,
+  fetchBooksHighToLow,
+  searchBooks,
 } from "../../context/bookApiService";
 import "../../styles/BookListing.css";
+import Navbar from "../Navigation/Navbar";
 
 const BookListing = () => {
   const { fetchCart } = useContext(CartContext);
@@ -99,6 +105,10 @@ const BookListing = () => {
     setPagination((prev) => ({ ...prev, currentPage: 1 }));
   }, [activeCategory, searchQuery, activeFilters]);
 
+  const mapSortByToApi = (sortOption) => {
+    return sortOption;
+  };
+
   //books based on active category and filters
   useEffect(() => {
     if (!apiAvailable) return;
@@ -109,121 +119,89 @@ const BookListing = () => {
 
       try {
         let response;
+
         const filters = {
           pageNumber: pagination.currentPage,
           pageSize: pagination.pageSize,
-          searchTerm: searchQuery,
+          searchTerm: searchQuery.trim(),
           sortBy: mapSortByToApi(sortBy),
-          sortAscending: sortBy === "title" || sortBy === "price-low",
-          //filter parameters
-          priceMin: activeFilters.minPrice,
-          priceMax: activeFilters.maxPrice,
-          genre:
-            activeFilters.selectedGenres.length > 0
-              ? activeFilters.selectedGenres.join(",")
-              : undefined,
-          author:
-            activeFilters.selectedAuthors.length > 0
-              ? activeFilters.selectedAuthors.join(",")
-              : undefined,
-          format:
-            activeFilters.selectedFormats.length > 0
-              ? activeFilters.selectedFormats.join(",")
-              : undefined,
-          language:
-            activeFilters.selectedLanguages.length > 0
-              ? activeFilters.selectedLanguages.join(",")
-              : undefined,
-          publisher:
-            activeFilters.selectedPublishers.length > 0
-              ? activeFilters.selectedPublishers.join(",")
-              : undefined,
-          minRating:
-            activeFilters.ratingFilter > 0
-              ? activeFilters.ratingFilter
-              : undefined,
+          sortAscending: sortBy === "title",
+
+          // Price filters
+          ...(activeFilters.minPrice > 0 && {
+            priceMin: activeFilters.minPrice,
+          }),
+          ...(activeFilters.maxPrice < MAX_PRICE && {
+            priceMax: activeFilters.maxPrice,
+          }),
+
+          // Collection filters
+          ...(activeFilters.selectedGenres.length > 0 && {
+            genre: activeFilters.selectedGenres.join(","),
+          }),
+          ...(activeFilters.selectedAuthors.length > 0 && {
+            author: activeFilters.selectedAuthors.join(","),
+          }),
+          ...(activeFilters.selectedFormats.length > 0 && {
+            format: activeFilters.selectedFormats.join(","),
+          }),
+          ...(activeFilters.selectedLanguages.length > 0 && {
+            language: activeFilters.selectedLanguages.join(","),
+          }),
+          ...(activeFilters.selectedPublishers.length > 0 && {
+            publisher: activeFilters.selectedPublishers.join(","),
+          }),
+
+          // Rating filter
+          ...(activeFilters.ratingFilter > 0 && {
+            minRating: activeFilters.ratingFilter,
+          }),
+
+          // Category filters
+          ...(activeCategory === "bestsellers" && { bestseller: true }),
+          ...(activeCategory === "new-releases" && { newRelease: true }),
+          ...(activeCategory === "award-winners" && { awardWinner: true }),
+          ...(activeCategory === "new-arrivals" && { newArrival: true }),
+          ...(activeCategory === "coming-soon" && { comingSoon: true }),
+          ...(activeCategory === "deals" && { onSale: true }),
         };
 
-        console.log("Sending API request with filters:", filters);
-
-        //books based on active category
-        if (activeCategory === "all" || searchQuery) {
+        if (searchQuery.trim()) {
           response = await fetchBooks(filters);
         } else {
-          switch (activeCategory) {
-            case "bestsellers":
-              response = await fetchBestsellers(
-                pagination.currentPage,
-                pagination.pageSize
-              );
-              break;
-            case "award-winners":
-              response = await fetchAwardWinners(
-                pagination.currentPage,
-                pagination.pageSize
-              );
-              break;
-            case "new-releases":
-              response = await fetchNewReleases(
-                pagination.currentPage,
-                pagination.pageSize
-              );
-              break;
-            case "new-arrivals":
-              response = await fetchNewArrivals(
-                pagination.currentPage,
-                pagination.pageSize
-              );
-              break;
-            case "coming-soon":
-              response = await fetchComingSoon(
-                pagination.currentPage,
-                pagination.pageSize
-              );
-              break;
-            case "deals":
-              response = await fetchOnSale(
-                pagination.currentPage,
-                pagination.pageSize
-              );
-              break;
-            default:
-              response = await fetchBooks(filters);
-              break;
-          }
+          // For all categories including 'all', use the main fetchBooks with filters
+          response = await fetchBooks(filters);
         }
 
-        setBooks(response.items || []);
-        setPagination({
-          currentPage: response.pageNumber || 1,
-          totalPages: response.totalPages || 1,
-          totalItems: response.totalItems || 0,
-          pageSize: response.pageSize || 12,
-        });
+        if (response && response.items) {
+          setBooks(response.items);
+          setPagination({
+            currentPage: response.pageNumber || 1,
+            totalPages: response.totalPages || 1,
+            totalItems: response.totalCount || 0,
+            pageSize: response.pageSize || 12,
+          });
 
-        if (activeCategory === "all" && !searchQuery) {
-          const saleResponse = await fetchOnSale(1, 4);
-          setOnSaleBooks(saleResponse.items || []);
+          if (activeCategory === "all" && !searchQuery) {
+            try {
+              const saleResponse = await fetchOnSale(1, 4);
+              setOnSaleBooks(saleResponse.items || []);
+            } catch (saleErr) {
+              console.error("Failed to load sale books:", saleErr);
+              setOnSaleBooks([]);
+            }
+          } else {
+            setOnSaleBooks([]);
+          }
         } else {
+          setBooks([]);
           setOnSaleBooks([]);
         }
       } catch (err) {
         console.error("Failed to load books:", err);
-
-        if (
-          err.message.includes("Failed to connect") ||
-          err.message.includes("timed out") ||
-          err.message.includes("Network Error")
-        ) {
-          setApiAvailable(false);
-          setError(
-            "Cannot connect to the book service. Please ensure the backend service is running."
-          );
-        } else {
-          setError(`Failed to load books: ${err.message}`);
-        }
-
+        setError(`Failed to load books: ${err.message}`);
         setBooks([]);
+        setOnSaleBooks([]);
       } finally {
         setLoading(false);
       }
@@ -239,22 +217,6 @@ const BookListing = () => {
     pagination.pageSize,
     activeFilters,
   ]);
-
-  const mapSortByToApi = (sortOption) => {
-    switch (sortOption) {
-      case "title":
-        return "Title";
-      case "publication-date":
-        return "PublicationDate";
-      case "price-low":
-        return "Price";
-      case "price-high":
-        return "Price";
-      case "popularity":
-      default:
-        return "Popularity";
-    }
-  };
 
   const handlePageChange = (newPage) => {
     if (newPage >= 1 && newPage <= pagination.totalPages) {
@@ -283,18 +245,19 @@ const BookListing = () => {
   const handleApplyFilters = (filterData) => {
     console.log("Applying filters with data:", filterData);
 
+    // Apply all filters directly without conditional checks
     setActiveFilters({
-      minPrice: filterData.minPrice !== undefined ? filterData.minPrice : 0,
-      maxPrice:
-        filterData.maxPrice !== undefined ? filterData.maxPrice : MAX_PRICE,
-      selectedGenres: filterData.selectedGenres || [],
-      selectedAuthors: filterData.selectedAuthors || [],
-      selectedFormats: filterData.selectedFormats || [],
-      selectedLanguages: filterData.selectedLanguages || [],
-      selectedPublishers: filterData.selectedPublishers || [],
-      ratingFilter: filterData.ratingFilter || 0,
+      minPrice: filterData.minPrice,
+      maxPrice: filterData.maxPrice,
+      selectedGenres: filterData.selectedGenres,
+      selectedAuthors: filterData.selectedAuthors,
+      selectedFormats: filterData.selectedFormats,
+      selectedLanguages: filterData.selectedLanguages,
+      selectedPublishers: filterData.selectedPublishers,
+      ratingFilter: filterData.ratingFilter,
     });
 
+    // Reset to page 1 when applying new filters
     setPagination((prev) => ({ ...prev, currentPage: 1 }));
     setShowFilters(false);
   };
@@ -388,12 +351,20 @@ const BookListing = () => {
 
   return (
     <div className="book-listing-container">
+      <Navbar />
       <header className="book-listing-header">
         <div className="logo-container">
           <BookIcon size={32} />
           <h1>Inkspire</h1>
         </div>
-        <SearchBar searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
+        <SearchBar
+          searchQuery={searchQuery}
+          setSearchQuery={(query) => {
+            console.log("Search query changed:", query);
+            setSearchQuery(query);
+            setPagination((prev) => ({ ...prev, currentPage: 1 }));
+          }}
+        />
         <button className="filter-button" onClick={toggleFilters}>
           <SlidersHorizontal size={20} />
           <span>Filters</span>
@@ -429,14 +400,14 @@ const BookListing = () => {
           </div>
 
           {/* active filters summary */}
-          {(activeFilters.selectedGenres.length > 0 ||
+          {(activeFilters.minPrice > 0 ||
+            activeFilters.maxPrice < MAX_PRICE ||
+            activeFilters.selectedGenres.length > 0 ||
             activeFilters.selectedAuthors.length > 0 ||
             activeFilters.selectedFormats.length > 0 ||
             activeFilters.selectedLanguages.length > 0 ||
             activeFilters.selectedPublishers.length > 0 ||
-            activeFilters.ratingFilter > 0 ||
-            activeFilters.minPrice > 0 ||
-            activeFilters.maxPrice < MAX_PRICE) && (
+            activeFilters.ratingFilter > 0) && (
             <div className="active-filters-summary">
               <h3>Active Filters:</h3>
               <div className="filter-tags">
@@ -473,7 +444,7 @@ const BookListing = () => {
 
                 {activeFilters.selectedGenres.map((genre) => (
                   <span key={genre} className="filter-tag">
-                    {genre}
+                    Genre: {genre}
                     <button
                       onClick={() =>
                         setActiveFilters({
@@ -491,7 +462,7 @@ const BookListing = () => {
 
                 {activeFilters.selectedAuthors.map((author) => (
                   <span key={author} className="filter-tag">
-                    {author}
+                    Author: {author}
                     <button
                       onClick={() =>
                         setActiveFilters({
@@ -499,6 +470,62 @@ const BookListing = () => {
                           selectedAuthors: activeFilters.selectedAuthors.filter(
                             (a) => a !== author
                           ),
+                        })
+                      }
+                    >
+                      ✕
+                    </button>
+                  </span>
+                ))}
+
+                {activeFilters.selectedFormats.map((format) => (
+                  <span key={format} className="filter-tag">
+                    Format: {format}
+                    <button
+                      onClick={() =>
+                        setActiveFilters({
+                          ...activeFilters,
+                          selectedFormats: activeFilters.selectedFormats.filter(
+                            (f) => f !== format
+                          ),
+                        })
+                      }
+                    >
+                      ✕
+                    </button>
+                  </span>
+                ))}
+
+                {activeFilters.selectedLanguages.map((language) => (
+                  <span key={language} className="filter-tag">
+                    Language: {language}
+                    <button
+                      onClick={() =>
+                        setActiveFilters({
+                          ...activeFilters,
+                          selectedLanguages:
+                            activeFilters.selectedLanguages.filter(
+                              (l) => l !== language
+                            ),
+                        })
+                      }
+                    >
+                      ✕
+                    </button>
+                  </span>
+                ))}
+
+                {activeFilters.selectedPublishers.map((publisher) => (
+                  <span key={publisher} className="filter-tag">
+                    Publisher: {publisher}
+                    <button
+                      onClick={() =>
+                        setActiveFilters({
+                          ...activeFilters,
+                          selectedPublishers:
+                            activeFilters.selectedPublishers.filter(
+                              (p) => p !== publisher
+                            ),
                         })
                       }
                     >

@@ -111,10 +111,23 @@ namespace backend_inkspire.DTOs
         public bool? NewArrival { get; set; }
         public bool? ComingSoon { get; set; }
         public bool? OnSale { get; set; }
-        public string SortBy { get; set; } = "Title";
+
+        public SortOption SortBy { get; set; } = SortOption.Title;
         public bool SortAscending { get; set; } = true;
         public int PageNumber { get; set; } = 1;
         public int PageSize { get; set; } = 10;
+    }
+
+    // Enum to define valid sorting options
+    public enum SortOption
+    {
+        Popularity,
+        Title,
+        PublicationDateNewest,
+        PublicationDateOldest,
+        PriceLow,
+        PriceHigh,
+        Rating
     }
 
     public class BookDiscountDTO

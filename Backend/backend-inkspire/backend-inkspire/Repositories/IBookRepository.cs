@@ -19,6 +19,8 @@ namespace backend_inkspire.Repositories
 
         Task<IEnumerable<string>> GetDistinctValuesAsync<TProperty>(Expression<Func<Book, TProperty>> selector);
         Task<bool> IncrementBookSoldCountAsync(int bookId, int quantity);
+        Task<PaginatedResponseDTO<Book>> GetBooksSortedByPriceHighToLowAsync(BookFilterDTO filter);
+        Task<PaginatedResponseDTO<Book>> GetBooksSortedByPriceLowToHighAsync(BookFilterDTO filter);
 
         Task SaveChangesAsync();
     }

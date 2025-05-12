@@ -33,6 +33,7 @@ const PurchasedBooks = () => {
   const [reviewInputs, setReviewInputs] = useState({});
   const [bookReviews, setBookReviews] = useState({});
   const [userReviews, setUserReviews] = useState([]);
+  const [imageErrors, setImageErrors] = useState({});
 
   const pageSize = 5;
 
@@ -271,41 +272,12 @@ const PurchasedBooks = () => {
     return 0;
   };
 
-  const getCoverImageUrl = (coverImagePath, itemId) => {
-
-    if (!coverImagePath) {
-      return "/placeholder-book-cover.jpg";
-    }
-
-    if (coverImagePath.startsWith("http")) {
-      return coverImagePath;
-    }
-
-    if (coverImagePath.includes("https://localhost:7039")) {
-      return coverImagePath;
-    }
-
-    const normalizedPath = coverImagePath.startsWith("/")
-      ? coverImagePath
-      : `/${coverImagePath}`;
-
-    return `https://localhost:7039${normalizedPath}`;
-  };
-
-  const handleImageError = (itemId) => {
-    console.error(`Failed to load image for item ID: ${itemId}`);
-    setImageErrors((prev) => ({
-      ...prev,
-      [itemId]: true,
-    }));
-  };
-
   if (loading) {
     return (
       <div>
         <Navbar />
         <div className="purchased-books-container">
-          <h1 className="page-title">My Purchased Books</h1>
+          <h1 className="page-title">My Orders</h1>
           <div className="loading">Loading your orders...</div>
         </div>
         <Footer />
@@ -318,7 +290,7 @@ const PurchasedBooks = () => {
       <div>
         <Navbar />
         <div className="purchased-books-container">
-          <h1 className="page-title">My Purchased Books</h1>
+          <h1 className="page-title">My Orders</h1>
           <div className="error-message">{error}</div>
         </div>
         <Footer />
@@ -330,7 +302,7 @@ const PurchasedBooks = () => {
     <div>
       <Navbar />
       <div className="purchased-books-container">
-        <h1 className="page-title">My Purchased Books</h1>
+        <h1 className="page-title">My Orders</h1>
 
         <div className="filter-section">
           <label htmlFor="statusFilter">Filter by Status:</label>
@@ -415,23 +387,10 @@ const PurchasedBooks = () => {
                     {order.orderItems && order.orderItems.length > 0 ? (
                       order.orderItems.map((item, index) => {
                         const itemId = item.id || `${order.id}-${index}`;
-                        const coverImage =
-                   `https://localhost:7039${item.coverImagePath}` || `https://localhost:7039${item.coverImage}`
-                          null;
 
                         return (
                           <div key={itemId} className="order-item">
-                            <img
-                              src= {`https://localhost:7039${item.coverImagePath}`}
-                              alt={
-                                (item.book && item.book.title) ||
-                                item.bookTitle ||
-                                "Book cover"
-                              }
-                              className="book-thumbnail"
-                              onError={() => handleImageError(itemId)}
-                            />
-                            <div className="item-details">
+                            <div className="item-detaills">
                               <div className="item-title">
                                 {(item.book && item.book.title) ||
                                   item.bookTitle ||
@@ -578,19 +537,6 @@ const PurchasedBooks = () => {
                     selectedOrder.orderItems.map((item, index) => (
                       <React.Fragment key={item.id || index}>
                         <div className="modal-item">
-                          <img
-                            src={
-                              item.book && item.book.coverImage
-                                ? item.book.coverImage
-                                : "/api/placeholder/120/180"
-                            }
-                            alt={
-                              item.book && item.book.title
-                                ? item.book.title
-                                : item.bookTitle || "Book cover"
-                            }
-                            className="modal-book-image"
-                          />
                           <div className="modal-item-details">
                             <div className="modal-item-title">
                               {item.book && item.book.title

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../../styles/BookmarkedListCard.css";
 import { removeBookmark } from "../../context/bookApiService";
@@ -8,6 +8,7 @@ import { addToCart } from "../../context/cartService";
 export const BookmarkCard = ({ book, onRemove }) => {
   const API_BASE_URL = "https://localhost:7039";
   const navigate = useNavigate();
+  const [isRemoving, setIsRemoving] = useState(false);
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -27,28 +28,19 @@ export const BookmarkCard = ({ book, onRemove }) => {
 
   const handleRemove = async () => {
     try {
-      const confirmDelete = window.confirm(
-        `Are you sure you want to remove "${book.bookTitle}" from your bookmarks?`
-      );
+      setIsRemoving(true);
+      const result = await removeBookmark(book?.bookId);
 
-      if (!confirmDelete) return;
-
-      const success = await removeBookmark(book.bookId);
-
-      if (success) {
-        onRemove(book.bookId);
-      } else {
-        throw new Error("Failed to remove bookmark");
+      if (result === true) {
+        onRemove(book?.bookId);
       }
-    } catch (error) {
-      console.error("Failed to remove bookmark:", error);
-      alert("Failed to remove bookmark. Please try again.");
+    } finally {
+      setIsRemoving(false);
     }
   };
 
   const handleAddToCart = async () => {
     try {
-      // Check if user is authenticated
       const token = localStorage.getItem("token");
       if (!token) {
         window.location.href = `/login?returnUrl=${encodeURIComponent(
@@ -57,9 +49,7 @@ export const BookmarkCard = ({ book, onRemove }) => {
         return;
       }
 
-      // Call the addToCart service
-      await addToCart(book.bookId, 1); // Default quantity of 1
-
+      await addToCart(book.bookId, 1);
       alert(`"${book.bookTitle}" has been added to your cart!`);
     } catch (error) {
       console.error("Failed to add to cart:", error);
@@ -120,16 +110,6 @@ export const BookmarkCard = ({ book, onRemove }) => {
         </div>
 
         <div className="book-details">
-          <div className="book-badges">
-            <span
-              className={`book-availability ${
-                book.inStock ? "in-stock" : "out-of-stock"
-              }`}
-            >
-              {book.inStock ? "In Stock" : "Out of Stock"}
-            </span>
-          </div>
-
           <p className="book-date-added">Added: {formatDate(book.createdAt)}</p>
         </div>
       </div>
@@ -139,8 +119,12 @@ export const BookmarkCard = ({ book, onRemove }) => {
           <ShoppingCart size={16} />
           <span>Add to Cart</span>
         </button>
-        <button className="btn-remove" onClick={handleRemove}>
-          Remove
+        <button
+          className={`btn-remove ${isRemoving ? "loading" : ""}`}
+          onClick={handleRemove}
+          disabled={isRemoving}
+        >
+          {isRemoving ? "Removing..." : "Remove"}
         </button>
         <button className="btn-view" onClick={handleViewDetails}>
           View Details

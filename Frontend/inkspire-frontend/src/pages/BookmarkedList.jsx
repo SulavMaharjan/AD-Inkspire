@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { EmptyBookmarkState } from "../components/BookmarkedList/EmptyBookmarkState";
 import { SortDropdown } from "../components/BookmarkedList/SortDropdown";
 import { BookmarkPageHeader } from "../components/BookmarkedList/BookmarkPageHeader";
-import { getBookmarkedBooks, removeBookmark } from "../context/bookApiService";
+import { getBookmarkedBooks } from "../context/bookApiService";
 import "../styles/BookmarkedList.css";
 import Footer from "../components/Landing/Footer";
 import Navbar from "../components/Navigation/Navbar";
@@ -19,7 +19,6 @@ const BookmarkedList = () => {
     totalPages: 1,
   });
 
-  // Fetch bookmarked books
   const fetchBooks = async () => {
     try {
       setIsLoading(true);
@@ -45,7 +44,6 @@ const BookmarkedList = () => {
     fetchBooks();
   }, [pagination.pageNumber, pagination.pageSize]);
 
-  // Sort books based on current sort option
   const getSortedBooks = () => {
     return [...bookmarkedBooks].sort((a, b) => {
       switch (sortOption) {
@@ -104,7 +102,19 @@ const BookmarkedList = () => {
                 ) : sortedBooks.length > 0 ? (
                   <div className="book-list">
                     {sortedBooks.map((book) => (
-                      <BookmarkCard key={book.bookId} book={book} />
+                      <BookmarkCard
+                        key={book.bookId}
+                        book={book}
+                        onRemove={(bookId) => {
+                          setBookmarkedBooks((prevBooks) =>
+                            prevBooks.filter((book) => book.bookId !== bookId)
+                          );
+                          setPagination((prev) => ({
+                            ...prev,
+                            totalCount: prev.totalCount - 1,
+                          }));
+                        }}
+                      />
                     ))}
                   </div>
                 ) : (
