@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import "../../styles/StaffManagement.css"; // Reusing the Members CSS
+import "../../styles/StaffManagement.css";
 
 const StaffManagement = () => {
   const navigate = useNavigate();
@@ -227,12 +227,12 @@ const StaffManagement = () => {
   const isSuperAdmin = userRole === "SuperAdmin";
 
   return (
-    <div className="user-management-container">
+    <div className="staff-management-container">
       {notification.show && (
-        <div className={`notification-toast ${notification.type}`}>
-          <span className="notification-message">{notification.message}</span>
+        <div className={`staff-notification-toast staff-notification-${notification.type}`}>
+          <span className="staff-notification-message">{notification.message}</span>
           <button 
-            className="notification-close"
+            className="staff-notification-close"
             onClick={() => setNotification(prev => ({...prev, show: false}))}
           >
             &times;
@@ -240,48 +240,57 @@ const StaffManagement = () => {
         </div>
       )}
 
-      <div className="user-management-header">
-        <h1>Staff Management</h1>
+      <div className="staff-management-header">
+        <h1 className="staff-management-title">Staff Management</h1>
         {isSuperAdmin && (
           <button 
-            className="btn-add-user" 
+            className="staff-add-button" 
             onClick={() => setShowAddModal(true)}
           >
-            Add New Staff
+            <i className="staff-add-icon">+</i> Add New Staff
           </button>
         )}
       </div>
 
       {error && (
-        <div className="error-message">
-          <span className="error-icon">⚠️</span> {error}
+        <div className="staff-error-message">
+          <span className="staff-error-icon">⚠️</span> {error}
         </div>
       )}
 
-      <div className="content-wrapper">
-        <div className="search-filter">
+      <div className="staff-content-wrapper">
+        <div className="staff-search-filter">
           <input
             type="text"
-            placeholder="Search staff..."
+            placeholder="Search staff by name, email or username..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
+            className="staff-search-input"
           />
-          <span className="search-icon">🔍</span>
+          <span className="staff-search-icon">🔍</span>
         </div>
 
         {loading ? (
-          <div className="loading-container">
-            <div className="loader"></div>
+          <div className="staff-loading-container">
+            <div className="staff-loader"></div>
             <p>Loading staff members...</p>
           </div>
         ) : staffs.length === 0 ? (
-          <div className="empty-state">
-            <div className="empty-icon">👤</div>
+          <div className="staff-empty-state">
+            <div className="staff-empty-icon">👤</div>
             <p>No staff members found.</p>
+            {isSuperAdmin && (
+              <button 
+                className="staff-add-empty-button"
+                onClick={() => setShowAddModal(true)}
+              >
+                Add Your First Staff Member
+              </button>
+            )}
           </div>
         ) : (
-          <div className="table-container">
-            <table className="users-table">
+          <div className="staff-table-container">
+            <table className="staff-table">
               <thead>
                 <tr>
                   <th>Name</th>
@@ -293,16 +302,21 @@ const StaffManagement = () => {
               <tbody>
                 {filteredStaffs.map((staff) => (
                   <tr key={staff.id}>
-                    <td className="name-cell">{staff.name}</td>
-                    <td>@{staff.userName}</td>
-                    <td>{staff.email}</td>
+                    <td className="staff-name-cell">
+                      <div className="staff-avatar">
+                        {staff.name.charAt(0).toUpperCase()}
+                      </div>
+                      {staff.name}
+                    </td>
+                    <td className="staff-username-cell">{staff.userName}</td>
+                    <td className="staff-email-cell">{staff.email}</td>
                     {isSuperAdmin && (
-                      <td className="actions-cell">
+                      <td className="staff-actions-cell">
                         <button 
-                          className="btn-delete"
+                          className="staff-delete-button"
                           onClick={() => handleDeleteStaff(staff.id)}
                         >
-                          Delete
+                          <i className="staff-delete-icon">🗑️</i> Delete
                         </button>
                       </td>
                     )}
@@ -316,19 +330,19 @@ const StaffManagement = () => {
 
       {/* Add Staff Modal */}
       {showAddModal && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <div className="modal-header">
+        <div className="staff-modal-overlay">
+          <div className="staff-modal">
+            <div className="staff-modal-header">
               <h2>Add New Staff Member</h2>
               <button 
-                className="modal-close"
+                className="staff-modal-close"
                 onClick={() => setShowAddModal(false)}
               >
                 &times;
               </button>
             </div>
             <form onSubmit={handleAddStaff} className="staff-form">
-              <div className="form-group">
+              <div className="staff-form-group">
                 <label htmlFor="name">Full Name *</label>
                 <input
                   type="text"
@@ -337,12 +351,12 @@ const StaffManagement = () => {
                   value={formData.name}
                   onChange={handleFormChange}
                   placeholder="Enter full name"
-                  className={formErrors.name ? 'input-error' : ''}
+                  className={formErrors.name ? 'staff-input-error' : ''}
                 />
-                {formErrors.name && <div className="error-text">{formErrors.name}</div>}
+                {formErrors.name && <div className="staff-error-text">{formErrors.name}</div>}
               </div>
               
-              <div className="form-group">
+              <div className="staff-form-group">
                 <label htmlFor="userName">Username *</label>
                 <input
                   type="text"
@@ -351,12 +365,12 @@ const StaffManagement = () => {
                   value={formData.userName}
                   onChange={handleFormChange}
                   placeholder="Enter username"
-                  className={formErrors.userName ? 'input-error' : ''}
+                  className={formErrors.userName ? 'staff-input-error' : ''}
                 />
-                {formErrors.userName && <div className="error-text">{formErrors.userName}</div>}
+                {formErrors.userName && <div className="staff-error-text">{formErrors.userName}</div>}
               </div>
               
-              <div className="form-group">
+              <div className="staff-form-group">
                 <label htmlFor="email">Email *</label>
                 <input
                   type="email"
@@ -365,12 +379,12 @@ const StaffManagement = () => {
                   value={formData.email}
                   onChange={handleFormChange}
                   placeholder="Enter email address"
-                  className={formErrors.email ? 'input-error' : ''}
+                  className={formErrors.email ? 'staff-input-error' : ''}
                 />
-                {formErrors.email && <div className="error-text">{formErrors.email}</div>}
+                {formErrors.email && <div className="staff-error-text">{formErrors.email}</div>}
               </div>
               
-              <div className="form-group">
+              <div className="staff-form-group">
                 <label htmlFor="password">Password *</label>
                 <input
                   type="password"
@@ -379,12 +393,12 @@ const StaffManagement = () => {
                   value={formData.password}
                   onChange={handleFormChange}
                   placeholder="Enter password (min. 6 characters)"
-                  className={formErrors.password ? 'input-error' : ''}
+                  className={formErrors.password ? 'staff-input-error' : ''}
                 />
-                {formErrors.password && <div className="error-text">{formErrors.password}</div>}
+                {formErrors.password && <div className="staff-error-text">{formErrors.password}</div>}
               </div>
               
-              <div className="form-group">
+              <div className="staff-form-group">
                 <label htmlFor="confirmPassword">Confirm Password *</label>
                 <input
                   type="password"
@@ -393,17 +407,24 @@ const StaffManagement = () => {
                   value={formData.confirmPassword}
                   onChange={handleFormChange}
                   placeholder="Confirm password"
-                  className={formErrors.confirmPassword ? 'input-error' : ''}
+                  className={formErrors.confirmPassword ? 'staff-input-error' : ''}
                 />
-                {formErrors.confirmPassword && <div className="error-text">{formErrors.confirmPassword}</div>}
+                {formErrors.confirmPassword && <div className="staff-error-text">{formErrors.confirmPassword}</div>}
               </div>
               
-              <div className="form-actions">
-                <button type="button" className="btn-cancel" onClick={() => setShowAddModal(false)}>
+              <div className="staff-form-actions">
+                <button 
+                  type="button" 
+                  className="staff-cancel-button"
+                  onClick={() => setShowAddModal(false)}
+                >
                   Cancel
                 </button>
-                <button type="submit" className="btn-save">
-                  Add Staff
+                <button 
+                  type="submit" 
+                  className="staff-submit-button"
+                >
+                  Add Staff Member
                 </button>
               </div>
             </form>

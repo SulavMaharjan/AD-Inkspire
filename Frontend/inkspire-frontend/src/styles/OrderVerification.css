@@ -1,194 +1,144 @@
-/* Order Verification Styles */
-.order-verification {
-  display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 24px;
+/* Order Verification Styles - Scoped with unique class names */
+.ov-main-container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 1.5rem;
 }
 
-.verification-container {
+.ov-verification-panel {
   background-color: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  padding: 24px;
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  padding: 1.5rem;
+  border: 1px solid #e2e8f0;
 }
 
-.verification-header {
-  margin-bottom: 24px;
+.ov-panel-header {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #f1f5f9;
 }
 
-.verification-header h2 {
-  font-size: 20px;
+.ov-panel-header h2 {
+  font-size: 1.5rem;
   font-weight: 600;
   color: #1E3A8A;
-  margin: 0 0 8px 0;
+  margin: 0 0 0.5rem 0;
 }
 
-.verification-header p {
+.ov-panel-header p {
   color: #64748b;
   margin: 0;
+  font-size: 0.875rem;
 }
 
-.verification-form {
+.ov-verification-form {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 1.5rem;
 }
 
-.form-group {
+.ov-form-group {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 0.5rem;
 }
 
-.form-group label {
-  font-size: 14px;
+.ov-form-label {
+  font-size: 0.875rem;
   font-weight: 500;
   color: #475569;
 }
 
-.form-group input {
-  padding: 12px 16px;
+.ov-form-input {
+  padding: 0.75rem 1rem;
   border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  font-size: 16px;
-  transition: border-color 0.2s;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+  background-color: #f8fafc;
 }
 
-.form-group input:focus {
+.ov-form-input:focus {
   outline: none;
   border-color: #1E3A8A;
-  box-shadow: 0 0 0 2px rgba(30, 58, 138, 0.2);
+  box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1);
+  background-color: #ffffff;
 }
 
-.verify-button {
+.ov-verify-btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 12px 24px;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
   background-color: #1E3A8A;
   color: white;
   border: none;
-  border-radius: 8px;
+  border-radius: 0.5rem;
   font-weight: 500;
   cursor: pointer;
-  transition: background-color 0.2s;
-  height: 48px;
+  transition: all 0.2s ease;
+  height: 3rem;
+  font-size: 1rem;
+  margin-top: 0.5rem;
 }
 
-.verify-button:hover:not(:disabled) {
+.ov-verify-btn:hover:not(:disabled) {
   background-color: #1e40af;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px -1px rgba(30, 58, 138, 0.3), 0 2px 4px -1px rgba(30, 58, 138, 0.1);
 }
 
-.verify-button:disabled {
+.ov-verify-btn:disabled {
   opacity: 0.7;
   cursor: not-allowed;
 }
 
-.verify-button.verifying {
+.ov-verify-btn.ov-verifying {
   background-color: #1e40af;
 }
 
-.spinner {
-  width: 20px;
-  height: 20px;
+.ov-spinner {
+  width: 1.25rem;
+  height: 1.25rem;
   border: 2px solid rgba(255, 255, 255, 0.3);
   border-radius: 50%;
   border-top-color: #ffffff;
-  animation: spin 0.8s linear infinite;
+  animation: ov-spin 0.8s linear infinite;
 }
 
-.verification-help {
-  margin-top: 24px;
-  padding: 16px;
-  background-color: #f1f5f9;
-  border-radius: 8px;
-}
-
-.verification-help p {
-  margin: 0;
-  font-size: 14px;
-  color: #475569;
-}
-
-.recent-orders {
-  background-color: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  padding: 24px;
-}
-
-.recent-orders h3 {
-  font-size: 16px;
-  font-weight: 600;
-  color: #1E3A8A;
-  margin: 0 0 16px 0;
-}
-
-.order-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.order-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px;
-  border-radius: 8px;
+.ov-help-section {
+  margin-top: 1.5rem;
+  padding: 1rem;
   background-color: #f8fafc;
-  transition: background-color 0.2s;
-  cursor: pointer;
+  border-radius: 0.5rem;
+  border-left: 4px solid #1E3A8A;
 }
 
-.order-item:hover {
-  background-color: #f1f5f9;
+.ov-help-section p {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #475569;
+  line-height: 1.5;
 }
 
-.order-info {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.order-number {
-  font-weight: 500;
-  color: #1e293b;
-}
-
-.member-name {
-  font-size: 14px;
-  color: #64748b;
-}
-
-.order-time {
-  font-size: 12px;
-  color: #94a3b8;
-}
-
-@keyframes spin {
+@keyframes ov-spin {
   to { transform: rotate(360deg); }
 }
 
-@media (max-width: 1024px) {
-  .order-verification {
-    grid-template-columns: 1fr;
-  }
-}
-
+/* Responsive Styles */
 @media (max-width: 768px) {
-  .verification-container,
-  .recent-orders {
-    padding: 16px;
+  .ov-verification-panel {
+    padding: 1rem;
   }
   
-  .form-group input {
-    padding: 10px 14px;
+  .ov-form-input {
+    padding: 0.625rem 0.875rem;
   }
   
-  .verify-button {
-    padding: 10px 16px;
-    height: 44px;
+  .ov-verify-btn {
+    padding: 0.625rem 1rem;
+    height: 2.75rem;
   }
 }
