@@ -33,7 +33,6 @@ import StaffManagement from "./components/Staff/StaffManagement";
 const AdminDashboardWrapper = () => (
   <AdminLayout>
     <AdminDashboard />
-    <AdminDashboard />
   </AdminLayout>
 );
 

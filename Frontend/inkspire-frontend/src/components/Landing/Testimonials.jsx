@@ -2,25 +2,26 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaQuoteLeft, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import '../../styles/Landing.css';
-
+import AashrayaImage from "../Landing/LandingImages/Aashraya.jpeg";
+import SulavImage from "../Landing/LandingImages/Sulav.jpeg";
 const testimonials = [
   {
     id: 1,
-    name: 'Sarah Johnson',
+    name: 'Aashraya Shrestha',
     role: 'Book Enthusiast',
     quote: "Inkspire has completely transformed my reading experience. The recommendations are spot-on, and I've discovered so many amazing books I would have otherwise missed.",
-    image: 'https://images.pexels.com/photos/1587009/pexels-photo-1587009.jpeg?auto=compress&cs=tinysrgb&w=300'
+    image: AashrayaImage
   },
   {
     id: 2,
-    name: 'Michael Chen',
+    name: 'Sulav Maharjan',
     role: 'Professor',
     quote: 'As an educator, I find Inkspire invaluable for both my research and teaching. The organized collections and search functionality save me countless hours.',
-    image: 'https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg?auto=compress&cs=tinysrgb&w=300'
+    image: SulavImage
   },
   {
     id: 3,
-    name: 'Emily Rodriguez',
+    name: 'Anjan Giri',
     role: 'Student',
     quote: 'Being able to access textbooks and research materials from anywhere has been a game-changer for my studies. The interface is intuitive and the mobile experience is seamless.',
     image: 'https://images.pexels.com/photos/1462637/pexels-photo-1462637.jpeg?auto=compress&cs=tinysrgb&w=300'

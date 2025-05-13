@@ -1,7 +1,10 @@
 import React from "react";
 import "../../styles/EmptyBookmarkState.css";
+import { useNavigate } from "react-router-dom";
+
 
 export const EmptyBookmarkState = () => {
+  const navigate = useNavigate();
   return (
     <div className="empty-bookmark-state">
       <div className="empty-icon">
@@ -24,8 +27,7 @@ export const EmptyBookmarkState = () => {
       <h2>Your bookmark list is empty</h2>
       <p>Save your favorite books to easily find them later.</p>
       <div className="empty-actions">
-        <button className="primary-button">Browse Books</button>
-        <button className="secondary-button">View Bestsellers</button>
+        <button className="primary-button" onClick={() => navigate('/books')}>Browse Books</button>
       </div>
     </div>
   );
