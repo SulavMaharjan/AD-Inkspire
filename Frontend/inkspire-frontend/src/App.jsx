@@ -29,6 +29,7 @@ import AdminLayout from "./components/admin/AdminLayout";
 import BookManagement from "./components/admin/BookManagement";
 import AdminDashboard from "./pages/AdminDashboard";
 import StaffManagement from "./components/Staff/StaffManagement";
+import UserProfilePage from "./pages/UserProfilePage";
 
 const AdminDashboardWrapper = () => (
   <AdminLayout>
@@ -82,7 +83,6 @@ function App() {
               <Route path="/orderedBook" element={<PurchasedBooks />} />
               <Route path="/bookmarkedlist" element={<BookmarkedList />} />
 
-
               {/* Admin protected routes */}
               <Route
                 path="/admin/*"
@@ -106,10 +106,7 @@ function App() {
                         element={<AdminAnnouncementsWrapper />}
                       />
                       <Route path="members" element={<AdminMembersWrapper />} />
-                      <Route
-                        path="staffs"
-                        element={<AdminStaffWrapper/>}
-                      />
+                      <Route path="staffs" element={<AdminStaffWrapper />} />
                     </Routes>
                   </AdminProtectedRoute>
                 }
@@ -122,10 +119,7 @@ function App() {
                   <MemberProtectedRoute>
                     <Routes>
                       <Route path="cart" element={<CartPage />} />
-                      <Route
-                        path="profile"
-                        element={<div>Member Profile</div>}
-                      />
+                      <Route path="profile" element={<UserProfilePage />} />
                       <Route path="cart" element={<CartPage />} />
                     </Routes>
                   </MemberProtectedRoute>
