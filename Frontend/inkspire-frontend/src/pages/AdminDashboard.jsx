@@ -663,10 +663,6 @@ const AdminDashboard = () => {
               <RefreshCw size={20} />
               <span>Refresh</span>
             </button>
-            <div className="admin-db-search">
-              <Search size={20} />
-              <input type="text" placeholder="Search..." />
-            </div>
           </div>
         </div>
 
