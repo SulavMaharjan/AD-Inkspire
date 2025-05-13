@@ -360,5 +360,23 @@ namespace backend_inkspire.Controllers
                 return StatusCode(500, $"An error occurred while retrieving books: {ex.Message}");
             }
         }
+
+        // GET: api/books/price-range
+        [HttpGet("price-range")]
+        public async Task<ActionResult<PaginatedResponseDTO<BookResponseDTO>>> GetBooksByPriceRange(
+            [FromQuery] decimal minPrice = 0,
+            [FromQuery] decimal maxPrice = 1000,
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 10)
+        {
+            var filter = new BookFilterDTO
+            {
+                MinPrice = minPrice,
+                MaxPrice = maxPrice,
+                PageNumber = pageNumber,
+                PageSize = pageSize
+            };
+            return await GetBooks(filter);
+        }
     }
 }
