@@ -50,10 +50,10 @@ body {
   background-color: var(--accent-color);
   padding: 1rem 6rem;
   display: flex;
-  justify-content: space-around;
+  justify-content: space-between;
   align-items: center;
   padding-top: 90px;
-  gap: 500px;
+  padding-left: 200px;
 }
 
 .logo-container {
