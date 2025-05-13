@@ -1,11 +1,5 @@
 import React, { useState, useEffect, useContext } from "react";
-import {
-  BookIcon,
-  SlidersHorizontal,
-  AlertTriangle,
-  RefreshCw,
-  X,
-} from "lucide-react";
+import { SlidersHorizontal, AlertTriangle, RefreshCw, X } from "lucide-react";
 import SearchBar from "../BookCatalog/SearchBar";
 import BookCard from "../BookCatalog/BookCard";
 import FilterSidebar from "../BookCatalog/FilterSidebar";
@@ -48,7 +42,7 @@ const BookListing = () => {
     currentPage: 1,
     totalPages: 1,
     totalItems: 0,
-    pageSize: 12,
+    pageSize: 10,
   });
 
   const MAX_PRICE = 1000;
@@ -63,6 +57,7 @@ const BookListing = () => {
     selectedLanguages: [],
     selectedPublishers: [],
     ratingFilter: 0,
+    availableInLibrary: false,
   });
 
   //quantity modal state
@@ -120,22 +115,20 @@ const BookListing = () => {
       try {
         let response;
 
+        //filters object
         const filters = {
           pageNumber: pagination.currentPage,
           pageSize: pagination.pageSize,
-          searchTerm: searchQuery.trim(),
           sortBy: mapSortByToApi(sortBy),
           sortAscending: sortBy === "title",
 
-          // Price filters
-          ...(activeFilters.minPrice > 0 && {
-            priceMin: activeFilters.minPrice,
-          }),
-          ...(activeFilters.maxPrice < MAX_PRICE && {
-            priceMax: activeFilters.maxPrice,
-          }),
+          //price filters
+          minPrice: activeFilters.minPrice || 0,
+          maxPrice: activeFilters.maxPrice || MAX_PRICE,
 
-          // Collection filters
+          availableInLibrary: activeFilters.availableInLibrary || false,
+
+          //collection filters
           ...(activeFilters.selectedGenres.length > 0 && {
             genre: activeFilters.selectedGenres.join(","),
           }),
@@ -152,12 +145,12 @@ const BookListing = () => {
             publisher: activeFilters.selectedPublishers.join(","),
           }),
 
-          // Rating filter
+          //rating filter
           ...(activeFilters.ratingFilter > 0 && {
             minRating: activeFilters.ratingFilter,
           }),
 
-          // Category filters
+          //category filters
           ...(activeCategory === "bestsellers" && { bestseller: true }),
           ...(activeCategory === "new-releases" && { newRelease: true }),
           ...(activeCategory === "award-winners" && { awardWinner: true }),
@@ -167,11 +160,10 @@ const BookListing = () => {
         };
 
         if (searchQuery.trim()) {
-          response = await fetchBooks(filters);
-        } else {
-          // For all categories including 'all', use the main fetchBooks with filters
-          response = await fetchBooks(filters);
+          filters.searchTerm = searchQuery.trim();
         }
+
+        response = await fetchBooks(filters);
 
         if (response && response.items) {
           setBooks(response.items);
@@ -179,7 +171,7 @@ const BookListing = () => {
             currentPage: response.pageNumber || 1,
             totalPages: response.totalPages || 1,
             totalItems: response.totalCount || 0,
-            pageSize: response.pageSize || 12,
+            pageSize: response.pageSize || 10,
           });
 
           if (activeCategory === "all" && !searchQuery) {
@@ -245,19 +237,19 @@ const BookListing = () => {
   const handleApplyFilters = (filterData) => {
     console.log("Applying filters with data:", filterData);
 
-    // Apply all filters directly without conditional checks
+    //apply all filters directly
     setActiveFilters({
-      minPrice: filterData.minPrice,
-      maxPrice: filterData.maxPrice,
+      minPrice: filterData.minPrice || 0,
+      maxPrice: filterData.maxPrice || MAX_PRICE,
       selectedGenres: filterData.selectedGenres,
       selectedAuthors: filterData.selectedAuthors,
       selectedFormats: filterData.selectedFormats,
       selectedLanguages: filterData.selectedLanguages,
       selectedPublishers: filterData.selectedPublishers,
       ratingFilter: filterData.ratingFilter,
+      availableInLibrary: filterData.availableInLibrary || false,
     });
 
-    // Reset to page 1 when applying new filters
     setPagination((prev) => ({ ...prev, currentPage: 1 }));
     setShowFilters(false);
   };
@@ -349,17 +341,26 @@ const BookListing = () => {
     }
   };
 
+  const handleSearchChange = (query) => {
+    console.log("Search query received:", query);
+    setSearchQuery(query);
+
+    // Reset any category selection when searching
+    if (query && activeCategory !== "all") {
+      setActiveCategory("all");
+    }
+
+    // Always reset to page 1 when search changes
+    setPagination((prev) => ({ ...prev, currentPage: 1 }));
+  };
+
   return (
     <div className="book-listing-container">
       <Navbar />
       <header className="book-listing-header">
         <SearchBar
           searchQuery={searchQuery}
-          setSearchQuery={(query) => {
-            console.log("Search query changed:", query);
-            setSearchQuery(query);
-            setPagination((prev) => ({ ...prev, currentPage: 1 }));
-          }}
+          setSearchQuery={handleSearchChange}
         />
         <button className="filter-button" onClick={toggleFilters}>
           <SlidersHorizontal size={20} />
@@ -403,6 +404,7 @@ const BookListing = () => {
             activeFilters.selectedFormats.length > 0 ||
             activeFilters.selectedLanguages.length > 0 ||
             activeFilters.selectedPublishers.length > 0 ||
+            activeFilters.availableInLibrary ||
             activeFilters.ratingFilter > 0) && (
             <div className="active-filters-summary">
               <h3>Active Filters:</h3>
@@ -511,6 +513,22 @@ const BookListing = () => {
                   </span>
                 ))}
 
+                {activeFilters.availableInLibrary && (
+                  <span className="filter-tag">
+                    Available in Library
+                    <button
+                      onClick={() =>
+                        setActiveFilters({
+                          ...activeFilters,
+                          availableInLibrary: false,
+                        })
+                      }
+                    >
+                      ✕
+                    </button>
+                  </span>
+                )}
+
                 {activeFilters.selectedPublishers.map((publisher) => (
                   <span key={publisher} className="filter-tag">
                     Publisher: {publisher}
@@ -542,6 +560,7 @@ const BookListing = () => {
                       selectedLanguages: [],
                       selectedPublishers: [],
                       ratingFilter: 0,
+                      availableInLibrary: false,
                     })
                   }
                 >

@@ -18,6 +18,7 @@ const FilterSidebar = ({ setShowFilters, initialFilters, onApplyFilters }) => {
   const [selectedLanguages, setSelectedLanguages] = useState([]);
   const [selectedPublishers, setSelectedPublishers] = useState([]);
   const [ratingFilter, setRatingFilter] = useState(0);
+  const [availableInLibrary, setAvailableInLibrary] = useState(false);
 
   const MAX_PRICE = 1000;
 
@@ -43,6 +44,7 @@ const FilterSidebar = ({ setShowFilters, initialFilters, onApplyFilters }) => {
       setSelectedLanguages(initialFilters.selectedLanguages || []);
       setSelectedPublishers(initialFilters.selectedPublishers || []);
       setRatingFilter(initialFilters.ratingFilter || 0);
+      setAvailableInLibrary(initialFilters.availableInLibrary || false);
 
       console.log("Initialized filters:", initialFilters);
     }
@@ -101,6 +103,10 @@ const FilterSidebar = ({ setShowFilters, initialFilters, onApplyFilters }) => {
     }
   };
 
+  const handleAvailableInLibraryChange = () => {
+    setAvailableInLibrary(!availableInLibrary);
+  };
+
   const handleFormatChange = (format) => {
     if (selectedFormats.includes(format)) {
       setSelectedFormats(selectedFormats.filter((f) => f !== format));
@@ -126,12 +132,12 @@ const FilterSidebar = ({ setShowFilters, initialFilters, onApplyFilters }) => {
   };
 
   const handleMinPriceChange = (e) => {
-    const value = Number(e.target.value);
+    const value = Math.max(0, Math.min(Number(e.target.value), MAX_PRICE));
     setMinPrice(Math.min(value, maxPrice));
   };
 
   const handleMaxPriceChange = (e) => {
-    const value = Number(e.target.value);
+    const value = Math.max(0, Math.min(Number(e.target.value), MAX_PRICE));
     setMaxPrice(Math.max(value, minPrice));
   };
 
@@ -168,14 +174,15 @@ const FilterSidebar = ({ setShowFilters, initialFilters, onApplyFilters }) => {
 
   const applyFilters = () => {
     const filterData = {
-      minPrice,
-      maxPrice,
+      minPrice: minPrice,
+      maxPrice: maxPrice,
       selectedGenres,
       selectedAuthors,
       selectedFormats,
       selectedLanguages,
       selectedPublishers,
       ratingFilter,
+      availableInLibrary: availableInLibrary,
     };
 
     console.log("Applying filters from sidebar:", filterData);
@@ -268,6 +275,19 @@ const FilterSidebar = ({ setShowFilters, initialFilters, onApplyFilters }) => {
                   </button>
                 ))}
               </div>
+            </div>
+
+            <div className="filter-section">
+              <h3>Library Availability</h3>
+              <label className="checkbox-label">
+                <input
+                  type="checkbox"
+                  checked={availableInLibrary}
+                  onChange={handleAvailableInLibraryChange}
+                />
+                <span className="checkbox-custom"></span>
+                Available in Library
+              </label>
             </div>
 
             {genres.length > 0 && (

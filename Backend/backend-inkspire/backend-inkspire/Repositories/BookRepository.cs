@@ -65,7 +65,7 @@ namespace backend_inkspire.Repositories
                 query = query.Where(b => b.AvailableInLibrary == filter.AvailableInLibrary.Value);
             }
 
-            //price range filters
+            //price range
             if (filter.MinPrice.HasValue)
             {
                 query = query.Where(b =>
