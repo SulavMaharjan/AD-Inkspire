@@ -11,7 +11,7 @@
 }
 
 .navbar-container {
-  max-width: 1440px;
+  /* max-width: 1440px; */
   margin: 0 auto;
   padding: var(--space-md) var(--space-xl);
   display: flex;
@@ -41,7 +41,7 @@
 .navbar-actions {
   display: flex;
   align-items: center;
-  gap: var(--space-md);
+  gap: var(--space-sm);
 }
 
 .auth-buttons {
@@ -160,7 +160,7 @@
 .mobile-menu-items {
   display: flex;
   flex-direction: column;
-  padding: var(--space-md) 0;
+  padding: var(--space-sm) 0;
 }
 
 .mobile-nav-link {

@@ -729,7 +729,7 @@ const AdminDashboard = () => {
                 <div className="admin-db-bestsellers">
                   <div className="admin-db-table-header">
                     <h3>Bestselling Books</h3>
-                    <button onClick={() => handleTabChange('books')}>View All Books</button>
+            
                   </div>
                   <div className="admin-db-books-grid">
                     {bestsellingBooks.map(book => (
@@ -757,26 +757,7 @@ const AdminDashboard = () => {
               </>
             )}
 
-            {activeTab === 'members' && (
-              <div className="admin-db-tab-content">
-                <h2>Member Management</h2>
-                <p>Detailed member management functionality would go here.</p>
-              </div>
-            )}
-
-            {activeTab === 'books' && (
-              <div className="admin-db-tab-content">
-                <h2>Book Management</h2>
-                <p>Detailed book management functionality would go here.</p>
-              </div>
-            )}
-
-            {activeTab === 'orders' && (
-              <div className="admin-db-tab-content">
-                <h2>Order Management</h2>
-                <p>Detailed order management functionality would go here.</p>
-              </div>
-            )}
+          
           </>
         )}
       </div>
