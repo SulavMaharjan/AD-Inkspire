@@ -115,10 +115,10 @@ const BookListing = () => {
       try {
         let response;
 
+        //filters object
         const filters = {
           pageNumber: pagination.currentPage,
           pageSize: pagination.pageSize,
-          searchTerm: searchQuery.trim(),
           sortBy: mapSortByToApi(sortBy),
           sortAscending: sortBy === "title",
 
@@ -160,50 +160,10 @@ const BookListing = () => {
         };
 
         if (searchQuery.trim()) {
-          response = await searchBooks(
-            searchQuery.trim(),
-            pagination.currentPage,
-            pagination.pageSize,
-            {
-              priceMin: activeFilters.minPrice,
-              priceMax: activeFilters.maxPrice,
-              availableInLibrary: activeFilters.availableInLibrary,
-              genre:
-                activeFilters.selectedGenres.length > 0
-                  ? activeFilters.selectedGenres.join(",")
-                  : undefined,
-              author:
-                activeFilters.selectedAuthors.length > 0
-                  ? activeFilters.selectedAuthors.join(",")
-                  : undefined,
-              format:
-                activeFilters.selectedFormats.length > 0
-                  ? activeFilters.selectedFormats.join(",")
-                  : undefined,
-              language:
-                activeFilters.selectedLanguages.length > 0
-                  ? activeFilters.selectedLanguages.join(",")
-                  : undefined,
-              publisher:
-                activeFilters.selectedPublishers.length > 0
-                  ? activeFilters.selectedPublishers.join(",")
-                  : undefined,
-              minRating:
-                activeFilters.ratingFilter > 0
-                  ? activeFilters.ratingFilter
-                  : undefined,
-              bestseller: activeCategory === "bestsellers" ? true : undefined,
-              newRelease: activeCategory === "new-releases" ? true : undefined,
-              awardWinner:
-                activeCategory === "award-winners" ? true : undefined,
-              newArrival: activeCategory === "new-arrivals" ? true : undefined,
-              comingSoon: activeCategory === "coming-soon" ? true : undefined,
-              onSale: activeCategory === "deals" ? true : undefined,
-            }
-          );
-        } else {
-          response = await fetchBooks(filters);
+          filters.searchTerm = searchQuery.trim();
         }
+
+        response = await fetchBooks(filters);
 
         if (response && response.items) {
           setBooks(response.items);
@@ -381,17 +341,26 @@ const BookListing = () => {
     }
   };
 
+  const handleSearchChange = (query) => {
+    console.log("Search query received:", query);
+    setSearchQuery(query);
+
+    // Reset any category selection when searching
+    if (query && activeCategory !== "all") {
+      setActiveCategory("all");
+    }
+
+    // Always reset to page 1 when search changes
+    setPagination((prev) => ({ ...prev, currentPage: 1 }));
+  };
+
   return (
     <div className="book-listing-container">
       <Navbar />
       <header className="book-listing-header">
         <SearchBar
           searchQuery={searchQuery}
-          setSearchQuery={(query) => {
-            console.log("Search query changed:", query);
-            setSearchQuery(query);
-            setPagination((prev) => ({ ...prev, currentPage: 1 }));
-          }}
+          setSearchQuery={handleSearchChange}
         />
         <button className="filter-button" onClick={toggleFilters}>
           <SlidersHorizontal size={20} />
