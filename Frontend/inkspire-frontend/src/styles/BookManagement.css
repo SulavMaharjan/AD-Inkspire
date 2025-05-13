@@ -1,530 +1,757 @@
-/* Global Container */
-.bm-container {
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 2rem;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    color: #333;
-    position: relative;
+/* Book Management Styles - Unique Classnames */
+.bookmgmt-container {
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #2d3748;
+  position: relative;
+}
+
+/* Header Section */
+.bookmgmt-header {
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.bookmgmt-header h1 {
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: #1a202c;
+  margin: 0;
+}
+
+/* Search Section */
+.bookmgmt-search-container {
+  margin-bottom: 2rem;
+}
+
+.bookmgmt-search-form {
+  display: flex;
+  max-width: 700px;
+  gap: 0.5rem;
+}
+
+.bookmgmt-search-input {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  border: 1px solid #cbd5e0;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  transition: all 0.2s;
+  background-color: #fff;
+}
+
+.bookmgmt-search-input:focus {
+  outline: none;
+  border-color: #4299e1;
+  box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+}
+
+/* Button Styles */
+.bookmgmt-btn-primary {
+  background-color: #4a5568;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 0.75rem 1.5rem;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bookmgmt-btn-primary:hover {
+  background-color: #2d3748;
+}
+
+.bookmgmt-btn-secondary {
+  background-color: #edf2f7;
+  color: #2d3748;
+  border: 1px solid #cbd5e0;
+  border-radius: 6px;
+  padding: 0.75rem 1.5rem;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.bookmgmt-btn-secondary:hover {
+  background-color: #e2e8f0;
+}
+
+/* Table Styles */
+.bookmgmt-content-wrapper {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  display: flex;
+  width: 100%;
+}
+
+.bookmgmt-table-container {
+  overflow-x: auto;
+  width: 100%;
+}
+
+.bookmgmt-books-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.95rem;
+  table-layout: fixed;
+}
+
+.bookmgmt-books-table th {
+  background-color: #f7fafc;
+  padding: 1.25rem 1rem;
+  text-align: left;
+  font-weight: 600;
+  color: #4a5568;
+  border-bottom: 1px solid #e2e8f0;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.bookmgmt-table-row {
+  transition: background-color 0.2s;
+}
+
+.bookmgmt-table-row:hover {
+  background-color: #f8fafc;
+}
+
+.bookmgmt-books-table td {
+  vertical-align: middle;
+  padding: 1.25rem 1rem;
+  border-bottom: 1px solid #edf2f7;
+}
+
+/* Table Cell Styles */
+.bookmgmt-cover-column {
+  width: 80px;
+  padding-right: 0;
+}
+
+.bookmgmt-book-cover-thumbnail {
+  width: 60px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.bookmgmt-title-cell {
+  width: 10%;
+}
+
+.bookmgmt-author-cell {
+  width: 15%;
+}
+
+.bookmgmt-isbn-cell {
+  width: 12%;
+}
+
+.bookmgmt-genre-cell {
+  width: 10%;
+}
+
+.bookmgmt-price-cell {
+  width: 14%;
+}
+
+.bookmgmt-stock-cell {
+  width: 4%;
+}
+
+.bookmgmt-status-cell {
+  width: 12%;
+}
+
+.bookmgmt-actions-cell {
+  width: 15%;
+}
+
+.bookmgmt-title-wrapper,
+.bookmgmt-author-wrapper,
+.bookmgmt-isbn-wrapper,
+.bookmgmt-genre-wrapper,
+.bookmgmt-price-wrapper,
+.bookmgmt-stock-wrapper {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  padding: 0.5rem 0;
+  overflow:visible;
+  text-overflow: ellipsis;
+  white-space:unset;
+}
+
+.bookmgmt-title-cell {
+  font-weight: 500;
+  color: #2d3748;
+}
+
+.bookmgmt-low-stock {
+  color: #718096;
+  font-weight: 500;
+}
+
+/* Price Styling */
+.bookmgmt-original-price {
+  text-decoration: line-through;
+  color: #a0aec0;
+  margin-right: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.bookmgmt-discounted-price {
+  font-weight: 600;
+  color: #4a5568;
+}
+
+.bookmgmt-discount-tag {
+  font-size: 0.8rem;
+  background-color: #e2e8f0;
+  color: #4a5568;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  margin-left: 0.5rem;
+  font-weight: 500;
+}
+
+/* Status Tags */
+.bookmgmt-status-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.bookmgmt-status-tag {
+  padding: 0.3rem 0.6rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  white-space: nowrap;
+  background-color: #edf2f7;
+  color: #4a5568;
+  border: 1px solid #e2e8f0;
+}
+
+.bookmgmt-sale-tag {
+  background-color: #f7fafc;
+  color: #4a5568;
+}
+
+.bookmgmt-bestseller-tag {
+  background-color: #f7fafc;
+  color: #4a5568;
+}
+
+.bookmgmt-award-tag {
+  background-color: #f7fafc;
+  color: #4a5568;
+}
+
+.bookmgmt-outofstock-tag {
+  background-color: #f7fafc;
+  color: #4a5568;
+}
+
+/* Action Buttons */
+.bookmgmt-actions-wrapper {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.bookmgmt-action-btn {
+  padding: 0.5rem 0.8rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 1px solid #e2e8f0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  background-color: #f7fafc;
+  color: #4a5568;
+}
+
+.bookmgmt-action-btn:hover {
+  background-color: #edf2f7;
+}
+
+.bookmgmt-view-btn, 
+.bookmgmt-edit-btn, 
+.bookmgmt-delete-btn, 
+.bookmgmt-discount-btn, 
+.bookmgmt-remove-discount-btn {
+  background-color: #f7fafc;
+  color: #4a5568;
+  border-color: #e2e8f0;
+}
+
+.bookmgmt-view-btn:hover, 
+.bookmgmt-edit-btn:hover, 
+.bookmgmt-delete-btn:hover, 
+.bookmgmt-discount-btn:hover, 
+.bookmgmt-remove-discount-btn:hover {
+  background-color: #edf2f7;
+}
+
+/* Modal Styles */
+.bookmgmt-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.bookmgmt-modal-container {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 800px;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: bookmgmt-modal-fadein 0.3s ease-out;
+}
+
+@keyframes bookmgmt-modal-fadein {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
   }
-  
-  /* Header Section */
-  .bm-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 2rem;
-    border-bottom: 1px solid #e1e4e8;
-    padding-bottom: 1rem;
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
-  
-  .bm-header h1 {
-    font-size: 1.8rem;
-    font-weight: 600;
-    color: #24292e;
-    margin: 0;
+}
+
+.bookmgmt-form-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  border-bottom: 1px solid #e2e8f0;
+  position: sticky;
+  top: 0;
+  background-color: white;
+  z-index: 5;
+}
+
+.bookmgmt-form-header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  color: #2d3748;
+}
+
+.bookmgmt-btn-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: #718096;
+  cursor: pointer;
+  padding: 0.5rem;
+  line-height: 1;
+  transition: color 0.2s;
+}
+
+.bookmgmt-btn-close:hover {
+  color: #4a5568;
+}
+
+/* Form Styles */
+.bookmgmt-book-form {
+  padding: 1.5rem;
+}
+
+.bookmgmt-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.bookmgmt-form-group {
+  margin-bottom: 1rem;
+}
+
+.bookmgmt-form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: #4a5568;
+}
+
+.bookmgmt-form-group input[type="text"],
+.bookmgmt-form-group input[type="number"],
+.bookmgmt-form-group input[type="date"],
+.bookmgmt-form-group input[type="datetime-local"],
+.bookmgmt-form-group select,
+.bookmgmt-form-group textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #cbd5e0;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  transition: all 0.2s;
+}
+
+.bookmgmt-form-group input:focus,
+.bookmgmt-form-group select:focus,
+.bookmgmt-form-group textarea:focus {
+  outline: none;
+  border-color: #4299e1;
+  box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+}
+
+.bookmgmt-form-group textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.bookmgmt-checkbox-group {
+  display: flex;
+  align-items: center;
+}
+
+.bookmgmt-checkbox-group label {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0;
+  cursor: pointer;
+}
+
+.bookmgmt-checkbox-group input {
+  margin-right: 0.75rem;
+  width: 1.1rem;
+  height: 1.1rem;
+}
+
+.bookmgmt-full-width {
+  grid-column: 1 / -1;
+}
+
+/* File Input Styles */
+.bookmgmt-file-input-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.bookmgmt-file-input-container input[type="file"] {
+  padding: 0.5rem;
+}
+
+.bookmgmt-current-image-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.bookmgmt-thumbnail-preview {
+  width: 60px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.bookmgmt-help-text {
+  font-size: 0.85rem;
+  color: #718096;
+  margin-top: 0.5rem;
+}
+
+/* Form Actions */
+.bookmgmt-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e2e8f0;
+  margin-top: 1.5rem;
+}
+
+/* Loading State */
+.bookmgmt-loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  width: 100%;
+}
+
+.bookmgmt-loader {
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #4a5568;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: bookmgmt-spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes bookmgmt-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Empty State */
+.bookmgmt-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  text-align: center;
+  width: 100%;
+}
+
+.bookmgmt-empty-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  color: #a0aec0;
+}
+
+/* Error Message */
+.bookmgmt-error-message {
+  background-color: #f7fafc;
+  color: #4a5568;
+  padding: 1rem;
+  border-radius: 6px;
+  border-left: 4px solid #718096;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+}
+
+.bookmgmt-error-icon {
+  font-weight: bold;
+  margin-right: 0.75rem;
+  background-color: #718096;
+  color: white;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Notification */
+.bookmgmt-notification {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  padding: 1rem 1.5rem;
+  border-radius: 6px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  z-index: 1001;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 400px;
+  animation: bookmgmt-notification-slidein 0.3s ease-out;
+  background-color: #f7fafc;
+  color: #4a5568;
+  border-left: 4px solid #718096;
+}
+
+@keyframes bookmgmt-notification-slidein {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
   }
-  
-  /* Button Styles */
-  .bm-btn-primary {
-    background-color: #24292e;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    padding: 0.6rem 1.2rem;
-    font-size: 0.9rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: background-color 0.2s;
+  to {
+    opacity: 1;
+    transform: translateX(0);
   }
-  
-  .bm-btn-primary:hover {
-    background-color: #1b1f23;
-  }
-  
-  .bm-btn-secondary {
-    background-color: #f6f8fa;
-    color: #24292e;
-    border: 1px solid #d1d5da;
-    border-radius: 4px;
-    padding: 0.5rem 1rem;
-    font-size: 0.85rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-  
-  .bm-btn-secondary:hover {
-    background-color: #e1e4e8;
-  }
-  
-  .bm-btn-danger {
-    background-color: #f6f8fa;
-    color: #cb2431;
-    border: 1px solid #d1d5da;
-    border-radius: 4px;
-    padding: 0.5rem 1rem;
-    font-size: 0.85rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-  
-  .bm-btn-danger:hover {
-    background-color: #f3e8e8;
-  }
-  
-  /* Search Section */
-  .bm-search-container {
-    margin-bottom: 2rem;
-  }
-  
-  .bm-search-form {
-    display: flex;
-    max-width: 600px;
-  }
-  
-  .bm-search-input {
-    flex: 1;
-    padding: 0.6rem 1rem;
-    border: 1px solid #d1d5da;
-    border-radius: 4px 0 0 4px;
-    font-size: 0.9rem;
-  }
-  
-  .bm-search-input:focus {
-    outline: none;
-    border-color: #0366d6;
-    box-shadow: 0 0 0 3px rgba(3, 102, 214, 0.1);
-  }
-  
-  /* Table Container */
-  .bm-content-wrapper {
-    background-color: white;
-    border-radius: 6px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-    overflow: hidden;
-  }
-  
-  .bm-table-container {
-    overflow-x: auto;
-    width: 100%;
-  }
-  
-  /* Books Table */
-  .bm-books-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 0.9rem;
-    table-layout: fixed;
-  }
-  
-  .bm-books-table th {
-    background-color: #f6f8fa;
-    padding: 0.8rem 1rem;
-    text-align: left;
-    font-weight: 600;
-    border-bottom: 1px solid #e1e4e8;
-    white-space: nowrap;
-  }
-  
-  .bm-books-table tbody tr {
-    transition: background-color 0.2s;
-  }
-  
-  .bm-books-table tbody tr:hover {
-    background-color: #f6f8fa;
-  }
-  
-  .bm-books-table td {
-    vertical-align: middle;
-    padding: 0.8rem 1rem;
-    border-bottom: 1px solid #e1e4e8;
-  }
-  
-  /* Special Columns */
-  .bm-cover-column {
-    width: 60px;
-  }
-  
-  .bm-book-cover-thumbnail {
-    width: 50px;
-    height: 70px;
-    object-fit: cover;
-    border-radius: 3px;
-  }
-  
-  .bm-title-cell {
-    font-weight: 500;
-    max-width: 250px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  
-  .bm-low-stock {
-    color: #d73a49;
-    font-weight: 500;
-  }
-  
-  /* Price formatting */
-  .bm-original-price {
-    text-decoration: line-through;
-    color: #6a737d;
-    margin-right: 0.3rem;
-    font-size: 0.8rem;
-  }
-  
-  .bm-discounted-price {
-    font-weight: 500;
-    color: #24292e;
-  }
-  
-  .bm-discount-tag {
-    font-size: 0.8rem;
-    color: #6a737d;
-    margin-left: 0.3rem;
-  }
-  
-  /* Status Tags */
-  .bm-status-tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.3rem;
-    align-items: center;
-  }
-  
-  .bm-status-tag {
-    padding: 0.2rem 0.5rem;
-    border-radius: 3px;
-    font-size: 0.75rem;
-    font-weight: 500;
-    background-color: #f0f4f8;
-    color: #4a5568;
-    border: 1px solid #cbd5e0;
-  }
-  
-  /* Action Buttons - FIXED */
-  .bm-actions-cell {
-    padding: 0.8rem 1rem;
-    vertical-align: middle;
-    white-space: nowrap;
-    width: auto;
-    min-width: 150px;
-  }
-  
-  .bm-actions-wrapper {
-    display: flex;
-    gap: 0.3rem;
-    flex-wrap: wrap;
-    align-items: center;
-  }
-  
-  .bm-action-btn {
-    background-color: #f6f8fa;
-    color: #24292e;
-    border: 1px solid #d1d5da;
-    border-radius: 4px;
-    padding: 0.5rem 0.8rem;
-    font-size: 0.85rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s;
-    height: 32px;
-    line-height: 1;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0;
-  }
-  
-  .bm-action-btn:hover {
-    background-color: #e1e4e8;
-  }
-  
-  .bm-action-btn.bm-btn-danger {
-    color: #cb2431;
-  }
-  
-  .bm-action-btn.bm-btn-danger:hover {
-    background-color: #f3e8e8;
-  }
-  
-  /* Modal Form Styles */
-  .bm-modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 0.6);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-    padding: 1rem;
-  }
-  
-  .bm-modal-container {
-    background-color: white;
-    border-radius: 6px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    width: 100%;
-    max-width: 800px;
-    max-height: 90vh;
-    overflow-y: auto;
-  }
-  
-  .bm-form-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1rem 1.5rem;
-    border-bottom: 1px solid #e1e4e8;
-  }
-  
-  .bm-form-header h2 {
-    margin: 0;
-    font-size: 1.25rem;
-    color: #24292e;
-  }
-  
-  .bm-btn-close {
-    background: none;
-    border: none;
-    font-size: 1.5rem;
-    cursor: pointer;
-    padding: 0;
-    color: #6a737d;
-  }
-  
-  .bm-book-form {
-    padding: 1rem;
-  }
-  
-  .bm-form-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 1rem;
-    margin-bottom: 1.5rem;
-  }
-  
-  .bm-form-group {
-    margin-bottom: 1rem;
-  }
-  
-  .bm-form-group label {
-    display: block;
-    margin-bottom: 0.5rem;
-    font-weight: 500;
-    font-size: 0.9rem;
-  }
-  
-  .bm-form-group input[type="text"],
-  .bm-form-group input[type="number"],
-  .bm-form-group input[type="date"],
-  .bm-form-group select,
-  .bm-form-group textarea {
-    width: 100%;
-    padding: 0.6rem;
-    border: 1px solid #d1d5da;
-    border-radius: 4px;
-    font-size: 0.9rem;
-    transition: border-color 0.2s;
-  }
-  
-  .bm-form-group input:focus,
-  .bm-form-group select:focus,
-  .bm-form-group textarea:focus {
-    outline: none;
-    border-color: #0366d6;
-    box-shadow: 0 0 0 3px rgba(3, 102, 214, 0.1);
-  }
-  
-  .bm-checkbox-group {
-    display: flex;
-    align-items: center;
-  }
-  
-  .bm-checkbox-group label {
-    display: flex;
-    align-items: center;
-    cursor: pointer;
-    margin-bottom: 0;
-  }
-  
-  .bm-checkbox-group input[type="checkbox"] {
-    margin-right: 0.5rem;
-  }
-  
-  .bm-full-width {
-    grid-column: 1 / -1;
-  }
-  
-  .bm-file-input-container {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 1rem;
-  }
-  
-  .bm-current-image-info {
-    display: flex;
-    align-items: center;
+}
+
+.bookmgmt-notification-close {
+  background: none;
+  border: none;
+  font-size: 1.25rem;
+  color: inherit;
+  cursor: pointer;
+  margin-left: 1rem;
+  padding: 0;
+  line-height: 1;
+}
+
+.bookmgmt-info {
+  background-color: #f7fafc;
+  color: #4a5568;
+  border-left: 4px solid #718096;
+}
+
+.bookmgmt-success {
+  background-color: #f7fafc;
+  color: #4a5568;
+  border-left: 4px solid #718096;
+}
+
+.bookmgmt-error {
+  background-color: #f7fafc;
+  color: #4a5568;
+  border-left: 4px solid #718096;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 1200px) {
+  .bookmgmt-actions-wrapper {
+    flex-direction: column;
     gap: 0.5rem;
   }
   
-  .bm-thumbnail-preview {
-    width: 40px;
-    height: 50px;
-    object-fit: cover;
-    border-radius: 3px;
+  .bookmgmt-action-btn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 992px) {
+  .bookmgmt-books-table {
+    table-layout: auto;
+  }
+}
+
+@media (max-width: 768px) {
+  .bookmgmt-form-grid {
+    grid-template-columns: 1fr;
   }
   
-  .bm-help-text {
-    color: #6a737d;
-    font-size: 0.8rem;
-    margin-top: 0.25rem;
+  .bookmgmt-books-table th,
+  .bookmgmt-books-table td {
+    padding: 0.75rem 0.5rem;
   }
-  
-  .bm-form-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 1rem;
-    padding-top: 1rem;
-    border-top: 1px solid #e1e4e8;
-  }
-  
-  /* Notification Styles */
-  .bm-notification {
-    position: fixed;
-    top: 1rem;
-    right: 1rem;
+}
+
+@media (max-width: 480px) {
+  .bookmgmt-container {
     padding: 1rem;
-    border-radius: 4px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background-color: white;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    z-index: 1100;
-    max-width: 400px;
-    animation: bm-slide-in 0.3s ease-out;
   }
   
-  @keyframes bm-slide-in {
-    from {
-      transform: translateX(100%);
-      opacity: 0;
-    }
-    to {
-      transform: translateX(0);
-      opacity: 1;
-    }
+  .bookmgmt-header h1 {
+    font-size: 1.5rem;
   }
   
-  .bm-notification-message {
-    font-size: 0.9rem;
-    margin-right: 1rem;
-  }
-  
-  .bm-notification-close {
-    background: none;
-    border: none;
-    font-size: 1.25rem;
-    cursor: pointer;
-    padding: 0;
-    color: #6a737d;
-  }
-  
-  .bm-success {
-    border-left: 4px solid #22863a;
-  }
-  
-  .bm-error {
-    border-left: 4px solid #cb2431;
-  }
-  
-  .bm-info {
-    border-left: 4px solid #0366d6;
-  }
-  
-  /* Error Message */
-  .bm-error-message {
-    padding: 0.8rem 1rem;
-    background-color: #ffebee;
-    border-left: 4px solid #d73a49;
-    color: #d73a49;
-    margin-bottom: 1rem;
-    border-radius: 4px;
-    display: flex;
-    align-items: center;
-  }
-  
-  .bm-error-icon {
-    font-size: 1.2rem;
-    font-weight: bold;
-    margin-right: 0.5rem;
-  }
-  
-  /* Loading State */
-  .bm-loading-container {
-    display: flex;
+  .bookmgmt-search-form {
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 3rem;
   }
   
-  .bm-loader {
-    border: 3px solid #f3f3f3;
-    border-top: 3px solid #0366d6;
-    border-radius: 50%;
-    width: 30px;
-    height: 30px;
-    animation: bm-spin 1s linear infinite;
-    margin-bottom: 1rem;
+  .bookmgmt-modal-container {
+    max-height: 95vh;
   }
   
-  @keyframes bm-spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-  }
-  
-  /* Empty State */
-  .bm-empty-state {
-    display: flex;
+  .bookmgmt-form-actions {
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 3rem;
-    text-align: center;
   }
   
-  .bm-empty-icon {
-    font-size: 3rem;
-    margin-bottom: 1rem;
-    color: #6a737d;
+  .bookmgmt-btn-primary,
+  .bookmgmt-btn-secondary {
+    width: 100%;
   }
-  
-  /* Responsive Adjustments */
-  @media (max-width: 768px) {
-    .bm-form-grid {
-      grid-template-columns: 1fr;
-    }
-    
-    .bm-header {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 1rem;
-    }
-    
-    .bm-search-form {
-      width: 100%;
-    }
-    
-    .bm-action-btn {
-      padding: 0.4rem 0.6rem;
-      font-size: 0.8rem;
-    }
+}
+
+/* Dropdown Styles */
+.bookmgmt-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.bookmgmt-dropdown-toggle {
+  background: none;
+  border: none;
+  padding: 0.5rem;
+  cursor: pointer;
+  color: #718096;
+  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.bookmgmt-dropdown-toggle:hover {
+  background-color: #edf2f7;
+  color: #4a5568;
+}
+
+.bookmgmt-dropdown-menu {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  background-color: white;
+  border-radius: 6px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  min-width: 180px;
+  z-index: 100;
+  overflow: hidden;
+  animation: bookmgmt-dropdown-fadein 0.2s ease-out;
+}
+
+@keyframes bookmgmt-dropdown-fadein {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
   }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.bookmgmt-dropdown-item {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  text-align: left;
+  background: none;
+  border: none;
+  color: #4a5568;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+}
+
+.bookmgmt-dropdown-item:hover {
+  background-color: #f7fafc;
+  color: #2d3748;
+}
+
+/* Adjust the actions cell */
+.bookmgmt-actions-cell {
+  width: 60px;
+  padding: 0.5rem !important;
+}
+
+.bookmgmt-actions-wrapper {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
