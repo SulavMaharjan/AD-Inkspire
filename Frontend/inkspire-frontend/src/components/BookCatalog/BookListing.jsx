@@ -42,7 +42,7 @@ const BookListing = () => {
     currentPage: 1,
     totalPages: 1,
     totalItems: 0,
-    pageSize: 12,
+    pageSize: 10,
   });
 
   const MAX_PRICE = 1000;
@@ -57,6 +57,7 @@ const BookListing = () => {
     selectedLanguages: [],
     selectedPublishers: [],
     ratingFilter: 0,
+    availableInLibrary: false,
   });
 
   //quantity modal state
@@ -125,6 +126,8 @@ const BookListing = () => {
           minPrice: activeFilters.minPrice || 0,
           maxPrice: activeFilters.maxPrice || MAX_PRICE,
 
+          availableInLibrary: activeFilters.availableInLibrary || false,
+
           //collection filters
           ...(activeFilters.selectedGenres.length > 0 && {
             genre: activeFilters.selectedGenres.join(","),
@@ -164,6 +167,7 @@ const BookListing = () => {
             {
               priceMin: activeFilters.minPrice,
               priceMax: activeFilters.maxPrice,
+              availableInLibrary: activeFilters.availableInLibrary,
               genre:
                 activeFilters.selectedGenres.length > 0
                   ? activeFilters.selectedGenres.join(",")
@@ -207,7 +211,7 @@ const BookListing = () => {
             currentPage: response.pageNumber || 1,
             totalPages: response.totalPages || 1,
             totalItems: response.totalCount || 0,
-            pageSize: response.pageSize || 12,
+            pageSize: response.pageSize || 10,
           });
 
           if (activeCategory === "all" && !searchQuery) {
@@ -283,6 +287,7 @@ const BookListing = () => {
       selectedLanguages: filterData.selectedLanguages,
       selectedPublishers: filterData.selectedPublishers,
       ratingFilter: filterData.ratingFilter,
+      availableInLibrary: filterData.availableInLibrary || false,
     });
 
     setPagination((prev) => ({ ...prev, currentPage: 1 }));
@@ -430,6 +435,7 @@ const BookListing = () => {
             activeFilters.selectedFormats.length > 0 ||
             activeFilters.selectedLanguages.length > 0 ||
             activeFilters.selectedPublishers.length > 0 ||
+            activeFilters.availableInLibrary ||
             activeFilters.ratingFilter > 0) && (
             <div className="active-filters-summary">
               <h3>Active Filters:</h3>
@@ -538,6 +544,22 @@ const BookListing = () => {
                   </span>
                 ))}
 
+                {activeFilters.availableInLibrary && (
+                  <span className="filter-tag">
+                    Available in Library
+                    <button
+                      onClick={() =>
+                        setActiveFilters({
+                          ...activeFilters,
+                          availableInLibrary: false,
+                        })
+                      }
+                    >
+                      ✕
+                    </button>
+                  </span>
+                )}
+
                 {activeFilters.selectedPublishers.map((publisher) => (
                   <span key={publisher} className="filter-tag">
                     Publisher: {publisher}
@@ -569,6 +591,7 @@ const BookListing = () => {
                       selectedLanguages: [],
                       selectedPublishers: [],
                       ratingFilter: 0,
+                      availableInLibrary: false,
                     })
                   }
                 >

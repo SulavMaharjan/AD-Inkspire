@@ -44,6 +44,7 @@ export const fetchBooks = async (filters = {}) => {
       newArrival,
       comingSoon,
       onSale,
+      availableInLibrary,
       ...otherFilters
     } = filters;
 
@@ -53,6 +54,10 @@ export const fetchBooks = async (filters = {}) => {
 
     queryParams.append("minPrice", minPrice);
     queryParams.append("maxPrice", maxPrice);
+
+    if (availableInLibrary) {
+      queryParams.append("availableInLibrary", "true");
+    }
 
     const apiSortMapping = {
       title: "Title",
