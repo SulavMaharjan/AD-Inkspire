@@ -27,56 +27,73 @@ const UserProfilePage = () => {
       }
     };
 
-    loadUserProfile();
+    // Simulate a slight delay for better UX
+    const timer = setTimeout(() => {
+      loadUserProfile();
+    }, 800);
+
+    return () => clearTimeout(timer);
   }, [currentUser]);
 
   if (loading) {
     return (
-      <div className="user-profile-loading">
-        <div className="user-profile-spinner"></div>
-        <p>Loading your profile...</p>
+      <div className="user-profile-body">
+        <Navbar />
+        <div className="user-profile-loading">
+          <div className="user-profile-spinner"></div>
+          <p>Loading your profile...</p>
+        </div>
+        <Footer />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="user-profile-error">
-        <div className="user-profile-error-card">
-          <div className="user-profile-error-icon">!</div>
-          <h2>Error Loading Profile</h2>
-          <p>{error}</p>
-          <Link
-            to="/login"
-            className="user-profile-button user-profile-button-primary"
-          >
-            Go to Login
-          </Link>
+      <div className="user-profile-body">
+        <Navbar />
+        <div className="user-profile-error">
+          <div className="user-profile-error-card">
+            <div className="user-profile-error-icon">!</div>
+            <h2>Error Loading Profile</h2>
+            <p>{error}</p>
+            <Link
+              to="/login"
+              className="user-profile-button user-profile-button-primary"
+            >
+              Go to Login
+            </Link>
+          </div>
         </div>
+        <Footer />
       </div>
     );
   }
 
   if (!userProfile) {
     return (
-      <div className="user-profile-error">
-        <div className="user-profile-error-card">
-          <div className="user-profile-error-icon">?</div>
-          <h2>User Not Found</h2>
-          <p>Unable to find user information. Please log in again.</p>
-          <Link
-            to="/login"
-            className="user-profile-button user-profile-button-primary"
-          >
-            Go to Login
-          </Link>
+      <div className="user-profile-body">
+        <Navbar />
+        <div className="user-profile-error">
+          <div className="user-profile-error-card">
+            <div className="user-profile-error-icon">?</div>
+            <h2>User Not Found</h2>
+            <p>Unable to find user information. Please log in again.</p>
+            <Link
+              to="/login"
+              className="user-profile-button user-profile-button-primary"
+            >
+              Go to Login
+            </Link>
+          </div>
         </div>
+        <Footer />
       </div>
     );
   }
 
   return (
-    <>
+    <div className="user-profile-body">
       <Navbar />
       <div className="user-profile-page">
         <div className="user-profile-card">
@@ -86,7 +103,9 @@ const UserProfilePage = () => {
                 ? userProfile.name.charAt(0).toUpperCase()
                 : "U"}
             </div>
-            <h1>{userProfile.name || "User"}</h1>
+            <h1 className="user-profile-username">
+              {userProfile.name || "User"}
+            </h1>
             <p className="user-profile-role">{userProfile.role || "Member"}</p>
           </div>
 
@@ -124,7 +143,7 @@ const UserProfilePage = () => {
         </div>
       </div>
       <Footer />
-    </>
+    </div>
   );
 };
 
