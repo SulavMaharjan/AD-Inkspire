@@ -27,95 +27,123 @@ const UserProfilePage = () => {
       }
     };
 
-    loadUserProfile();
+    // Simulate a slight delay for better UX
+    const timer = setTimeout(() => {
+      loadUserProfile();
+    }, 800);
+
+    return () => clearTimeout(timer);
   }, [currentUser]);
 
   if (loading) {
     return (
-      <div className="profile-loading">
-        <div className="spinner"></div>
-        <p>Loading your profile...</p>
+      <div className="user-profile-body">
+        <Navbar />
+        <div className="user-profile-loading">
+          <div className="user-profile-spinner"></div>
+          <p>Loading your profile...</p>
+        </div>
+        <Footer />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="profile-error">
-        <div className="error-card">
-          <div className="error-icon">!</div>
-          <h2>Error Loading Profile</h2>
-          <p>{error}</p>
-          <Link to="/login" className="profile-button primary">
-            Go to Login
-          </Link>
+      <div className="user-profile-body">
+        <Navbar />
+        <div className="user-profile-error">
+          <div className="user-profile-error-card">
+            <div className="user-profile-error-icon">!</div>
+            <h2>Error Loading Profile</h2>
+            <p>{error}</p>
+            <Link
+              to="/login"
+              className="user-profile-button user-profile-button-primary"
+            >
+              Go to Login
+            </Link>
+          </div>
         </div>
+        <Footer />
       </div>
     );
   }
 
   if (!userProfile) {
     return (
-      <div className="profile-error">
-        <div className="error-card">
-          <div className="error-icon">?</div>
-          <h2>User Not Found</h2>
-          <p>Unable to find user information. Please log in again.</p>
-          <Link to="/login" className="profile-button primary">
-            Go to Login
-          </Link>
+      <div className="user-profile-body">
+        <Navbar />
+        <div className="user-profile-error">
+          <div className="user-profile-error-card">
+            <div className="user-profile-error-icon">?</div>
+            <h2>User Not Found</h2>
+            <p>Unable to find user information. Please log in again.</p>
+            <Link
+              to="/login"
+              className="user-profile-button user-profile-button-primary"
+            >
+              Go to Login
+            </Link>
+          </div>
         </div>
+        <Footer />
       </div>
     );
   }
 
   return (
-    <>
+    <div className="user-profile-body">
       <Navbar />
-      <div className="profile-page">
-        <div className="profile-card">
-          <div className="profile-header">
-            <div className="profile-avatar">
+      <div className="user-profile-page">
+        <div className="user-profile-card">
+          <div className="user-profile-header">
+            <div className="user-profile-avatar">
               {userProfile.name
                 ? userProfile.name.charAt(0).toUpperCase()
                 : "U"}
             </div>
-            <h1>{userProfile.name || "User"}</h1>
-            <p className="profile-role">{userProfile.role || "Member"}</p>
+            <h1 className="user-profile-username">
+              {userProfile.name || "User"}
+            </h1>
+            <p className="user-profile-role">{userProfile.role || "Member"}</p>
           </div>
 
-          <div className="profile-details">
-            <div className="detail-row">
-              <span className="detail-label">Member ID</span>
-              <span className="detail-value">
+          <div className="user-profile-details">
+            <div className="user-profile-detail-row">
+              <span className="user-profile-detail-label">Member ID</span>
+              <span className="user-profile-detail-value">
                 {userProfile.id || "Not available"}
               </span>
             </div>
 
-            <div className="detail-row">
-              <span className="detail-label">Username</span>
-              <span className="detail-value">
+            <div className="user-profile-detail-row">
+              <span className="user-profile-detail-label">Username</span>
+              <span className="user-profile-detail-value">
                 {userProfile.userName || "Not available"}
               </span>
             </div>
 
-            <div className="detail-row">
-              <span className="detail-label">Email</span>
-              <span className="detail-value">
+            <div className="user-profile-detail-row">
+              <span className="user-profile-detail-label">Email</span>
+              <span className="user-profile-detail-value">
                 {userProfile.email || "Not available"}
               </span>
             </div>
           </div>
 
-          <div className="profile-footer">
-            <Link to="/" className="profile-button secondary">
+          <div className="user-profile-footer">
+            <Link
+              to="/"
+              className="user-profile-button user-profile-button-secondary"
+            >
               Back to Home
             </Link>
           </div>
         </div>
       </div>
       <Footer />
-    </>
+    </div>
   );
 };
 

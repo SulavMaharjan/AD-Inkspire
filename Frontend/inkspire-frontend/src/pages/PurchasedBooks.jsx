@@ -304,25 +304,6 @@ const PurchasedBooks = () => {
       <div className="purchased-books-container">
         <h1 className="page-title">My Orders</h1>
 
-        <div className="filter-section">
-          <label htmlFor="statusFilter">Filter by Status:</label>
-          <select
-            id="statusFilter"
-            value={filterStatus}
-            onChange={(e) => {
-              setFilterStatus(e.target.value);
-              setCurrentPage(1);
-            }}
-          >
-            <option value="All">All Orders</option>
-            <option value="Pending">Pending</option>
-            <option value="Confirmed">Confirmed</option>
-            <option value="Ready for Pickup">Ready for Pickup</option>
-            <option value="Completed">Completed</option>
-            <option value="Cancelled">Cancelled</option>
-          </select>
-        </div>
-
         <div className="orders-list">
           {filteredPurchases.length > 0 ? (
             filteredPurchases.map((order) => (

@@ -9,15 +9,10 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import "../../styles/admin.css";
+import { useNavigate } from "react-router-dom";
 
 const AdminLayout = ({ children }) => {
-    // Handle logout
-    const handleLogout = () => {
-      localStorage.removeItem('token');
-      localStorage.removeItem('role');
-      localStorage.removeItem('user');
-      window.location.href = '/admin/login';
-    };
+const navigate = useNavigate();
   
   return (
     <div className="admin-layout">
@@ -68,7 +63,7 @@ const AdminLayout = ({ children }) => {
         </ul>
       </nav>
         <div className="sidebar-footer">
-          <a href="#" className="logout-link" onClick={handleLogout}>
+          <a href="#" className="logout-link" onClick={() => navigate("/login")}>
             <LogOut size={18} />
             <span>Logout</span>
           </a>
