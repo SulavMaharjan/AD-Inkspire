@@ -139,36 +139,8 @@ const Navbar = () => {
               transition={{ duration: 0.3 }}
             >
               <div className="mobile-menu-items">
-                <Link
-                  to="/"
-                  className="mobile-nav-link"
-                  onClick={toggleMobileMenu}
-                >
-                  Home
-                </Link>
-                <Link
-                  to="/books"
-                  className="mobile-nav-link"
-                  onClick={toggleMobileMenu}
-                >
-                  Books
-                </Link>
-                <Link
-                  to="/about"
-                  className="mobile-nav-link"
-                  onClick={toggleMobileMenu}
-                >
-                  About
-                </Link>
                 {currentUser ? (
                   <>
-                    <Link
-                      to="/dashboard"
-                      className="mobile-nav-link"
-                      onClick={toggleMobileMenu}
-                    >
-                      Dashboard
-                    </Link>
                     <button
                       className="mobile-nav-link logout"
                       onClick={handleLogout}

@@ -1,10 +1,16 @@
-import { Link } from 'react-router-dom';
-import { FaBook, FaTwitter, FaFacebookF, FaInstagram, FaLinkedinIn } from 'react-icons/fa';
-import '../../styles/Landing.css';
+import { Link } from "react-router-dom";
+import {
+  FaBook,
+  FaTwitter,
+  FaFacebookF,
+  FaInstagram,
+  FaLinkedinIn,
+} from "react-icons/fa";
+import "../../styles/Landing.css";
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
-  
+
   return (
     <footer className="site-footer">
       <div className="footer-container">
@@ -14,7 +20,9 @@ const Footer = () => {
               <FaBook className="logo-icon" />
               <span className="logo-text">Inkspire</span>
             </Link>
-            <p className="footer-tagline">Your gateway to endless knowledge and imagination</p>
+            <p className="footer-tagline">
+              Your gateway to endless knowledge and imagination
+            </p>
             <div className="footer-social">
               <a href="#" target="_blank" rel="noopener" aria-label="Twitter">
                 <FaTwitter />
@@ -30,47 +38,68 @@ const Footer = () => {
               </a>
             </div>
           </div>
-          
+
           <div className="footer-links">
             <div className="footer-links-column">
               <h3>Explore</h3>
               <ul>
-                <li><Link to="/books">Books</Link></li>
-                <li><Link to="/categories">Categories</Link></li>
-                <li><Link to="/authors">Authors</Link></li>
-                <li><Link to="/new-releases">New Releases</Link></li>
+                <li>
+                  <Link to="/books">Books</Link>
+                </li>
+                <li>
+                  <Link to="/orderedbook">Orders</Link>
+                </li>
+                <li>
+                  <Link to="/member/cart">Cart</Link>
+                </li>
+                <li>
+                  <Link to="/bookmarkedlist">Bookmarks</Link>
+                </li>
               </ul>
             </div>
-            
+
             <div className="footer-links-column">
               <h3>Account</h3>
               <ul>
-                <li><Link to="/login">Sign In</Link></li>
-                <li><Link to="/signup">Register</Link></li>
-                <li><Link to="/profile">My Account</Link></li>
-                <li><Link to="/reading-list">My Reading List</Link></li>
+                <li>
+                  <Link to="/login">Sign In</Link>
+                </li>
+                <li>
+                  <Link to="/signup">Register</Link>
+                </li>
+                <li>
+                  <Link>My Account</Link>
+                </li>
               </ul>
             </div>
-            
+
             <div className="footer-links-column">
               <h3>Help</h3>
               <ul>
-                <li><Link to="/faq">FAQ</Link></li>
-                <li><Link to="/contact">Contact Us</Link></li>
-                <li><Link to="/how-it-works">How It Works</Link></li>
-                <li><Link to="/support">Support</Link></li>
+                <li>
+                  <Link>FAQ</Link>
+                </li>
+                <li>
+                  <Link>Contact Us</Link>
+                </li>
+                <li>
+                  <Link>How It Works</Link>
+                </li>
+                <li>
+                  <Link>Support</Link>
+                </li>
               </ul>
             </div>
           </div>
         </div>
-        
+
         <div className="footer-bottom">
           <div className="footer-legal">
             <p>&copy; {currentYear} Inkspire. All rights reserved.</p>
             <div className="footer-legal-links">
-              <Link to="/terms">Terms of Service</Link>
-              <Link to="/privacy">Privacy Policy</Link>
-              <Link to="/cookies">Cookie Policy</Link>
+              <Link>Terms of Service</Link>
+              <Link>Privacy Policy</Link>
+              <Link>Cookie Policy</Link>
             </div>
           </div>
         </div>
