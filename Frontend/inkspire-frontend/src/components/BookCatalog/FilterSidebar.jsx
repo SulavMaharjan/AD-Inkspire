@@ -126,12 +126,12 @@ const FilterSidebar = ({ setShowFilters, initialFilters, onApplyFilters }) => {
   };
 
   const handleMinPriceChange = (e) => {
-    const value = Number(e.target.value);
+    const value = Math.max(0, Math.min(Number(e.target.value), MAX_PRICE));
     setMinPrice(Math.min(value, maxPrice));
   };
 
   const handleMaxPriceChange = (e) => {
-    const value = Number(e.target.value);
+    const value = Math.max(0, Math.min(Number(e.target.value), MAX_PRICE));
     setMaxPrice(Math.max(value, minPrice));
   };
 
@@ -168,8 +168,8 @@ const FilterSidebar = ({ setShowFilters, initialFilters, onApplyFilters }) => {
 
   const applyFilters = () => {
     const filterData = {
-      minPrice,
-      maxPrice,
+      minPrice: minPrice,
+      maxPrice: maxPrice,
       selectedGenres,
       selectedAuthors,
       selectedFormats,

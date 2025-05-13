@@ -99,8 +99,6 @@ namespace backend_inkspire.DTOs
         public string? Genre { get; set; }
         public bool? InStock { get; set; }
         public bool? AvailableInLibrary { get; set; }
-        public decimal? MinPrice { get; set; }
-        public decimal? MaxPrice { get; set; }
         public decimal? MinRating { get; set; }
         public string? Language { get; set; }
         public string? Format { get; set; }
@@ -116,9 +114,15 @@ namespace backend_inkspire.DTOs
         public bool SortAscending { get; set; } = true;
         public int PageNumber { get; set; } = 1;
         public int PageSize { get; set; } = 10;
+
+        [Range(0, double.MaxValue)]
+        public decimal? MinPrice { get; set; }
+
+        [Range(0, double.MaxValue)]
+        public decimal? MaxPrice { get; set; }
     }
 
-    // Enum to define valid sorting options
+    //enum to define valid sorting options
     public enum SortOption
     {
         Popularity,
