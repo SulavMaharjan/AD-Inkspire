@@ -133,7 +133,6 @@ const CartPage = () => {
       const orderData = await response.json();
       setOrderSuccess(true);
       fetchCart(true);
-
     } catch (error) {
       console.error("Error creating order:", error);
       setOrderError(error.message);
@@ -273,15 +272,8 @@ const CartPage = () => {
         <div className="cart-container">
           <div className="cart-header">
             <h1>Your Shopping Cart</h1>
-            <p>
-              {actualTotalItems} {actualTotalItems === 1 ? "item" : "items"} in
-              your cart
-            </p>
             <div style={{ fontSize: "12px", color: "#666" }}>
-              <p>
-                Debug: Total Items: {actualTotalItems}, Discount Eligible:{" "}
-                {actualTotalItems >= 5 ? "Yes" : "No"}
-              </p>
+              <p>Total Items: {actualTotalItems}</p>
             </div>
           </div>
 
