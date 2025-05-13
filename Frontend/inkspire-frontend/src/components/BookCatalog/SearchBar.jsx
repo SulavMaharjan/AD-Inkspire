@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Search, X } from "lucide-react";
 import "../../styles/SearchBar.css";
 
@@ -9,30 +9,50 @@ const SearchBar = ({ searchQuery, setSearchQuery }) => {
     setInputValue(searchQuery || "");
   }, [searchQuery]);
 
-  //handle submission
+  //submission handler
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log("Search submitted with query:", inputValue);
+
+    if (window.searchDebounceTimer) {
+      clearTimeout(window.searchDebounceTimer);
+    }
+
+    console.log("Search form submitted with query:", inputValue);
     setSearchQuery(inputValue);
   };
 
-  //immediate search as user types
+  //search handler
+  const debouncedSearch = useCallback(
+    (value) => {
+      if (window.searchDebounceTimer) {
+        clearTimeout(window.searchDebounceTimer);
+      }
+
+      window.searchDebounceTimer = setTimeout(() => {
+        console.log("Debounced search triggered with:", value);
+        setSearchQuery(value);
+      }, 500);
+    },
+    [setSearchQuery]
+  );
+
+  //input change handler
   const handleInputChange = (e) => {
     const value = e.target.value;
     setInputValue(value);
-
-    clearTimeout(window.searchTimeout);
-    window.searchTimeout = setTimeout(() => {
-      console.log("Auto-searching with query:", value);
-      setSearchQuery(value);
-    }, 500);
+    debouncedSearch(value);
   };
 
-  //clear search field
+  //clear search handler
   const handleClearSearch = () => {
     setInputValue("");
-    setSearchQuery("");
+
+    if (window.searchDebounceTimer) {
+      clearTimeout(window.searchDebounceTimer);
+    }
+
     console.log("Search cleared");
+    setSearchQuery("");
   };
 
   return (
@@ -50,6 +70,7 @@ const SearchBar = ({ searchQuery, setSearchQuery }) => {
           onChange={handleInputChange}
           className="search-input"
           data-testid="search-input"
+          aria-label="Search books"
         />
         {inputValue && (
           <button

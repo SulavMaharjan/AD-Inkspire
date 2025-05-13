@@ -52,6 +52,12 @@ export const fetchBooks = async (filters = {}) => {
     queryParams.append("pageNumber", pageNumber);
     queryParams.append("pageSize", pageSize);
 
+    //add search term if provided
+    if (searchTerm) {
+      queryParams.append("searchTerm", searchTerm);
+      console.log("Adding search term to query:", searchTerm);
+    }
+
     queryParams.append("minPrice", minPrice);
     queryParams.append("maxPrice", maxPrice);
 
@@ -73,7 +79,6 @@ export const fetchBooks = async (filters = {}) => {
     queryParams.append("sortBy", apiSortBy);
     queryParams.append("sortAscending", sortAscending.toString());
 
-    if (searchTerm) queryParams.append("searchTerm", searchTerm);
     if (genre) queryParams.append("genre", genre);
     if (author) queryParams.append("author", author);
     if (minRating) queryParams.append("minRating", minRating);
@@ -81,7 +86,7 @@ export const fetchBooks = async (filters = {}) => {
     if (language) queryParams.append("language", language);
     if (publisher) queryParams.append("publisher", publisher);
 
-    //category-specific filters
+    //category filters
     if (bestseller) queryParams.append("bestseller", "true");
     if (newRelease) queryParams.append("newRelease", "true");
     if (awardWinner) queryParams.append("awardWinner", "true");
@@ -89,6 +94,7 @@ export const fetchBooks = async (filters = {}) => {
     if (comingSoon) queryParams.append("comingSoon", "true");
     if (onSale) queryParams.append("onSale", "true");
 
+    //any remaining filters
     Object.entries(otherFilters).forEach(([key, value]) => {
       if (value !== undefined && value !== "") {
         queryParams.append(key, value);
