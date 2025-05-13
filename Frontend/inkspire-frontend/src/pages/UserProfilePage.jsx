@@ -86,7 +86,7 @@ const UserProfilePage = () => {
                 ? userProfile.name.charAt(0).toUpperCase()
                 : "U"}
             </div>
-            <h1>{userProfile.name || "User"}</h1>
+            <h1 className="user-profile-name">{userProfile.name || "User"}</h1>
             <p className="user-profile-role">{userProfile.role || "Member"}</p>
           </div>
 
