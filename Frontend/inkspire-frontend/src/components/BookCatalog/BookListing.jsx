@@ -48,7 +48,7 @@ const BookListing = () => {
     currentPage: 1,
     totalPages: 1,
     totalItems: 0,
-    pageSize: 12,
+    pageSize: 10,
   });
 
   const MAX_PRICE = 1000;
@@ -179,7 +179,7 @@ const BookListing = () => {
             currentPage: response.pageNumber || 1,
             totalPages: response.totalPages || 1,
             totalItems: response.totalCount || 0,
-            pageSize: response.pageSize || 12,
+            pageSize: response.pageSize || 10,
           });
 
           if (activeCategory === "all" && !searchQuery) {
