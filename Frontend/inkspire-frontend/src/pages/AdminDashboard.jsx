@@ -22,22 +22,11 @@ import {
   Users, 
   ShoppingBag, 
   DollarSign, 
-  TrendingUp, 
-  AlertCircle,
-  Calendar,
-  ChevronDown,
   Search,
-  Bell,
-  Settings,
-  Menu,
-  X,
-  BookIcon,
-  LogOut,
   RefreshCw  
 } from 'lucide-react';
 import "../styles/AdminDashboard.css";
 
-// Register Chart.js components
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -73,16 +62,28 @@ const AdminDashboard = () => {
   const [orderStatusDistribution, setOrderStatusDistribution] = useState([]);
   const [bestsellingBooks, setBestsellingBooks] = useState([]);
 
-  // Get token from local storage
+  const mapOrderStatus = (status) => {
+  if (typeof status === 'number') {
+    switch(status) {
+      case 0: return 'Pending';
+      case 1: return 'Confirmed';
+      case 2: return 'ReadyForPickup';
+      case 3: return 'Completed';
+      case 4: return 'Cancelled';
+      default: return 'Pending';
+    }
+  }
+  
+  return status || 'Pending';
+};
+
   const token = localStorage.getItem('token');
   
-  // Headers for API calls
   const headers = {
     'Content-Type': 'application/json',
     'Authorization': `Bearer ${token}`
   };
 
-  // Fetch all data
   useEffect(() => {
     if (!token) {
       window.location.href = '/admin/login';
@@ -246,79 +247,131 @@ const AdminDashboard = () => {
     });
   };
 
-  // Fetch orders data
-  const fetchOrders = async () => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/orders?pageNumber=1&pageSize=100`, {
-        method: 'GET',
-        headers
+// Fetch orders data
+const fetchOrders = async () => {
+  try {
+    // Remove the status parameter which might be causing the 400 error
+    const response = await fetch(`${API_BASE_URL}/orders?pageNumber=1&pageSize=100`, {
+      method: "GET",
+      headers
+    });
+    
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status}`);
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching orders:', error);
+    throw error;
+  }
+};
+
+    const processOrdersData = (ordersData) => {
+      const ordersArray = Array.isArray(ordersData) ? ordersData : ordersData.items || [];
+      setTotalOrders(ordersArray.length);
+      
+      // Include all orders regardless of status when sorting recent orders
+      const sortedOrders = [...ordersArray].sort((a, b) => 
+        new Date(b.orderDate || b.createdAt) - new Date(a.orderDate || a.createdAt)
+      );
+      setRecentOrders(sortedOrders.slice(0, 5));
+
+      let revenue = 0;
+      ordersArray.forEach(order => {
+        // Include all orders in revenue calculation
+        revenue += order.totalAmount || 0;
+      });
+      setTotalRevenue(revenue);
+      
+      const last12Months = getLast12Months();
+      const ordersByMonth = new Array(12).fill(0);
+      const revenueByMonth = new Array(12).fill(0);
+      
+      ordersArray.forEach(order => {
+        const orderDate = new Date(order.orderDate || order.createdAt || new Date());
+        const monthIndex = orderDate.getMonth();
+        const year = orderDate.getFullYear();
+        const currentYear = new Date().getFullYear();
+        
+        // Only count if the order is from the current year
+        if (year === currentYear) {
+          ordersByMonth[monthIndex]++;
+          revenueByMonth[monthIndex] += order.totalAmount || 0;
+        }
       });
       
-      if (!response.ok) {
-        throw new Error(`API error: ${response.status}`);
-      }
+      setOrderStats({
+        labels: last12Months,
+        datasets: [
+          {
+            label: 'Orders',
+            data: ordersByMonth,
+            borderColor: '#F59E0B',
+            backgroundColor: 'rgba(245, 158, 11, 0.2)',
+            tension: 0.4
+          }
+        ]
+      });
       
-      return await response.json();
-    } catch (error) {
-      console.error('Error fetching orders:', error);
-      throw error;
-    }
-  };
-
-  // Process orders data
-  const processOrdersData = (ordersData) => {
-    const ordersArray = Array.isArray(ordersData) ? ordersData : ordersData.items || [];
-    setTotalOrders(ordersArray.length);
-    setRecentOrders(ordersArray.slice(0, 5)); 
-    
-    let revenue = 0;
-    ordersArray.forEach(order => {
-      revenue += order.totalAmount || 0;
-    });
-    setTotalRevenue(revenue);
-    
-    const last12Months = getLast12Months();
-    const ordersByMonth = new Array(12).fill(0);
-    const revenueByMonth = new Array(12).fill(0);
-    
-    ordersArray.forEach(order => {
-      const orderDate = new Date(order.orderDate || order.createdAt || new Date());
-      const monthIndex = orderDate.getMonth();
+      const revenueData = {
+        labels: last12Months,
+        datasets: [
+          {
+            label: 'Revenue ($)',
+            data: revenueByMonth,
+            borderColor: '#EC4899',
+            backgroundColor: 'rgba(236, 72, 153, 0.2)',
+            tension: 0.4
+          }
+        ]
+      };
       
-      ordersByMonth[monthIndex]++;
-      revenueByMonth[monthIndex] += order.totalAmount || 0;
-    });
-    
-    setOrderStats({
-      labels: last12Months,
-      datasets: [
-        {
-          label: 'Orders',
-          data: ordersByMonth,
-          borderColor: '#F59E0B',
-          backgroundColor: 'rgba(245, 158, 11, 0.2)',
-          tension: 0.4
+      setRevenueStats(revenueData);
+      
+      // Process order status distribution
+      const statusCounts = {
+        'Pending': 0,
+        'Processing': 0,
+        'Shipped': 0,
+        'Completed': 0,
+        'Cancelled': 0
+      };
+      
+      ordersArray.forEach(order => {
+        const status = order.status || 'Pending';
+        if (statusCounts.hasOwnProperty(status)) {
+          statusCounts[status]++;
+        } else {
+          statusCounts[status] = 1; 
         }
-      ]
-    });
-    
-    const revenueData = {
-      labels: last12Months,
-      datasets: [
-        {
-          label: 'Revenue ($)',
-          data: revenueByMonth,
-          borderColor: '#EC4899',
-          backgroundColor: 'rgba(236, 72, 153, 0.2)',
-          tension: 0.4
-        }
-      ]
+      });
+      
+      setOrderStatusDistribution({
+        labels: Object.keys(statusCounts),
+        datasets: [
+          {
+            data: Object.values(statusCounts),
+            backgroundColor: [
+              'rgba(245, 158, 11, 0.7)', 
+              'rgba(99, 102, 241, 0.7)', 
+              'rgba(16, 185, 129, 0.7)', 
+              'rgba(59, 130, 246, 0.7)', 
+              'rgba(239, 68, 68, 0.7)'  
+            ],
+            borderColor: [
+              'rgba(245, 158, 11, 1)',
+              'rgba(99, 102, 241, 1)',
+              'rgba(16, 185, 129, 1)',
+              'rgba(59, 130, 246, 1)',
+              'rgba(239, 68, 68, 1)'
+            ],
+            borderWidth: 1
+          }
+        ]
+      });
     };
-    
-    setRevenueStats(revenueData);
-  };
 
-  // Fetch genre distribution
   const fetchGenreDistribution = async () => {
     try {
       const response = await fetch(`${API_BASE_URL}/books/genres`, {
@@ -381,7 +434,6 @@ const AdminDashboard = () => {
     });
   };
 
-  // Fetch order status distribution
   const fetchOrderStatusDistribution = async () => {
     try {
       const response = await fetch(`${API_BASE_URL}/orders?pageNumber=1&pageSize=100`, {
@@ -400,51 +452,68 @@ const AdminDashboard = () => {
     }
   };
 
-  // Process order status distribution
-  const processOrderStatusData = (ordersData) => {
-    const ordersArray = Array.isArray(ordersData) ? ordersData : ordersData.items || [];
-    
-    const statusCounts = {
-      'Pending': 0,
-      'Processing': 0,
-      'Shipped': 0,
-      'Completed': 0,
-      'Cancelled': 0
-    };
-    
-    ordersArray.forEach(order => {
-      const status = order.status || 'Pending';
-      if (statusCounts.hasOwnProperty(status)) {
-        statusCounts[status]++;
-      }
-    });
-    
-    setOrderStatusDistribution({
-      labels: Object.keys(statusCounts),
-      datasets: [
-        {
-          data: Object.values(statusCounts),
-          backgroundColor: [
-            'rgba(245, 158, 11, 0.7)',
-            'rgba(99, 102, 241, 0.7)',
-            'rgba(16, 185, 129, 0.7)',
-            'rgba(59, 130, 246, 0.7)',
-            'rgba(239, 68, 68, 0.7)'
-          ],
-          borderColor: [
-            'rgba(245, 158, 11, 1)',
-            'rgba(99, 102, 241, 1)',
-            'rgba(16, 185, 129, 1)',
-            'rgba(59, 130, 246, 1)',
-            'rgba(239, 68, 68, 1)'
-          ],
-          borderWidth: 1
-        }
-      ]
-    });
-  };
 
-  // Fetch bestselling books
+const processOrderStatusData = (ordersData) => {
+  const ordersArray = Array.isArray(ordersData) ? ordersData : ordersData.items || [];
+  
+  const statusMapping = {
+    0: 'Pending',
+    1: 'Confirmed',
+    2: 'ReadyForPickup',
+    3: 'Completed',
+    4: 'Cancelled'
+  };
+  
+
+  const statusCounts = {
+    'Pending': 0,
+    'Confirmed': 0,
+    'ReadyForPickup': 0,
+    'Completed': 0,
+    'Cancelled': 0
+  };
+  
+  ordersArray.forEach(order => {
+    let status;
+    
+    if (typeof order.status === 'number') {
+      status = statusMapping[order.status];
+    } else {
+      status = order.status || 'Pending';
+    }
+    
+    if (statusCounts.hasOwnProperty(status)) {
+      statusCounts[status]++;
+    } else {
+      console.warn(`Unexpected order status: ${status}`);
+      statusCounts[status] = 1;
+    }
+  });
+  
+  setOrderStatusDistribution({
+    labels: Object.keys(statusCounts),
+    datasets: [
+      {
+        data: Object.values(statusCounts),
+        backgroundColor: [
+          'rgba(245, 158, 11, 0.7)',    
+          'rgba(99, 102, 241, 0.7)',   
+          'rgba(16, 185, 129, 0.7)',  
+          'rgba(59, 130, 246, 0.7)',   
+          'rgba(239, 68, 68, 0.7)'     
+        ],
+        borderColor: [
+          'rgba(245, 158, 11, 1)',
+          'rgba(99, 102, 241, 1)',
+          'rgba(16, 185, 129, 1)',
+          'rgba(59, 130, 246, 1)',
+          'rgba(239, 68, 68, 1)'
+        ],
+        borderWidth: 1
+      }
+    ]
+  });
+};
   const fetchBestsellingBooks = async () => {
     try {
       const response = await fetch(`${API_BASE_URL}/books/bestsellers?pageNumber=1&pageSize=10`, {
@@ -463,13 +532,11 @@ const AdminDashboard = () => {
     }
   };
 
-  // Process bestselling books
   const processBestsellersData = (bestsellersData) => {
     const booksArray = Array.isArray(bestsellersData) ? bestsellersData : bestsellersData.items || [];
     setBestsellingBooks(booksArray);
   };
 
-  // Helper function to get last 12 months
   const getLast12Months = () => {
     const months = [
       'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
@@ -488,13 +555,11 @@ const AdminDashboard = () => {
     return last12Months;
   };
 
-  // Revenue stats state
   const [revenueStats, setRevenueStats] = useState({
     labels: [],
     datasets: []
   });
 
-  // Common chart options
   const lineChartOptions = {
     responsive: true,
     maintainAspectRatio: false,
@@ -520,7 +585,6 @@ const AdminDashboard = () => {
     }
   };
 
-  // Handle logout
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('role');
@@ -528,7 +592,6 @@ const AdminDashboard = () => {
     window.location.href = '/admin/login';
   };
 
-  // Handle navigation
   const handleTabChange = (tab) => {
     setActiveTab(tab);
     if (window.innerWidth < 768) {
@@ -536,7 +599,6 @@ const AdminDashboard = () => {
     }
   };
 
-  // Refresh dashboard data
   const handleRefresh = () => {
     fetchDashboardData();
   };
@@ -565,7 +627,6 @@ const AdminDashboard = () => {
           </div>
         ) : (
           <>
-            {/* Stats Cards */}
             <div className="admin-db-stats-grid">
               <div className="admin-db-stat-card">
                 <div className="admin-db-stat-icon admin-db-stat-members">
@@ -608,18 +669,11 @@ const AdminDashboard = () => {
               </div>
             </div>
 
-            {/* Content based on active tab */}
             {activeTab === 'overview' && (
               <>
-                {/* Charts */}
                 <div className="admin-db-chart-section">
                   <div className="admin-db-chart-container">
                     <h3>Sales Overview</h3>
-                    <div className="admin-db-period-selector">
-                      <button className={dataPeriod === 'monthly' ? 'admin-db-active' : ''} onClick={() => setDataPeriod('monthly')}>Monthly</button>
-                      <button className={dataPeriod === 'weekly' ? 'admin-db-active' : ''} onClick={() => setDataPeriod('weekly')}>Weekly</button>
-                      <button className={dataPeriod === 'daily' ? 'admin-db-active' : ''} onClick={() => setDataPeriod('daily')}>Daily</button>
-                    </div>
                     <div className="admin-db-chart-wrapper">
                       {revenueStats.labels && revenueStats.datasets && (
                         <Line data={revenueStats} options={lineChartOptions} />
@@ -656,51 +710,49 @@ const AdminDashboard = () => {
                     </div>
                   </div>
                 </div>
-                
-                {/* Recent Orders and Members */}
-                <div className="admin-db-tables-section">
-                  <div className="admin-db-table-container">
-                    <div className="admin-db-table-header">
-                      <h3>Recent Orders</h3>
-                      <button onClick={() => handleTabChange('orders')}>View All</button>
-                    </div>
-                    <table className="admin-db-data-table">
-                      <thead>
-                        <tr>
-                          <th>Order ID</th>
-                          <th>Customer</th>
-                          <th>Date</th>
-                          <th>Status</th>
-                          <th>Total</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {recentOrders.map(order => {
-                          const statusText = String(order?.status || 'Unknown').toLowerCase();
-                          const statusDisplay = order?.status || 'Unknown';
-                          
-                          return (
-                            <tr key={order.id}>
-                              <td>#{order.id}</td>
-                              <td>{order.customerName || order.user?.name || 'N/A'}</td>
-                              <td>{order.orderDate ? new Date(order.orderDate).toLocaleDateString() : 'N/A'}</td>
-                              <td>
-                                <span className={`admin-db-status-badge admin-db-status-${statusText}`}>
-                                  {statusDisplay}
-                                </span>
-                              </td>
-                              <td>${order.totalAmount?.toFixed(2) || '0.00'}</td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
+                                <div className="admin-db-tables-section">
+                <div className="admin-db-table-container">
+                  <table className="admin-db-data-table">
+                    <thead>
+                      <tr>
+                        <th>Order ID</th>
+                        <th>Customer</th>
+                        <th>Date</th>
+                        <th>Status</th>
+                        <th>Total</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                     {recentOrders.map(order => {
+                        const mappedStatus = mapOrderStatus(order.status);
+                        const statusText = String(mappedStatus).toLowerCase();
+                        
+                        return (
+                          <tr key={order.id}>
+                            <td>#{order.id}</td>
+                            <td>{order.customerName || order.user?.name || (order.userId ? `User ${order.userId}` : 'Guest')}</td>
+                            <td>{new Date(order.orderDate || order.createdAt).toLocaleDateString('en-US', {
+                              year: 'numeric',
+                              month: 'short',
+                              day: 'numeric'
+                            })}</td>
+                            <td>
+                              <span className={`admin-db-status-badge admin-db-status-${statusText}`}>
+                                {mappedStatus}
+                              </span>
+                            </td>
+                            <td>${order.totalAmount?.toFixed(2) || '0.00'}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
                   </div>
                   
                   <div className="admin-db-table-container">
                     <div className="admin-db-table-header">
                       <h3>New Members</h3>
-                      <button onClick={() => handleTabChange('members')}>View All</button>
+          
                     </div>
                     <table className="admin-db-data-table">
                       <thead>
@@ -725,7 +777,6 @@ const AdminDashboard = () => {
                   </div>
                 </div>
                 
-                {/* Bestselling Books */}
                 <div className="admin-db-bestsellers">
                   <div className="admin-db-table-header">
                     <h3>Bestselling Books</h3>
