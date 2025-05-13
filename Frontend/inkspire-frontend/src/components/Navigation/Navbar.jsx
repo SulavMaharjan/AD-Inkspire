@@ -19,7 +19,6 @@ const Navbar = () => {
 
   const isHome = location.pathname === "/";
 
-  // Check if user is a member (add this logic)
   const isMember = currentUser?.role || localStorage.getItem("role");
 
   useEffect(() => {
@@ -79,7 +78,6 @@ const Navbar = () => {
                 <ShoppingCart size={20} />
               </Link>
 
-              {/* Only show notification icon for members */}
               {isMember && <NotificationIcon />}
               <div className="user-menu-container">
                 <button className="user-menu-button" onClick={toggleUserMenu}>
@@ -96,6 +94,9 @@ const Navbar = () => {
                       exit={{ opacity: 0, y: -10 }}
                       transition={{ duration: 0.2 }}
                     >
+                      <Link to="member/profile" className="dropdown-item">
+                        My Profile
+                      </Link>
                       <button
                         className="dropdown-item logout"
                         onClick={handleLogout}
