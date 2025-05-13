@@ -48,12 +48,12 @@ body {
 
 .book-listing-header {
   background-color: var(--accent-color);
-  padding: 1.5rem 3rem;
+  padding: 1rem 6rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  box-shadow: var(--shadow-md);
   padding-top: 90px;
+  padding-left: 200px;
 }
 
 .logo-container {
