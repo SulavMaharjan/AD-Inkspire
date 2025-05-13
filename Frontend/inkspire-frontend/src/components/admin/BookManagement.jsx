@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { FiMoreVertical } from 'react-icons/fi';
 import "../../styles/BookManagement.css";
 
 const BookManagement = () => {
@@ -18,6 +19,13 @@ const BookManagement = () => {
     message: '',
     type: 'info' 
   });
+  const [showDiscountModal, setShowDiscountModal] = useState(false);
+  const [discountData, setDiscountData] = useState({
+    discountPercentage: 10,
+    startDate: new Date().toISOString().slice(0, 16),
+    endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 16)
+  });
+  const [activeDropdown, setActiveDropdown] = useState(null);
 
   const [formData, setFormData] = useState({
     id:'',
@@ -108,6 +116,21 @@ const BookManagement = () => {
     fetchBooks();
   }, [currentUser, navigate, token]);
 
+  const toggleDropdown = (bookId) => {
+    setActiveDropdown(activeDropdown === bookId ? null : bookId);
+  };
+
+  useEffect(() => {
+    const handleClickOutside = () => {
+      setActiveDropdown(null);
+    };
+    
+    document.addEventListener('click', handleClickOutside);
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+    };
+  }, []);
+
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
     const newValue = type === 'checkbox' ? checked : value;
@@ -192,6 +215,7 @@ const BookManagement = () => {
     setEditMode(true);
     setCurrentBook(book);
     setShowForm(true);
+    setActiveDropdown(null);
   };
 
   const handleSubmit = async (e) => {
@@ -324,13 +348,68 @@ const BookManagement = () => {
     return new Date(dateString).toLocaleDateString(undefined, options);
   };
 
+  const handleDiscountInputChange = (e) => {
+    const { name, value } = e.target;
+    setDiscountData({
+      ...discountData,
+      [name]: value
+    });
+  };
+  
+  const handleAddDiscount = async (e) => {
+    e.preventDefault();
+    
+    try {
+      const authToken = getAuthToken();
+      
+      if (!authToken) {
+        throw new Error('Authentication token not found');
+      }
+  
+      const discountDto = {
+        discountPercentage: parseFloat(discountData.discountPercentage),
+        startDate: new Date(discountData.startDate).toISOString(),
+        endDate: new Date(discountData.endDate).toISOString()
+      };
+  
+      const response = await fetch(`${API_BASE_URL}/api/Books/${currentBook.id}/discount`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`
+        },
+        body: JSON.stringify(discountDto)
+      });
+  
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to add discount: ${response.status} ${errorText}`);
+      }
+  
+      fetchBooks();
+      setShowDiscountModal(false);
+      showNotification('Discount added successfully', 'success');
+      
+    } catch (err) {
+      setError(err.message);
+      console.error('Error adding discount:', err);
+      showNotification(`Failed to add discount: ${err.message}`, 'error');
+    }
+  };
+  
+  const handleShowDiscountModal = (book) => {
+    setCurrentBook(book);
+    setShowDiscountModal(true);
+    setActiveDropdown(null);
+  };
+
   return (
-    <div className="bm-container">
+    <div className="bookmgmt-container">
       {notification.show && (
-        <div className={`bm-notification bm-${notification.type}`}>
-          <span className="bm-notification-message">{notification.message}</span>
+        <div className={`bookmgmt-notification bookmgmt-${notification.type}`}>
+          <span className="bookmgmt-notification-message">{notification.message}</span>
           <button 
-            className="bm-notification-close"
+            className="bookmgmt-notification-close"
             onClick={() => setNotification(prev => ({...prev, show: false}))}
           >
             &times;
@@ -338,46 +417,46 @@ const BookManagement = () => {
         </div>
       )}
 
-      <div className="bm-header">
+      <div className="bookmgmt-header">
         <h1>Book Management</h1>
       </div>
       
-      <div className="bm-search-container">
-        <form onSubmit={handleSearch} className="bm-search-form">
+      <div className="bookmgmt-search-container">
+        <form onSubmit={handleSearch} className="bookmgmt-search-form">
           <input
             type="text"
             placeholder="Search books by title, author, or ISBN..."
             value={searchTerm}
             onChange={handleSearchChange}
-            className="bm-search-input"
+            className="bookmgmt-search-input"
           />
-          <button type="submit" className="bm-btn-secondary">Search</button>
+          <button type="submit" className="bookmgmt-btn-secondary">Search</button>
         </form>
       </div>
 
       {error && (
-        <div className="bm-error-message">
-          <span className="bm-error-icon">!</span> {error}
+        <div className="bookmgmt-error-message">
+          <span className="bookmgmt-error-icon">!</span> {error}
         </div>
       )}
       
       {showForm && (
-        <div className="bm-modal-overlay">
-          <div className="bm-modal-container">
-            <form className="bm-book-form" onSubmit={handleSubmit}>
-              <div className="bm-form-header">
+        <div className="bookmgmt-modal-overlay">
+          <div className="bookmgmt-modal-container">
+            <form className="bookmgmt-book-form" onSubmit={handleSubmit}>
+              <div className="bookmgmt-form-header">
                 <h2>Edit Book</h2>
                 <button 
                   type="button" 
-                  className="bm-btn-close"
+                  className="bookmgmt-btn-close"
                   onClick={() => setShowForm(false)}
                 >
                   &times;
                 </button>
               </div>
 
-              <div className="bm-form-grid">
-                <div className="bm-form-group">
+              <div className="bookmgmt-form-grid">
+                <div className="bookmgmt-form-group">
                   <label htmlFor="title">Title</label>
                   <input
                     type="text"
@@ -389,7 +468,7 @@ const BookManagement = () => {
                   />
                 </div>
 
-                <div className="bm-form-group">
+                <div className="bookmgmt-form-group">
                   <label htmlFor="isbn">ISBN</label>
                   <input
                     type="text"
@@ -401,7 +480,7 @@ const BookManagement = () => {
                   />
                 </div>
 
-                <div className="bm-form-group">
+                <div className="bookmgmt-form-group">
                   <label htmlFor="author">Author</label>
                   <input
                     type="text"
@@ -413,7 +492,7 @@ const BookManagement = () => {
                   />
                 </div>
 
-                <div className="bm-form-group">
+                <div className="bookmgmt-form-group">
                   <label htmlFor="publisher">Publisher</label>
                   <input
                     type="text"
@@ -424,7 +503,7 @@ const BookManagement = () => {
                   />
                 </div>
 
-                <div className="bm-form-group">
+                <div className="bookmgmt-form-group">
                   <label htmlFor="publicationDate">Publication Date</label>
                   <input
                     type="date"
@@ -435,7 +514,7 @@ const BookManagement = () => {
                   />
                 </div>
 
-                <div className="bm-form-group">
+                <div className="bookmgmt-form-group">
                   <label htmlFor="price">Price ($)</label>
                   <input
                     type="number"
@@ -449,7 +528,7 @@ const BookManagement = () => {
                   />
                 </div>
 
-                <div className="bm-form-group">
+                <div className="bookmgmt-form-group">
                   <label htmlFor="stockQuantity">Stock Quantity</label>
                   <input
                     type="number"
@@ -462,7 +541,7 @@ const BookManagement = () => {
                   />
                 </div>
 
-                <div className="bm-form-group">
+                <div className="bookmgmt-form-group">
                   <label htmlFor="genre">Genre</label>
                   <select
                     id="genre"
@@ -488,7 +567,7 @@ const BookManagement = () => {
                   </select>
                 </div>
 
-                <div className="bm-form-group">
+                <div className="bookmgmt-form-group">
                   <label htmlFor="language">Language</label>
                   <input
                     type="text"
@@ -499,7 +578,7 @@ const BookManagement = () => {
                   />
                 </div>
 
-                <div className="bm-form-group">
+                <div className="bookmgmt-form-group">
                   <label htmlFor="format">Format</label>
                   <select
                     id="format"
@@ -515,7 +594,7 @@ const BookManagement = () => {
                   </select>
                 </div>
 
-                <div className="bm-form-group bm-checkbox-group">
+                <div className="bookmgmt-form-group bookmgmt-checkbox-group">
                   <label>
                     <input
                       type="checkbox"
@@ -527,7 +606,7 @@ const BookManagement = () => {
                   </label>
                 </div>
 
-                <div className="bm-form-group bm-checkbox-group">
+                <div className="bookmgmt-form-group bookmgmt-checkbox-group">
                   <label>
                     <input
                       type="checkbox"
@@ -539,7 +618,7 @@ const BookManagement = () => {
                   </label>
                 </div>
 
-                <div className="bm-form-group bm-checkbox-group">
+                <div className="bookmgmt-form-group bookmgmt-checkbox-group">
                   <label>
                     <input
                       type="checkbox"
@@ -552,7 +631,7 @@ const BookManagement = () => {
                 </div>
               </div>
 
-              <div className="bm-form-group bm-full-width">
+              <div className="bookmgmt-form-group bookmgmt-full-width">
                 <label htmlFor="description">Description</label>
                 <textarea
                   id="description"
@@ -563,9 +642,9 @@ const BookManagement = () => {
                 />
               </div>
 
-              <div className="bm-form-group bm-full-width">
+              <div className="bookmgmt-form-group bookmgmt-full-width">
                 <label htmlFor="coverImagePath">Cover Image</label>
-                <div className="bm-file-input-container">
+                <div className="bookmgmt-file-input-container">
                   <input
                     type="file"
                     id="coverImagePath"
@@ -574,30 +653,30 @@ const BookManagement = () => {
                     onChange={handleFileChange}
                   />
                   {currentBook && currentBook.coverImagePath && (
-                    <div className="bm-current-image-info">
+                    <div className="bookmgmt-current-image-info">
                       <span>Current: </span>
                       <img 
                         src={`${API_BASE_URL}${currentBook.coverImagePath}`} 
                         alt="Current cover" 
-                        className="bm-thumbnail-preview" 
+                        className="bookmgmt-thumbnail-preview" 
                       />
                     </div>
                   )}
                 </div>
-                <p className="bm-help-text">Leave blank to keep the current image</p>
+                <p className="bookmgmt-help-text">Leave blank to keep the current image</p>
               </div>
 
-              <div className="bm-form-actions">
+              <div className="bookmgmt-form-actions">
                 <button 
                   type="button" 
-                  className="bm-btn-secondary"
+                  className="bookmgmt-btn-secondary"
                   onClick={() => setShowForm(false)}
                 >
                   Cancel
                 </button>
                 <button 
                   type="submit" 
-                  className="bm-btn-primary"
+                  className="bookmgmt-btn-primary"
                 >
                   Update Book
                 </button>
@@ -607,24 +686,24 @@ const BookManagement = () => {
         </div>
       )}
 
-      <div className="bm-content-wrapper">
+      <div className="bookmgmt-content-wrapper">
         {loading ? (
-          <div className="bm-loading-container">
-            <div className="bm-loader"></div>
+          <div className="bookmgmt-loading-container">
+            <div className="bookmgmt-loader"></div>
             <p>Loading books...</p>
           </div>
         ) : books.items && books.items.length === 0 ? (
-          <div className="bm-empty-state">
-            <div className="bm-empty-icon">📚</div>
+          <div className="bookmgmt-empty-state">
+            <div className="bookmgmt-empty-icon">📚</div>
             <p>No books found. Try adjusting your search.</p>
           </div>
         ) : (
           <>
-            <div className="bm-table-container">
-              <table className="bm-books-table">
+            <div className="bookmgmt-table-container">
+              <table className="bookmgmt-books-table">
                 <thead>
                   <tr>
-                    <th className="bm-cover-column">Cover</th>
+                    <th className="bookmgmt-cover-column">Cover</th>
                     <th>Title</th>
                     <th>Author</th>
                     <th>ISBN</th>
@@ -637,76 +716,120 @@ const BookManagement = () => {
                 </thead>
                 <tbody>
                   {books.items && books.items.map((book) => (
-                    <tr key={book.id}>
-                      <td className="bm-cover-column">
+                    <tr key={book.id} className="bookmgmt-table-row">
+                      <td className="bookmgmt-cover-column">
                         <img 
                           src={book.coverImagePath ? `${API_BASE_URL}${book.coverImagePath}` : `${API_BASE_URL}/images/books/default-cover.jpg`} 
                           alt={`Cover of ${book.title}`} 
-                          className="bm-book-cover-thumbnail" 
+                          className="bookmgmt-book-cover-thumbnail" 
                         />
                       </td>
-                      <td className="bm-title-cell">{book.title}</td>
-                      <td>{book.author}</td>
-                      <td>{book.isbn}</td>
-                      <td>{book.genre}</td>
-                      <td>
-                        {book.isOnSale && book.discountedPrice !== null ? (
-                          <>
-                            <span className="bm-original-price">{formatPrice(book.price)}</span>
-                            <span className="bm-discounted-price">{formatPrice(book.discountedPrice)}</span>
-                            <span className="bm-discount-tag">{book.discountPercentage}% off</span>
-                          </>
-                        ) : (
-                          formatPrice(book.price)
-                        )}
+                      <td className="bookmgmt-title-cell">
+                        <div className="bookmgmt-title-wrapper">
+                          {book.title}
+                        </div>
                       </td>
-                      <td className={book.stockQuantity <= 5 ? 'bm-low-stock' : ''}>
-                        {book.stockQuantity}
+                      <td className="bookmgmt-author-cell">
+                        <div className="bookmgmt-author-wrapper">
+                          {book.author}
+                        </div>
                       </td>
-                      <td>
-                        <div className="bm-status-tags">
-                          {book.isOnSale && (
-                            <span className="bm-status-tag">On Sale</span>
-                          )}
-                          {book.isBestseller && (
-                            <span className="bm-status-tag">Bestseller</span>
-                          )}
-                          {book.isAwardWinner && (
-                            <span className="bm-status-tag">Award Winner</span>
-                          )}
-                          {book.stockQuantity === 0 && (
-                            <span className="bm-status-tag">Out of Stock</span>
+                      <td className="bookmgmt-isbn-cell">
+                        <div className="bookmgmt-isbn-wrapper">
+                          {book.isbn}
+                        </div>
+                      </td>
+                      <td className="bookmgmt-genre-cell">
+                        <div className="bookmgmt-genre-wrapper">
+                          {book.genre}
+                        </div>
+                      </td>
+                      <td className="bookmgmt-price-cell">
+                        <div className="bookmgmt-price-wrapper">
+                          {book.isOnSale && book.discountedPrice !== null ? (
+                            <>
+                              <span className="bookmgmt-original-price">{formatPrice(book.price)}</span>
+                              <span className="bookmgmt-discounted-price">{formatPrice(book.discountedPrice)}</span>
+                              <span className="bookmgmt-discount-tag">{book.discountPercentage}% off</span>
+                            </>
+                          ) : (
+                            formatPrice(book.price)
                           )}
                         </div>
                       </td>
-                      <td className="bm-actions-cell">
-                        <div className="bm-actions-wrapper">
-                          <button 
-                            className="bm-action-btn"
-                            onClick={() => navigate(`/bookDetail/${book.id}`)}
-                          >
-                            View
-                          </button>
-                          <button 
-                            className="bm-action-btn"
-                            onClick={() => handleEditBook(book)}
-                          >
-                            Edit
-                          </button>
-                          <button 
-                            className="bm-action-btn bm-btn-danger"
-                            onClick={() => handleDeleteBook(book.id)}
-                          >
-                            Delete
-                          </button>
+                      <td className={`bookmgmt-stock-cell ${book.stockQuantity <= 5 ? 'bookmgmt-low-stock' : ''}`}>
+                        <div className="bookmgmt-stock-wrapper">
+                          {book.stockQuantity}
+                        </div>
+                      </td>
+                      <td className="bookmgmt-status-cell">
+                        <div className="bookmgmt-status-tags">
                           {book.isOnSale && (
-                            <button 
-                              className="bm-action-btn"
-                              onClick={() => handleRemoveDiscount(book.id)}
-                            >
-                              Remove Sale
-                            </button>
+                            <span className="bookmgmt-status-tag bookmgmt-sale-tag">On Sale</span>
                           )}
+                          {book.isBestseller && (
+                            <span className="bookmgmt-status-tag bookmgmt-bestseller-tag">Bestseller</span>
+                          )}
+                          {book.isAwardWinner && (
+                            <span className="bookmgmt-status-tag bookmgmt-award-tag">Award Winner</span>
+                          )}
+                          {book.stockQuantity === 0 && (
+                            <span className="bookmgmt-status-tag bookmgmt-outofstock-tag">Out of Stock</span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="bookmgmt-actions-cell">
+                        <div className="bookmgmt-actions-wrapper">
+                          <div className="bookmgmt-dropdown">
+                            <button 
+                              className="bookmgmt-dropdown-toggle"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggleDropdown(book.id);
+                              }}
+                            >
+                              <FiMoreVertical />
+                            </button>
+                            
+                            {activeDropdown === book.id && (
+                              <div className="bookmgmt-dropdown-menu" onClick={(e) => e.stopPropagation()}>
+                                <button 
+                                  className="bookmgmt-dropdown-item"
+                                  onClick={() => navigate(`/bookDetail/${book.id}`)}
+                                >
+                                  View Details
+                                </button>
+                                <button 
+                                  className="bookmgmt-dropdown-item"
+                                  onClick={() => handleEditBook(book)}
+                                >
+                                  Edit Book
+                                </button>
+                                <button 
+                                  className="bookmgmt-dropdown-item"
+                                  onClick={() => handleDeleteBook(book.id)}
+                                >
+                                  Delete Book
+                                </button>
+                                {!book.isOnSale && (
+                                  <button 
+                                    className="bookmgmt-dropdown-item"
+                                    onClick={() => handleShowDiscountModal(book)}
+                                  >
+                                    Add Discount
+                                  </button>
+                                )}
+                                {book.isOnSale && (
+                                  <button 
+                                    className="bookmgmt-dropdown-item"
+                                    onClick={() => handleRemoveDiscount(book.id)}
+                                  >
+                                    Remove Discount
+                                  </button>
+                                )}
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </td>
                     </tr>
@@ -717,6 +840,80 @@ const BookManagement = () => {
           </>
         )}
       </div>
+
+      {/* Discount Modal */}
+      {showDiscountModal && (
+        <div className="bookmgmt-modal-overlay">
+          <div className="bookmgmt-modal-container">
+            <form className="bookmgmt-book-form" onSubmit={handleAddDiscount}>
+              <div className="bookmgmt-form-header">
+                <h2>Add Discount to {currentBook?.title}</h2>
+                <button 
+                  type="button" 
+                  className="bookmgmt-btn-close"
+                  onClick={() => setShowDiscountModal(false)}
+                >
+                  &times;
+                </button>
+              </div>
+
+              <div className="bookmgmt-form-group">
+                <label htmlFor="discountPercentage">Discount Percentage</label>
+                <input
+                  type="number"
+                  id="discountPercentage"
+                  name="discountPercentage"
+                  min="1"
+                  max="100"
+                  value={discountData.discountPercentage}
+                  onChange={handleDiscountInputChange}
+                  required
+                />
+              </div>
+
+              <div className="bookmgmt-form-group">
+                <label htmlFor="startDate">Start Date</label>
+                <input
+                  type="datetime-local"
+                  id="startDate"
+                  name="startDate"
+                  value={discountData.startDate}
+                  onChange={handleDiscountInputChange}
+                  required
+                />
+              </div>
+
+              <div className="bookmgmt-form-group">
+                <label htmlFor="endDate">End Date</label>
+                <input
+                  type="datetime-local"
+                  id="endDate"
+                  name="endDate"
+                  value={discountData.endDate}
+                  onChange={handleDiscountInputChange}
+                  required
+                />
+              </div>
+
+              <div className="bookmgmt-form-actions">
+                <button 
+                  type="button" 
+                  className="bookmgmt-btn-secondary"
+                  onClick={() => setShowDiscountModal(false)}
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit" 
+                  className="bookmgmt-btn-primary"
+                >
+                  Apply Discount
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
